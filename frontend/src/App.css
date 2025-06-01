@@ -1,0 +1,22 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  @apply bg-black text-gray-200;
+}
+
+@layer components {
+  .glass-panel {
+    @apply bg-gray-900 bg-opacity-60 backdrop-blur-lg border border-gray-800 rounded-xl shadow-lg;
+  }
+  .glass-input {
+    @apply bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200;
+  }
+  .btn-primary {
+    @apply bg-yellow-500 text-black font-medium py-2 px-4 rounded-lg hover:bg-yellow-400 transition duration-300;
+  }
+  .btn-secondary {
+    @apply bg-gray-800 text-gray-200 py-2 px-4 rounded-lg hover:bg-gray-700 transition duration-300;
+  }
+}

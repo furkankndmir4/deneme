@@ -1,0 +1,254 @@
+[
+  {
+    "id": "first_goal",
+    "name": "İlk Hedefini Tamamla",
+    "description": "İlk fitness hedefini başarıyla tamamladın.",
+    "points": 50,
+    "icon": "🏅",
+    "type": "goal",
+    "condition": { "goalsCompleted": 1 }
+  },
+  {
+    "id": "5_goals",
+    "name": "5 Hedef Tamamla",
+    "description": "5 farklı hedefi başarıyla tamamladın.",
+    "points": 100,
+    "icon": "🥇",
+    "type": "goal",
+    "condition": { "goalsCompleted": 5 }
+  },
+  {
+    "id": "10_goals",
+    "name": "10 Hedef Tamamla",
+    "description": "10 farklı hedefi başarıyla tamamladın.",
+    "points": 200,
+    "icon": "🥈",
+    "type": "goal",
+    "condition": { "goalsCompleted": 10 }
+  },
+  {
+    "id": "20_goals",
+    "name": "20 Hedef Tamamla",
+    "description": "20 farklı hedefi başarıyla tamamladın.",
+    "points": 400,
+    "icon": "🥉",
+    "type": "goal",
+    "condition": { "goalsCompleted": 20 }
+  },
+  {
+    "id": "100_points",
+    "name": "100 Puan Rozeti",
+    "description": "100 puana ulaştın.",
+    "points": 100,
+    "icon": "💯",
+    "type": "points",
+    "condition": { "points": 100 }
+  },
+  {
+    "id": "500_points",
+    "name": "500 Puan Rozeti",
+    "description": "500 puana ulaştın.",
+    "points": 500,
+    "icon": "🔥",
+    "type": "points",
+    "condition": { "points": 500 }
+  },
+  {
+    "id": "1000_points",
+    "name": "1000 Puan Rozeti",
+    "description": "1000 puana ulaştın.",
+    "points": 1000,
+    "icon": "🏆",
+    "type": "points",
+    "condition": { "points": 1000 }
+  },
+  {
+    "id": "first_friend",
+    "name": "İlk Arkadaş",
+    "description": "İlk arkadaşını ekledin.",
+    "points": 10,
+    "icon": "🤝",
+    "type": "social",
+    "condition": { "friends": 1 }
+  },
+  {
+    "id": "5_friends",
+    "name": "5 Arkadaş",
+    "description": "5 arkadaş ekledin.",
+    "points": 30,
+    "icon": "👥",
+    "type": "social",
+    "condition": { "friends": 5 }
+  },
+  {
+    "id": "10_friends",
+    "name": "10 Arkadaş",
+    "description": "10 arkadaş ekledin.",
+    "points": 60,
+    "icon": "👨‍👩‍👧‍👦",
+    "type": "social",
+    "condition": { "friends": 10 }
+  },
+  {
+    "id": "first_measurement",
+    "name": "İlk Ölçüm",
+    "description": "İlk vücut ölçümünü kaydettin.",
+    "points": 10,
+    "icon": "📏",
+    "type": "progress",
+    "condition": { "measurements": 1 }
+  },
+  {
+    "id": "10_measurements",
+    "name": "10 Ölçüm",
+    "description": "10 farklı ölçüm kaydettin.",
+    "points": 50,
+    "icon": "📐",
+    "type": "progress",
+    "condition": { "measurements": 10 }
+  },
+  {
+    "id": "first_login",
+    "name": "İlk Giriş",
+    "description": "Siteye ilk kez giriş yaptın.",
+    "points": 5,
+    "icon": "🚀",
+    "type": "activity",
+    "condition": { "logins": 1 }
+  },
+  {
+    "id": "7_day_streak",
+    "name": "7 Günlük Seri",
+    "description": "7 gün üst üste giriş yaptın.",
+    "points": 30,
+    "icon": "📅",
+    "type": "activity",
+    "condition": { "streak": 7 }
+  },
+  {
+    "id": "30_day_streak",
+    "name": "30 Günlük Seri",
+    "description": "30 gün üst üste giriş yaptın.",
+    "points": 100,
+    "icon": "🏆",
+    "type": "activity",
+    "condition": { "streak": 30 }
+  },
+  {
+    "id": "100_day_streak",
+    "name": "100 Günlük Seri",
+    "description": "100 gün üst üste giriş yaptın.",
+    "points": 500,
+    "icon": "🌟",
+    "type": "activity",
+    "condition": { "streak": 100 }
+  },
+  {
+    "id": "first_share",
+    "name": "İlk Paylaşım",
+    "description": "Bir başarını ilk kez paylaştın.",
+    "points": 10,
+    "icon": "📣",
+    "type": "social",
+    "condition": { "shares": 1 }
+  },
+  {
+    "id": "first_weight_loss",
+    "name": "İlk Kilo Kaybı",
+    "description": "İlk kez kilo kaybı kaydettin.",
+    "points": 10,
+    "icon": "⚖️",
+    "type": "progress",
+    "condition": { "weightLoss": 1 }
+  },
+  {
+    "id": "first_muscle_gain",
+    "name": "İlk Kas Kazancı",
+    "description": "İlk kez kas kazanımı kaydettin.",
+    "points": 10,
+    "icon": "💪",
+    "type": "progress",
+    "condition": { "muscleGain": 1 }
+  },
+  {
+    "id": "first_workout",
+    "name": "İlk Antrenman",
+    "description": "İlk antrenman programını tamamladın.",
+    "points": 10,
+    "icon": "🏋️",
+    "type": "activity",
+    "condition": { "workouts": 1 }
+  },
+  {
+    "id": "record_streak",
+    "name": "Rekor Seri",
+    "description": "Kendi en uzun streak rekorunu kırdın.",
+    "points": 100,
+    "icon": "🥇",
+    "type": "record",
+    "condition": { "recordStreak": true }
+  },
+  {
+    "id": "secret_combo",
+    "name": "???",
+    "description": "Gizli bir başarı!",
+    "points": 50,
+    "icon": "🕵️",
+    "type": "secret",
+    "condition": { "secret": true }
+  },
+  {
+    "id": "night_owl",
+    "name": "???",
+    "description": "Gizli bir başarı!",
+    "points": 20,
+    "icon": "🌙",
+    "type": "secret",
+    "condition": { "nightLogin": true }
+  },
+  {
+    "id": "new_year",
+    "name": "Yılbaşı Rozeti",
+    "description": "Yılbaşı günü giriş yaptın.",
+    "points": 20,
+    "icon": "🎉",
+    "type": "special",
+    "condition": { "date": "01-01" }
+  },
+  {
+    "id": "health_day",
+    "name": "Sağlık Günü Rozeti",
+    "description": "Dünya Sağlık Günü'nde giriş yaptın.",
+    "points": 20,
+    "icon": "🌍",
+    "type": "special",
+    "condition": { "date": "04-07" }
+  },
+  {
+    "id": "first_athlete",
+    "name": "İlk Sporcu",
+    "description": "İlk kez bir sporcuyu sisteme ekledin.",
+    "points": 10,
+    "icon": "👤",
+    "type": "coach",
+    "condition": { "athletes": 1 }
+  },
+  {
+    "id": "5_athletes",
+    "name": "5 Sporcu",
+    "description": "5 farklı sporcun oldu.",
+    "points": 30,
+    "icon": "👥",
+    "type": "coach",
+    "condition": { "athletes": 5 }
+  },
+  {
+    "id": "first_program",
+    "name": "İlk Program",
+    "description": "İlk kez bir sporcuya antrenman programı hazırladın.",
+    "points": 10,
+    "icon": "📋",
+    "type": "coach",
+    "condition": { "programs": 1 }
+  }
+] 
