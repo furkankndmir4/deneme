@@ -27,6 +27,13 @@ const Register = () => {
         email,
         password,
         userType
+      }, {
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+          'Origin': 'https://denemefrontend-indol.vercel.app'
+        },
+        withCredentials: true
       });
 
       if (response.data) {
