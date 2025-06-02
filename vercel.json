@@ -1,16 +1,26 @@
 {
   "version": 2,
-  "builds": [
+  "projects": [
     {
-      "src": "frontend/index.html",
-      "use": "@vercel/static-build",
-      "config": {
-        "distDir": "frontend/dist"
-      }
+      "name": "frontend",
+      "root": "frontend",
+      "builds": [
+        {
+          "src": "index.html",
+          "use": "@vercel/static-build",
+          "config": { "distDir": "dist" }
+        }
+      ]
     },
     {
-      "src": "backend/server.js",
-      "use": "@vercel/node"
+      "name": "backend",
+      "root": "backend",
+      "builds": [
+        {
+          "src": "server.js",
+          "use": "@vercel/node"
+        }
+      ]
     }
   ],
   "routes": [
@@ -20,7 +30,7 @@
     },
     {
       "src": "/(.*)",
-      "dest": "/frontend/dist/$1"
+      "dest": "frontend/dist/$1"
     }
   ]
 }
