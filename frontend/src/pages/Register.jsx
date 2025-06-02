@@ -23,7 +23,7 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users/register', {
+      const response = await axios.post('https://denemefrontend-indol.vercel.app/api/users/register', {
         email,
         password,
         userType
