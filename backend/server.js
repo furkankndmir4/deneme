@@ -24,20 +24,11 @@ const app = express();
 
 // CORS yapılandırması
 app.use(cors({
-  origin: 'https://denemefrontend-indol.vercel.app',
+  origin: ['https://denemefrontend-indol.vercel.app', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true
+  credentials: true,
 }));
-
-// OPTIONS istekleri için özel işleyici
-app.options('*', (req, res) => {
-  res.header('Access-Control-Allow-Origin', 'https://denemefrontend-indol.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
-});
 
 app.use(express.json());
 
