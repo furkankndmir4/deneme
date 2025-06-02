@@ -29,11 +29,8 @@ const Register = () => {
         userType
       }, {
         headers: {
-          'Content-Type': 'application/json',
-          'Accept': 'application/json',
-          'Origin': 'https://denemefrontend-indol.vercel.app'
-        },
-        withCredentials: true
+          'Content-Type': 'application/json'
+        }
       });
 
       if (response.data) {
