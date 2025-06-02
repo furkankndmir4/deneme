@@ -23,8 +23,4 @@
       "dest": "/frontend/dist/$1"
     }
   ],
-  "env": {
-    "NODE_ENV": "production",
-    "JWT_SECRET": "@jwt_secret"
-  }
 }
