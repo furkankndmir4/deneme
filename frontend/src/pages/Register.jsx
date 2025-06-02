@@ -28,7 +28,11 @@ const Register = () => {
         password,
         userType
       }, {
-        withCredentials: true
+        withCredentials: true,
+        headers: {
+          'Content-Type': 'application/json',
+          'Accept': 'application/json'
+        }
       });
 
       if (response.data) {

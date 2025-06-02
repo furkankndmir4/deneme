@@ -16,7 +16,6 @@ const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const goalController = require('./controllers/goalController');
 const goalRoutes = require('./routes/goalRoutes');
 
-
 dotenv.config();
 
 connectDB();
@@ -24,10 +23,19 @@ connectDB();
 const app = express();
 
 // CORS yapılandırması
-app.use(cors({
-  origin: 'https://denemefrontend-indol.vercel.app',
-  credentials: true
-}));
+const corsOptions = {
+  origin: ['https://denemefrontend-indol.vercel.app', 'http://localhost:5173'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
+  preflightContinue: false,
+  optionsSuccessStatus: 204
+};
+
+app.use(cors(corsOptions));
+
+// OPTIONS istekleri için özel işleyici
+app.options('*', cors(corsOptions));
 
 app.use(express.json());
 
