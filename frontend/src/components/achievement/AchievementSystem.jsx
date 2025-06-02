@@ -192,7 +192,7 @@ const AchievementSystem = () => {
         
         setApiProgress(response.data.progress);
         setNewlyEarned(response.data.earned || []);
-        
+    
         // Kullanıcı tipine göre rozetleri filtrele
         const filteredBadges = allBadges.filter(badge => {
           if (badge.type === 'coach' || badge.userType === 'coach') {

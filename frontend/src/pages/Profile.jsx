@@ -63,6 +63,9 @@ const Profile = () => {
   const navigate = useNavigate();
   const achievementService = new AchievementService();
 
+  // Sadece değişen fiziksel verileri takip etmek için state
+  const [changedPhysicalData, setChangedPhysicalData] = useState({});
+
   // Token alma yardımcı fonksiyonu
   const getToken = () => {
     try {
@@ -105,6 +108,22 @@ const Profile = () => {
     }));
   };
 
+  const handlePhysicalDataChange = (e) => {
+    const { name, value } = e.target;
+    setUserData((prev) => ({
+      ...prev,
+      physicalData: {
+        ...prev.physicalData,
+        [name]: value,
+      },
+    }));
+    // Değişen alanı kaydet
+    setChangedPhysicalData(prev => ({
+      ...prev,
+      [name]: value
+    }));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setUpdating(true);
@@ -142,37 +161,35 @@ const Profile = () => {
       console.log("API response:", response.data);
 
       // --- Vücut ölçülerini de güncelle ---
-      // NaN değerleri undefined olarak gönder
+      // NaN değerleri undefined olarak gönder ve sadece değişenleri al
       const safeParse = (val) => {
         const num = parseFloat(val);
         return isNaN(num) ? undefined : num;
       };
-      const physicalData = {
-        height: safeParse(userData.profile.height),
-        weight: safeParse(userData.profile.weight),
-        bodyFat: safeParse(userData.physicalData.bodyFat),
-        waistCircumference: safeParse(userData.physicalData.waistCircumference),
-        neckCircumference: safeParse(userData.physicalData.neckCircumference),
-        hipCircumference: safeParse(userData.physicalData.hipCircumference),
-        chestCircumference: safeParse(userData.physicalData.chestCircumference),
-        bicepCircumference: safeParse(userData.physicalData.bicepCircumference),
-        thighCircumference: safeParse(userData.physicalData.thighCircumference),
-        calfCircumference: safeParse(userData.physicalData.calfCircumference),
-        shoulderWidth: safeParse(userData.physicalData.shoulderWidth),
-      };
-      await axios.put(
-        "http://localhost:5000/api/users/physical-data",
-        physicalData,
-        {
-          headers: {
-            Authorization: `Bearer ${
-              localStorage.getItem("userToken") ||
-              sessionStorage.getItem("userToken")
-            }`,
-          },
+      // Physical data objesini oluştururken sadece değeri undefined veya null olmayanları dahil et
+      const physicalDataToSend = {};
+      // Sadece değişen fiziksel veri alanlarını physicalDataToSend objesine ekle
+      for (const key in changedPhysicalData) {
+        if (changedPhysicalData[key] !== undefined && changedPhysicalData[key] !== null) {
+          physicalDataToSend[key] = safeParse(changedPhysicalData[key]);
         }
-      );
-      // --- ---
+      }
+
+      // Sadece en az bir fiziksel veri alanı varsa gönder
+      if (Object.keys(physicalDataToSend).length > 0) {
+        await axios.put(
+          "http://localhost:5000/api/users/physical-data",
+          physicalDataToSend,
+          {
+            headers: {
+              Authorization: `Bearer ${
+                localStorage.getItem("userToken") ||
+                sessionStorage.getItem("userToken")
+              }`,
+            },
+          }
+        );
+      }
 
       if (response.data.profile) {
         // Update the state with the new profile data
@@ -995,14 +1012,8 @@ const Profile = () => {
                             min="0"
                             max="100"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.bodyFat || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                bodyFat: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.bodyFat ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1014,14 +1025,8 @@ const Profile = () => {
                             name="waistCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.waistCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                waistCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.waistCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1033,14 +1038,8 @@ const Profile = () => {
                             name="neckCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.neckCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                neckCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.neckCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1052,14 +1051,8 @@ const Profile = () => {
                             name="hipCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.hipCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                hipCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.hipCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1071,14 +1064,8 @@ const Profile = () => {
                             name="chestCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.chestCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                chestCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.chestCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1090,14 +1077,8 @@ const Profile = () => {
                             name="bicepCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.bicepCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                bicepCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.bicepCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1109,14 +1090,8 @@ const Profile = () => {
                             name="thighCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.thighCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                thighCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.thighCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1128,14 +1103,8 @@ const Profile = () => {
                             name="calfCircumference"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.calfCircumference || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                calfCircumference: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.calfCircumference ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                         <div>
@@ -1147,14 +1116,8 @@ const Profile = () => {
                             name="shoulderWidth"
                             type="number"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.shoulderWidth || ""}
-                            onChange={(e) => setUserData(prev => ({
-                              ...prev,
-                              physicalData: {
-                                ...prev.physicalData,
-                                shoulderWidth: e.target.value
-                              }
-                            }))}
+                            value={userData?.physicalData?.shoulderWidth ?? ""}
+                            onChange={handlePhysicalDataChange}
                           />
                         </div>
                       </div>

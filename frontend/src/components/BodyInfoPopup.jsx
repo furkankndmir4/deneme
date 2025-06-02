@@ -167,12 +167,21 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
             <input
               id="bodyFat"
               name="bodyFat"
-              type="number"
-              step="0.1"
+              type="text"
               className="glass-input w-full p-3"
               placeholder="18"
               value={physicalData.bodyFat}
-              onChange={handleChange}
+              onChange={(e) => {
+                const { name, value } = e.target;
+                // Sadece sayısal karakterlere ve bir tane noktaya izin ver
+                const regex = /^\d*\.?\d*$/;
+                if (value === '' || regex.test(value)) {
+                  setPhysicalData((prevState) => ({
+                    ...prevState,
+                    [name]: value,
+                  }));
+                }
+              }}
               required
             />
           </div>

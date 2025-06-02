@@ -152,6 +152,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
   // En güncel physicalData kaydını bul
   const latestPhysicalData = await PhysicalData.findOne({ user: user._id }).sort({ createdAt: -1 });
 
+  // Kullanıcının fiziksel veri geçmişinden son 2 kaydı çek
+  const physicalDataHistory = await PhysicalDataHistory.find({ user: user._id })
+    .sort({ createdAt: -1 })
+    .limit(2);
+
   res.json({
     _id: user._id,
     email: user.email,
@@ -161,6 +166,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
     coach: coach,
     athletes: athletes,
     trainingProgram: trainingProgram,
+    physicalDataHistory: physicalDataHistory, // Fiziksel veri geçmişini yanıtına ekle
   });
 });
 
@@ -335,6 +341,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
   }
 
   const { fullName, age, gender, height, weight, goalType, activityLevel, privacy, goals, specialization, coachNote } = req.body;
+  const bodyFat = req.body.bodyFat;
 
   let profile = await Profile.findOne({ user: req.user._id });
 
@@ -391,15 +398,16 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     const weightChange =
       lastEntry && typeof lastEntry.weight === "number" && typeof weight === "number"
         ? weight - lastEntry.weight
-        : 0;
+        : physicalData ? physicalData.weightChange : 0;
     const bodyFatChange =
-      lastEntry && typeof lastEntry.bodyFat === "number" && typeof profile.bodyFat === "number"
-        ? profile.bodyFat - lastEntry.bodyFat
-        : 0;
+      // Sadece bodyFat değeri açıkça gönderildiğinde farkı hesapla
+      (bodyFat !== undefined && lastEntry && typeof lastEntry.bodyFat === "number" && typeof bodyFat === "number")
+        ? bodyFat - lastEntry.bodyFat
+        : physicalData ? physicalData.bodyFatChange : 0;
     const heightChange =
       lastEntry && typeof lastEntry.height === "number" && typeof height === "number"
         ? height - lastEntry.height
-        : 0;
+        : physicalData ? physicalData.heightChange : 0;
 
     let currentBMI = null;
     let bmiChange = 0;
@@ -418,6 +426,10 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       physicalData.heightChange = safeNumber(heightChange);
       physicalData.bmiChange = safeNumber(bmiChange);
       if (currentBMI) physicalData.bmi = safeNumber(currentBMI);
+      // Eğer bodyFat değeri gönderildiyse güncelle
+      if (bodyFat !== undefined) {
+        physicalData.bodyFat = bodyFat;
+      }
       await physicalData.save();
     } else {
       physicalData = await PhysicalData.create({
@@ -428,7 +440,8 @@ const updateUserProfile = asyncHandler(async (req, res) => {
         bodyFatChange: safeNumber(bodyFatChange),
         heightChange: safeNumber(heightChange),
         bmiChange: safeNumber(bmiChange),
-        bmi: safeNumber(currentBMI)
+        bmi: safeNumber(currentBMI),
+        bodyFat: bodyFat
       });
       user.physicalData = physicalData._id;
       await user.save();
@@ -439,15 +452,20 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       user: req.user._id,
       height,
       weight,
-      bodyFat: profile.bodyFat,
-      waistCircumference: profile.waistCircumference,
-      neckCircumference: profile.neckCircumference,
-      hipCircumference: profile.hipCircumference,
+      bodyFat: bodyFat,
+      waistCircumference: req.body.waistCircumference,
+      neckCircumference: req.body.neckCircumference,
+      hipCircumference: req.body.hipCircumference,
+      chestCircumference: req.body.chestCircumference,
+      bicepCircumference: req.body.bicepCircumference,
+      thighCircumference: req.body.thighCircumference,
+      calfCircumference: req.body.calfCircumference,
+      shoulderWidth: req.body.shoulderWidth,
       weightChange: safeNumber(weightChange),
       bodyFatChange: safeNumber(bodyFatChange),
       heightChange: safeNumber(heightChange),
       bmiChange: safeNumber(bmiChange),
-      bmi: safeNumber(currentBMI),
+      bmi: safeNumber(currentBMI)
     });
     await newHistoryEntry.save();
   }
@@ -457,6 +475,9 @@ const updateUserProfile = asyncHandler(async (req, res) => {
     .select("-password")
     .populate({ path: "profile" })
     .populate({ path: "physicalData" });
+
+  // Debug log: Check updatedUser data before sending
+  console.log("updateUserProfile response data:", { physicalData: updatedUser.physicalData, physicalDataHistory: updatedUser.physicalDataHistory });
 
   res.json(updatedUser);
 });
@@ -763,49 +784,82 @@ const updatePhysicalData = asyncHandler(async (req, res) => {
     physicalData = new PhysicalData({ user: userId });
   }
 
-  const lastEntry = await PhysicalDataHistory.findOne({ user: userId }).sort({ date: -1 });
+  // Son fiziksel veri geçmişini bul, sadece bodyFat olanları dikkate al
+  const lastEntry = await PhysicalDataHistory.findOne({
+    user: userId,
+    bodyFat: { $ne: null, $exists: true }
+  })
+    .sort({ date: -1, createdAt: -1 }); // Hem date hem createdAt'e göre sırala
 
   // Calculate all changes
-  const weightChange = lastEntry && weight ? weight - lastEntry.weight : 0;
-  const bodyFatChange = lastEntry && bodyFat ? bodyFat - lastEntry.bodyFat : 0;
-  const heightChange = lastEntry && height ? height - lastEntry.height : 0;
+  console.log("Body Fat Change Calculation Debug:");
+  console.log("lastEntry bodyFat:", lastEntry?.bodyFat);
+  console.log("lastEntry ID:", lastEntry?._id);
+  console.log("lastEntry createdAt:", lastEntry?.createdAt);
+  console.log("req.body.bodyFat:", req.body.bodyFat);
+
+  const weightChange =
+    lastEntry && typeof lastEntry.weight === "number" && typeof weight === "number"
+      ? weight - lastEntry.weight
+      : physicalData ? physicalData.weightChange : 0;
+  const bodyFatChange =
+    // Sadece bodyFat değeri açıkça gönderildiğinde farkı hesapla
+    (bodyFat !== undefined && lastEntry && typeof lastEntry.bodyFat === "number" && typeof bodyFat === "number")
+      ? bodyFat - lastEntry.bodyFat
+      : physicalData ? physicalData.bodyFatChange : 0;
+  const heightChange =
+    lastEntry && typeof lastEntry.height === "number" && typeof height === "number"
+      ? height - lastEntry.height
+      : physicalData ? physicalData.heightChange : 0;
 
   // Calculate BMI and BMI change
   let currentBMI = null;
-  let bmiChange = 0;
-  if (height && weight) {
+  let bmiChange = undefined; // Önceki değer yoksa undefined
+  if (typeof height === "number" && typeof weight === "number" && height > 0) {
     currentBMI = weight / ((height / 100) * (height / 100));
-    if (lastEntry && lastEntry.bmi) {
+    if (lastEntry && typeof lastEntry.bmi === "number") {
       bmiChange = currentBMI - lastEntry.bmi;
     }
   }
 
-  const newHistoryEntry = new PhysicalDataHistory({
+  const newHistoryEntryData = { user: userId };
+
+  // PhysicalData koleksiyonundaki mevcut değerleri al
+  const currentPhysicalData = await PhysicalData.findOne({ user: userId });
+
+  // History kaydı için verileri hazırla: mevcut değerler + req.body'deki varsa yeni değerler
+  // Değişim değerleri backend'de zaten hesaplandı (weightChange, bodyFatChange vb.)
+  const dataForHistory = {
     user: userId,
-    height,
-    weight,
-    bodyFat,
-    waistCircumference,
-    neckCircumference,
-    hipCircumference,
-    chestCircumference,
-    bicepCircumference,
-    thighCircumference,
-    calfCircumference,
-    shoulderWidth,
+    height: req.body.height !== undefined ? req.body.height : currentPhysicalData?.height,
+    weight: req.body.weight !== undefined ? req.body.weight : currentPhysicalData?.weight,
+    bodyFat: req.body.bodyFat !== undefined ? req.body.bodyFat : currentPhysicalData?.bodyFat,
+    waistCircumference: req.body.waistCircumference !== undefined ? req.body.waistCircumference : currentPhysicalData?.waistCircumference,
+    neckCircumference: req.body.neckCircumference !== undefined ? req.body.neckCircumference : currentPhysicalData?.neckCircumference,
+    hipCircumference: req.body.hipCircumference !== undefined ? req.body.hipCircumference : currentPhysicalData?.hipCircumference,
+    chestCircumference: req.body.chestCircumference !== undefined ? req.body.chestCircumference : currentPhysicalData?.chestCircumference,
+    bicepCircumference: req.body.bicepCircumference !== undefined ? req.body.bicepCircumference : currentPhysicalData?.bicepCircumference,
+    thighCircumference: req.body.thighCircumference !== undefined ? req.body.thighCircumference : currentPhysicalData?.thighCircumference,
+    calfCircumference: req.body.calfCircumference !== undefined ? req.body.calfCircumference : currentPhysicalData?.calfCircumference,
+    shoulderWidth: req.body.shoulderWidth !== undefined ? req.body.shoulderWidth : currentPhysicalData?.shoulderWidth,
+    date: new Date(), // History kaydı için tarih ekle
+    // Değişim değerlerini de ekle
     weightChange: safeNumber(weightChange),
     bodyFatChange: safeNumber(bodyFatChange),
     heightChange: safeNumber(heightChange),
     bmiChange: safeNumber(bmiChange),
-    bmi: safeNumber(currentBMI)
-  });
+    bmi: safeNumber(currentBMI),
+  };
+
+  // Yeni PhysicalDataHistory kaydını oluştur ve sadece değer atananları dahil et
+  const newHistoryEntry = new PhysicalDataHistory(Object.fromEntries(Object.entries(dataForHistory).filter(([_, v]) => v !== undefined)));
 
   await newHistoryEntry.save();
 
-  // Update physical data
+  // Update physical data (latest aggregated data)
   if (height) physicalData.height = height;
   if (weight) physicalData.weight = weight;
-  if (bodyFat) physicalData.bodyFat = bodyFat;
+  if (bodyFat) physicalData.bodyFat = bodyFat; // Yeni girilen değeri physicalData'ya kaydet
   if (waistCircumference) physicalData.waistCircumference = waistCircumference;
   if (neckCircumference) physicalData.neckCircumference = neckCircumference;
   if (hipCircumference) physicalData.hipCircumference = hipCircumference;
@@ -820,7 +874,9 @@ const updatePhysicalData = asyncHandler(async (req, res) => {
   physicalData.bmiChange = safeNumber(bmiChange);
   if (currentBMI) physicalData.bmi = safeNumber(currentBMI);
 
+  console.log("PhysicalData before save:", physicalData);
   await physicalData.save();
+  console.log("PhysicalData after save:", physicalData);
 
   // Create a new Measurement record for badge tracking
   await Measurement.create({
@@ -834,6 +890,7 @@ const updatePhysicalData = asyncHandler(async (req, res) => {
     await user.save();
   }
 
+  console.log("PhysicalData sent to frontend:", physicalData);
   res.json({
     message: 'Physical data updated successfully',
     physicalData

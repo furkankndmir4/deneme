@@ -366,7 +366,7 @@ const Dashboard = () => {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [myAthletes, setMyAthletes] = useState([]);
   const [leaderboardData, setLeaderboardData] = useState([]);
-  const [userRank, setUserRank] = useState(0);
+  const [userRank, setUserRank] = useState(null);
   const [calendarLoading, setCalendarLoading] = useState(false);
   const [calendarError, setCalendarError] = useState(null);
   const [visibleMeals, setVisibleMeals] = useState(6);
@@ -389,8 +389,8 @@ const Dashboard = () => {
     navigate("/");
   };
 
-    const fetchUserData = async () => {
-      try {
+  const fetchUserData = async () => {
+    try {
       setLoading(true);
       setError(null);
       const token =
@@ -415,7 +415,29 @@ const Dashboard = () => {
       console.log("API response:", response.data);
 
       if (response.data) {
-        setUserData(response.data);
+        let updatedUserData = response.data;
+
+        // Ensure the main physicalData object includes the latest change values from history if available
+        if (
+          response.data.physicalDataHistory &&
+          response.data.physicalDataHistory.length > 0
+        ) {
+          const latestHistoryEntry =
+            response.data.physicalDataHistory[0]; // En yeni kayıt ilk elemandadır
+          updatedUserData.physicalData = {
+            ...updatedUserData.physicalData,
+            bodyFatChange: latestHistoryEntry.bodyFatChange,
+            weightChange: latestHistoryEntry.weightChange,
+            heightChange: latestHistoryEntry.heightChange,
+            bmiChange: latestHistoryEntry.bmiChange
+          };
+          console.log(
+            "Updated physicalData with changes from history:",
+            updatedUserData.physicalData
+          );
+        }
+
+        setUserData(updatedUserData); // Güncellenmiş veriyi state'e kaydet
 
         // Check if profile data is complete
         const hasProfileData =
@@ -435,6 +457,12 @@ const Dashboard = () => {
 
         console.log("Profile data check:", { hasProfileData, hasPhysicalData });
 
+        // Debug log for physicalDataHistory
+        console.log(
+          "Physical Data History from API:",
+          response.data.physicalDataHistory
+        );
+
         // Update local storage with the new data
         const storedUser = JSON.parse(
           localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
@@ -451,9 +479,9 @@ const Dashboard = () => {
           localStorage.setItem("profileSetupDone", "true");
           setIsProfileSetupPopupOpen(false);
           setIsBodyInfoPopupOpen(false);
-            setNeedsProfileSetup(false);
+          setNeedsProfileSetup(false);
           setNeedsPhysicalData(false);
-          } else {
+        } else {
           // Show appropriate popup based on missing data
           if (!hasProfileData) {
             console.log("Showing profile setup popup");
@@ -476,33 +504,43 @@ const Dashboard = () => {
             if (weightSpan) {
               weightSpan.textContent = `${response.data.profile.weight} kg`;
             }
-          }
+            
+            // Update body fat change
+            const bodyFatChangeSpan = progressCard.querySelector(
+              "[data-bodyfat-change]"
+            );
+            if (bodyFatChangeSpan && updatedUserData.physicalData?.bodyFatChange !== undefined) {
+              const change = updatedUserData.physicalData.bodyFatChange;
+              const sign = change > 0 ? "+" : "";
+              bodyFatChangeSpan.textContent = `${sign}${change.toFixed(1)}%`;
+            }
           }
         }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        if (error.response?.status === 401) {
-          setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-          clearAuthData();
-          setTimeout(() => {
-            navigate("/");
-          }, 2000);
-        } else {
+      }
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      if (error.response?.status === 401) {
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        clearAuthData();
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
         setError(
           "Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
         );
-        }
-    } finally {
-        setLoading(false);
       }
-    };
+    } finally {
+      setLoading(false);
+    }
+  };
 
   // İlk yükleme için useEffect
   useEffect(() => {
     const initializeData = async () => {
-        try {
+      try {
         await fetchUserData();
-        } catch (error) {
+      } catch (error) {
         console.error("Error initializing data:", error);
         setError(
           "Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
@@ -516,15 +554,15 @@ const Dashboard = () => {
   // Token kontrolü için useEffect
   useEffect(() => {
     const checkAuth = () => {
-    const token = getAuthToken();
-    if (!token) {
-      console.error("No token found on page load");
-      setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-      clearAuthData();
-      setTimeout(() => {
-        navigate("/");
-      }, 2000);
-    }
+      const token = getAuthToken();
+      if (!token) {
+        console.error("No token found on page load");
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        clearAuthData();
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      }
     };
 
     checkAuth();
@@ -571,6 +609,8 @@ const Dashboard = () => {
         localStorage.setItem("profileSetupDone", "true");
         setNeedsProfileSetup(false);
         setIsProfileSetupPopupOpen(false);
+        // Fiziksel veriler güncellendiğinde dashboard'u yenilemek için kullanıcı verisini tekrar çek
+        fetchUserData();
       }
     } catch (error) {
       console.error("Profile save error:", error);
@@ -1007,6 +1047,51 @@ const Dashboard = () => {
     fetchEvents();
   }, []);
 
+  // Liderlik tablosu verisini çek
+  useEffect(() => {
+    const fetchLeaderboardData = async () => {
+      try {
+        const token =
+          localStorage.getItem("userToken") ||
+          sessionStorage.getItem("userToken");
+        if (!token) {
+          // Eğer token yoksa, hata mesajı göstermeye ProtectedRoute bakıyor
+          console.log("Liderlik tablosu için token bulunamadı.");
+          setLeaderboardData([]);
+          setUserRank(null);
+          return;
+        }
+        const config = { headers: { Authorization: `Bearer ${token}` } };
+        const response = await axios.get(
+          "http://localhost:5000/api/leaderboard",
+          config
+        );
+
+        // Backend'den gelen veri formatına göre ayarla
+        if (response.data && Array.isArray(response.data.leaderboard)) {
+          setLeaderboardData(response.data.leaderboard);
+          setUserRank(response.data.currentUserRank);
+          // Son güncelleme zamanını da güncelleyebilirsin istersen
+          // setLastLeaderboardUpdate(Date.now());
+        } else {
+          console.error(
+            "Liderlik tablosu API'sinden geçersiz formatta veri geldi:",
+            response.data
+          );
+          setLeaderboardData([]);
+          setUserRank(null);
+        }
+      } catch (err) {
+        console.error("Liderlik tablosu verisi alınırken hata:", err);
+        // Hata durumunda da boş liste ve null rank ayarla
+        setLeaderboardData([]);
+        setUserRank(null);
+      }
+    };
+
+    fetchLeaderboardData();
+  }, [userData?.points]); // Kullanıcı puanı değişince liderlik tablosunu yenile (veya [] ile sadece ilk yüklemede çek)
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
@@ -1291,22 +1376,27 @@ const Dashboard = () => {
                   {userData?.physicalData?.weightChange !== undefined &&
                     userData?.physicalData?.weightChange !== null && (
                       <span
-                        className={`ml-1 ${
-                          userData.physicalData.weightChange > 0
+                        className={`ml-1 ${userData.physicalData.weightChange > 0
                             ? "text-red-400"
-                            : "text-green-400"
-                        }`}
+                            : userData.physicalData.weightChange < 0
+                              ? "text-green-400"
+                              : "text-gray-400"
+                          }`}
                       >
                         ({userData.physicalData.weightChange > 0 ? "+" : ""}
-                        {userData.physicalData.weightChange}kg)
+                        {userData.physicalData.weightChange?.toFixed(1)}kg)
                       </span>
-                  )}
+                    )}
                 </span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-yellow-500 h-2 rounded-full"
-                  style={{ width: "70%" }}
+                  style={{
+                    width: userData?.physicalData?.weight
+                      ? `${Math.min(100, userData.physicalData.weight)}%`
+                      : "0%",
+                  }}
                 ></div>
               </div>
             </div>
@@ -1319,22 +1409,30 @@ const Dashboard = () => {
                   {userData?.physicalData?.bodyFatChange !== undefined &&
                     userData?.physicalData?.bodyFatChange !== null && (
                       <span
-                        className={`ml-1 ${
-                          userData.physicalData.bodyFatChange > 0
+                        className={`ml-1 ${userData.physicalData.bodyFatChange > 0
                             ? "text-red-400"
-                            : "text-green-400"
-                        }`}
+                            : userData.physicalData.bodyFatChange < 0
+                              ? "text-green-400"
+                              : "text-gray-400"
+                          }`}
                       >
                         ({userData.physicalData.bodyFatChange > 0 ? "+" : ""}
-                        {userData.physicalData.bodyFatChange}%)
+                        {typeof userData.physicalData.bodyFatChange === "number"
+                          ? userData.physicalData.bodyFatChange.toFixed(1)
+                          : "--"}
+                        %)
                       </span>
-                  )}
+                    )}
                 </span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
                 <div
                   className="bg-yellow-500 h-2 rounded-full"
-                  style={{ width: "60%" }}
+                  style={{
+                    width: userData?.physicalData?.bodyFat
+                      ? `${Math.min(100, userData.physicalData.bodyFat)}%`
+                      : "0%",
+                  }}
                 ></div>
               </div>
             </div>
@@ -1347,16 +1445,15 @@ const Dashboard = () => {
                   {userData?.physicalData?.heightChange !== undefined &&
                     userData?.physicalData?.heightChange !== null && (
                       <span
-                        className={`ml-1 ${
-                          userData.physicalData.heightChange > 0
+                        className={`ml-1 ${userData.physicalData.heightChange > 0
                             ? "text-green-400"
                             : userData.physicalData.heightChange < 0
-                            ? "text-red-400"
-                            : "text-green-400"
-                        }`}
+                              ? "text-red-400"
+                              : "text-gray-400"
+                          }`}
                       >
                         ({userData.physicalData.heightChange > 0 ? "+" : ""}
-                        {userData.physicalData.heightChange}cm)
+                        {userData.physicalData.heightChange?.toFixed(1)}cm)
                       </span>
                     )}
                 </span>
@@ -1372,14 +1469,15 @@ const Dashboard = () => {
                     {userData?.physicalData?.bmiChange !== undefined &&
                       userData?.physicalData?.bmiChange !== null && (
                         <span
-                          className={`ml-1 ${
-                            userData.physicalData.bmiChange > 0
+                          className={`ml-1 ${userData.physicalData.bmiChange > 0
                               ? "text-red-400"
-                              : "text-green-400"
-                          }`}
+                              : userData.physicalData.bmiChange < 0
+                                ? "text-green-400"
+                                : "text-gray-400"
+                            }`}
                         >
                           ({userData.physicalData.bmiChange > 0 ? "+" : ""}
-                          {userData.physicalData.bmiChange.toFixed(1)})
+                          {userData.physicalData.bmiChange?.toFixed(1)})
                         </span>
                       )}
                   </span>
@@ -1485,8 +1583,8 @@ const Dashboard = () => {
                       <span className="text-gray-400 text-sm">
                         Bugünkü antrenman:
                       </span>
-                  <div className="flex items-center mt-1">
-                    <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                      <div className="flex items-center mt-1">
+                        <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                         <span className="text-gray-200 font-semibold">
                           {
                             [
@@ -1501,7 +1599,7 @@ const Dashboard = () => {
                           }{" "}
                           Antrenmanı
                         </span>
-                  </div>
+                      </div>
                       <div className="text-sm text-gray-400 mt-1">
                         {todayWorkout.exercises &&
                         todayWorkout.exercises.length > 0
@@ -1592,12 +1690,16 @@ const Dashboard = () => {
                       <div className="w-8 h-8 rounded-full bg-gray-700 flex items-center justify-center text-yellow-400 font-bold mr-3 overflow-hidden">
                         {request.from.photoUrl ? (
                           <img
-                            src={request.from.photoUrl.startsWith('http') ? request.from.photoUrl : `http://localhost:5000${request.from.photoUrl}`}
+                            src={
+                              request.from.photoUrl.startsWith("http")
+                                ? request.from.photoUrl
+                                : `http://localhost:5000${request.from.photoUrl}`
+                            }
                             alt={request.from.fullName}
                             className="w-full h-full object-cover rounded-full"
                           />
                         ) : (
-                          <span>{request.from.fullName?.charAt(0) || '?'}</span>
+                          <span>{request.from.fullName?.charAt(0) || "?"}</span>
                         )}
                       </div>
                       <span className="text-gray-200 font-medium">
@@ -1677,25 +1779,25 @@ const Dashboard = () => {
                     style={{ minHeight: 64, maxWidth: 440 }}
                   >
                     <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-lg text-yellow-400 font-bold border border-yellow-500 overflow-hidden">
-                        {athlete.profile?.photoUrl ? (
-                          <img
+                      {athlete.profile?.photoUrl ? (
+                        <img
                           src={
                             athlete.profile.photoUrl.startsWith("http")
                               ? athlete.profile.photoUrl
                               : `http://localhost:5000${athlete.profile.photoUrl}`
                           }
-                            alt={athlete.profile.fullName}
+                          alt={athlete.profile.fullName}
                           className="w-full h-full object-cover rounded-full"
-                          />
-                        ) : (
-                          athlete.profile?.fullName?.charAt(0) || "A"
-                        )}
-                      </div>
+                        />
+                      ) : (
+                        athlete.profile?.fullName?.charAt(0) || "A"
+                      )}
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-base text-gray-100 truncate">
-                              {athlete.profile?.fullName || "İsimsiz Sporcu"}
-                            </p>
+                          {athlete.profile?.fullName || "İsimsiz Sporcu"}
+                        </p>
                         {athlete.status === "pending" ? (
                           <span className="text-xs px-2 py-0.5 bg-yellow-500 bg-opacity-20 text-yellow-400 rounded-full">
                             Bekliyor
@@ -1707,14 +1809,14 @@ const Dashboard = () => {
                         )}
                       </div>
                       <p className="text-xs text-gray-400 truncate">
-                              {athlete.profile?.age
-                                ? `${athlete.profile.age} yaş • `
-                                : ""}
+                        {athlete.profile?.age
+                          ? `${athlete.profile.age} yaş • `
+                          : ""}
                         {athlete.profile?.goalType
                           ? getGoalTypeText(athlete.profile.goalType)
                           : "Hedef belirlenmedi"}
-                            </p>
-                          </div>
+                      </p>
+                    </div>
                     <div className="flex gap-2 ml-2">
                       {athlete.status === "pending" ? (
                         <>
@@ -1960,7 +2062,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="overflow-y-auto max-h-[500px] pr-2">
+          <div className="overflow-y-auto max-h-[500px] pr-2 custom-styled-scrollbar">
             {" "}
             <div className="grid grid-cols-1 gap-4">
               {" "}
@@ -1973,44 +2075,44 @@ const Dashboard = () => {
                   ? meal.ingredients
                   : meal.ingredients.slice(0, maxIngredients);
                 return (
-                <div
-                  key={meal.id}
-                  className="bg-gray-800 bg-opacity-40 p-4 rounded-lg border border-gray-700 hover:border-yellow-500 transition"
-                >
-                  <div className="flex justify-between items-start mb-2">
+                  <div
+                    key={meal.id}
+                    className="bg-gray-800 bg-opacity-40 p-4 rounded-lg border border-gray-700 hover:border-yellow-500 transition"
+                  >
+                    <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center">
                         <h4 className="text-lg font-medium text-yellow-500 mr-2">
-                        {meal.name}
-                      </h4>
-                    <span
-                      className={`px-2 py-1 rounded-full text-xs ${
-                        meal.type === "protein"
-                          ? "bg-blue-900 text-blue-300"
-                          : meal.type === "vegan"
-                          ? "bg-green-900 text-green-300"
-                          : meal.type === "quick"
-                          ? "bg-purple-900 text-purple-300"
+                          {meal.name}
+                        </h4>
+                        <span
+                          className={`px-2 py-1 rounded-full text-xs ${
+                            meal.type === "protein"
+                              ? "bg-blue-900 text-blue-300"
+                              : meal.type === "vegan"
+                              ? "bg-green-900 text-green-300"
+                              : meal.type === "quick"
+                              ? "bg-purple-900 text-purple-300"
                               : meal.type === "lowcarb"
                               ? "bg-pink-900 text-pink-300"
-                          : "bg-gray-700 text-gray-300"
-                      }`}
-                    >
-                      {meal.type === "protein"
-                        ? "Protein"
-                        : meal.type === "vegan"
-                        ? "Vegan"
-                        : meal.type === "quick"
-                        ? "Hızlı"
-                        : meal.type === "lowcarb"
-                        ? "Düşük Karbonhidrat"
-                        : "Diğer"}
-                    </span>
+                              : "bg-gray-700 text-gray-300"
+                          }`}
+                        >
+                          {meal.type === "protein"
+                            ? "Protein"
+                            : meal.type === "vegan"
+                            ? "Vegan"
+                            : meal.type === "quick"
+                            ? "Hızlı"
+                            : meal.type === "lowcarb"
+                            ? "Düşük Karbonhidrat"
+                            : "Diğer"}
+                        </span>
                         {isSuitable && (
                           <span className="ml-2 text-xs bg-green-700 text-white px-2 py-1 rounded">
                             Senin hedefin için uygun
                           </span>
                         )}
-                  </div>
+                      </div>
                       <button
                         onClick={() => toggleFavorite(meal.id)}
                         className={`ml-2 px-2 py-1 rounded text-xs ${
@@ -2025,35 +2127,35 @@ const Dashboard = () => {
                         {isFavorite ? "★" : "☆"}
                       </button>
                     </div>
-                  <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                    <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
-                      <p className="text-xs text-gray-400">Protein</p>
-                      <p className="text-blue-400 font-medium">
-                        {meal.protein}g
-                      </p>
+                    <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                      <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
+                        <p className="text-xs text-gray-400">Protein</p>
+                        <p className="text-blue-400 font-medium">
+                          {meal.protein}g
+                        </p>
+                      </div>
+                      <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
+                        <p className="text-xs text-gray-400">Karbonhidrat</p>
+                        <p className="text-yellow-400 font-medium">
+                          {meal.carbs}g
+                        </p>
+                      </div>
+                      <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
+                        <p className="text-xs text-gray-400">Yağ</p>
+                        <p className="text-red-400 font-medium">{meal.fat}g</p>
+                      </div>
                     </div>
-                    <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
-                      <p className="text-xs text-gray-400">Karbonhidrat</p>
-                      <p className="text-yellow-400 font-medium">
-                        {meal.carbs}g
-                      </p>
-                    </div>
-                    <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
-                      <p className="text-xs text-gray-400">Yağ</p>
-                      <p className="text-red-400 font-medium">{meal.fat}g</p>
-                    </div>
-                  </div>
-                  <div className="mb-3">
-                    <p className="text-xs text-gray-400 mb-1">Malzemeler:</p>
-                    <div className="flex flex-wrap gap-1">
+                    <div className="mb-3">
+                      <p className="text-xs text-gray-400 mb-1">Malzemeler:</p>
+                      <div className="flex flex-wrap gap-1">
                         {visibleIngredients.map((ingredient, index) => (
-                        <span
-                          key={index}
-                          className="px-2 py-0.5 bg-gray-700 rounded-full text-xs text-gray-300"
-                        >
-                          {ingredient}
-                        </span>
-                      ))}
+                          <span
+                            key={index}
+                            className="px-2 py-0.5 bg-gray-700 rounded-full text-xs text-gray-300"
+                          >
+                            {ingredient}
+                          </span>
+                        ))}
                         {meal.ingredients.length > maxIngredients &&
                           !isShowingAll && (
                             <span
@@ -2075,10 +2177,10 @@ const Dashboard = () => {
                             gizle
                           </span>
                         )}
+                      </div>
                     </div>
-                  </div>
                     {/* Öğün Ekle butonu kaldırıldı */}
-                </div>
+                  </div>
                 );
               })}
             </div>
@@ -2088,21 +2190,21 @@ const Dashboard = () => {
         <div className="bg-gray-900 bg-opacity-60 backdrop-blur-lg p-6 rounded-xl border border-gray-800 shadow-lg transition-all duration-300 hover:shadow-yellow-900/20">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-100">Takvim</h3>
-              <div className="p-2 bg-yellow-500 rounded-full">
-                <svg
-                  className="w-5 h-5 text-black"
-                  fill="none"
-                  stroke="currentColor"
-                  viewBox="0 0 24 24"
-                  xmlns="http://www.w3.org/2000/svg"
-                >
-                  <path
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    strokeWidth={2}
-                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                  />
-                </svg>
+            <div className="p-2 bg-yellow-500 rounded-full">
+              <svg
+                className="w-5 h-5 text-black"
+                fill="none"
+                stroke="currentColor"
+                viewBox="0 0 24 24"
+                xmlns="http://www.w3.org/2000/svg"
+              >
+                <path
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  strokeWidth={2}
+                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                />
+              </svg>
             </div>
           </div>
 
@@ -2331,7 +2433,7 @@ const Dashboard = () => {
             </div>
           </div>
 
-          <div className="bg-gray-800 bg-opacity-40 rounded-lg p-2 mb-4">
+          <div className="bg-[#1a2236] rounded-xl shadow-lg p-4">
             <div className="grid grid-cols-12 py-2 border-b border-gray-700 mb-2">
               <div className="col-span-1 text-xs text-gray-400 text-center">
                 #
@@ -2341,117 +2443,119 @@ const Dashboard = () => {
                 Puan
               </div>
             </div>
-
-            <div className="space-y-2 mb-2">
-              {leaderboardData.slice(0, 3).map((user, idx) => (
+            <div className="space-y-1 max-h-60 overflow-y-auto pr-1 custom-styled-scrollbar">
+              {leaderboardData.map((user, idx) => (
                 <div
-                  key={`top-${user.id}`}
-                  className={`grid grid-cols-12 items-center py-2 px-1 rounded-lg ${
-                    idx === 0
-                      ? "bg-yellow-900 bg-opacity-20 border border-yellow-800"
+                  key={`dashboard-list-${user.id}`}
+                  className={`grid grid-cols-12 items-center py-1.5 px-1 rounded-lg border ${
+                    user.id === userData?._id // Check against logged-in user's ID
+                      ? "bg-yellow-900/20 border-yellow-700"
+                      : idx === 0
+                      ? "bg-yellow-900/20 border-yellow-800"
                       : idx === 1
-                      ? "bg-gray-600 bg-opacity-20 border border-gray-700"
-                      : "bg-yellow-800 bg-opacity-10 border border-yellow-900"
+                      ? "bg-gray-600/20 border-gray-700"
+                      : idx === 2
+                      ? "bg-yellow-800/10 border-yellow-900"
+                      : "hover:bg-gray-700/30"
                   }`}
                 >
-                  <div className="col-span-1 font-bold text-center">
+                  <div className="col-span-1 text-center text-gray-500 font-semibold">
+                    {/* Display trophy/medal for top 3, number for others */}
                     {idx === 0 && <span className="text-yellow-400">🏆</span>}
-                    {idx === 1 && <span className="text-gray-400">🥈</span>}
-                    {idx === 2 && <span className="text-yellow-700">🥉</span>}
+                    {idx === 1 && idx !== 0 && (
+                      <span className="text-gray-400">🥈</span>
+                    )}
+                    {idx === 2 && idx !== 0 && idx !== 1 && (
+                      <span className="text-yellow-700">🥉</span>
+                    )}
+                    {idx > 2 && idx + 1}
                   </div>
                   <div className="col-span-7 flex items-center">
-                    <div className="w-8 h-8 bg-gray-700 rounded-full mr-2 flex items-center justify-center text-xs border-2 border-gray-600">
-                      {user.avatar || user.name.charAt(0)}
+                    <div className="w-6 h-6 bg-gray-700 rounded-full mr-2 flex items-center justify-center text-xs border-2 border-gray-600 overflow-hidden">
+                      {user.photoUrl ? (
+                        <img
+                          src={
+                            user.photoUrl.startsWith("http")
+                              ? user.photoUrl
+                              : `http://localhost:5000${user.photoUrl}`
+                          }
+                          alt={user.name}
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        user.name.charAt(0)
+                      )}
                     </div>
                     <span
-                      className={`${
-                        user.rank === 1
-                          ? "text-yellow-300 font-medium"
-                          : "text-gray-200"
+                      className={`truncate text-sm ${
+                        user.id === userData?._id
+                          ? "text-yellow-400 font-medium"
+                          : "text-gray-300"
                       }`}
                     >
-                      {user.name}
+                      {user.name} {user.id === userData?._id && "(Siz)"}
                     </span>
                   </div>
                   <div
-                    className={`col-span-4 text-right font-semibold ${
-                      user.rank === 1
+                    className={`col-span-4 text-right text-sm font-semibold ${
+                      user.id === userData?._id
                         ? "text-yellow-400"
-                        : user.rank === 2
-                        ? "text-gray-300"
-                        : "text-yellow-600"
+                        : "text-gray-400"
                     }`}
                   >
-                    {user.points.toLocaleString()} puan
+                    {user.points.toLocaleString()}
                   </div>
                 </div>
               ))}
-
-              <div className="space-y-1 max-h-48 overflow-y-auto pr-1">
-                {leaderboardData.slice(3).map((user) => (
-                  <div
-                    key={`list-${user.id}`}
-                    className={`grid grid-cols-12 items-center py-1.5 px-1 ${
-                      user.isCurrentUser
-                        ? "bg-yellow-900 bg-opacity-20 border border-yellow-700 rounded-lg"
-                        : "hover:bg-gray-700 hover:bg-opacity-30 rounded transition duration-150"
-                    }`}
-                  >
-                    <div className="col-span-1 text-center text-gray-500">
-                      {user.rank}
-                    </div>
-                    <div className="col-span-7 flex items-center">
-                      <div
-                        className={`w-6 h-6 ${
-                          user.isCurrentUser ? "bg-yellow-600" : "bg-gray-700"
-                        } rounded-full mr-2 flex items-center justify-center text-xs`}
-                      >
-                        {user.avatar || user.name.charAt(0)}
-                      </div>
-                      <span
-                        className={`${
-                          user.isCurrentUser
-                            ? "text-yellow-400 font-medium"
-                            : "text-gray-300"
-                        } text-sm`}
-                      >
-                        {user.name} {user.isCurrentUser && "(Siz)"}
-                      </span>
-                    </div>
-                    <div
-                      className={`col-span-4 text-right ${
-                        user.isCurrentUser
-                          ? "text-yellow-400 font-medium"
-                          : "text-gray-400"
-                      }`}
-                    >
-                      {user.points.toLocaleString()}
-                    </div>
-                  </div>
-                ))}
-              </div>
+              {leaderboardData.length === 0 && (
+                <div className="text-gray-400 text-center py-4">
+                  Liderlik verileri yüklenemedi veya boş.
+                </div>
+              )}
             </div>
           </div>
 
           <div className="bg-gray-800 bg-opacity-40 rounded-lg p-3 border border-yellow-900 border-opacity-40">
             <div className="flex justify-between items-center">
               <div className="flex items-center">
-                <div className="bg-yellow-500 text-black rounded-full w-7 h-7 flex items-center justify-center font-bold mr-2">
-                  {userRank}
-                </div>
+                {/* userRank null ise veya 0 ise gösterme */}
+                {userRank !== null && userRank > 0 && (
+                  <div className="bg-yellow-500 text-black rounded-full w-7 h-7 flex items-center justify-center font-bold mr-2">
+                    {userRank}
+                  </div>
+                )}
                 <div>
                   <p className="text-gray-200">Sıralamanız</p>
-                  <p className="text-xs text-gray-400">
-                    İlk 100 içerisindesiniz!
-                  </p>
+                  {userRank !== null && userRank > 0 ? (
+                    <p className="text-xs text-gray-400">
+                      {/* Sıralama 100'den küçük veya eşitse göster */}
+                      {userRank <= 100
+                        ? "İlk 100 içerisindesiniz!"
+                        : "Sıralamanız 100+."}
+                    </p>
+                  ) : (
+                    <p className="text-xs text-gray-400">
+                      Sıralama henüz belirlenmedi.
+                    </p>
+                  )}
                 </div>
               </div>
-              <div className="text-yellow-400 font-bold">
-                {leaderboardData
-                  .find((user) => user.rank === userRank)
-                  ?.points.toLocaleString() || 980}{" "}
-                puan
-              </div>
+              {/* Puanı doğrudan userData'dan al veya leaderboardData'dan kendi kullanıcıyı bul */}
+              {userData?.points !== undefined ? (
+                <div className="text-yellow-400 font-bold">
+                  {userData.points.toLocaleString()} puan
+                </div>
+              ) : leaderboardData.length > 0 && userRank !== null ? (
+                <div className="text-yellow-400 font-bold">
+                  {/* Liderlik listesinde kendi kullanıcıyı bulup puanını göster */}
+                  {leaderboardData
+                    .find((user) => user.id === userData?._id)
+                    ?.points.toLocaleString() || "--"}{" "}
+                  puan
+                </div>
+              ) : (
+                <div className="text-yellow-400 font-bold">-- puan</div>
+              )}
             </div>
           </div>
 

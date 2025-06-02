@@ -197,9 +197,8 @@ export const selectTrainingProgram = async (programId) => {
 
 export const getCoaches = async () => {
   try {
-    const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.get(`${API_URL}/coaches`, config);
+    setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
+    const response = await axios.get(`${API_URL}/coaches`);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -208,9 +207,8 @@ export const getCoaches = async () => {
 
 export const selectCoach = async (coachId, message) => {
   try {
-    const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
-    const config = { headers: { Authorization: `Bearer ${token}` } };
-    const response = await axios.post(`${API_URL}/athletes/select-coach`, { coachId, message }, config);
+    setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
+    const response = await axios.post(`${API_URL}/athletes/select-coach`, { coachId, message });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };

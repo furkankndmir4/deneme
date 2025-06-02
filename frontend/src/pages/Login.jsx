@@ -10,13 +10,13 @@ const Login = () => {
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
-  // useEffect(() => {
-  //   const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-  //   const user = localStorage.getItem("user") || sessionStorage.getItem("user");
-  //   if (token && user && window.location.pathname === "/") {
-  //     navigate("/dashboard", { replace: true });
-  //   }
-  // }, [navigate]);
+  useEffect(() => {
+    const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+    const user = localStorage.getItem("user") || sessionStorage.getItem("user");
+    if (token && user && window.location.pathname === "/") {
+      navigate("/dashboard", { replace: true });
+    }
+  }, [navigate]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
