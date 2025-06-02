@@ -457,7 +457,7 @@ const Profile = () => {
       };
 
       const response = await axios.get(
-        `http://localhost:5000/api/users/profile${userId ? `/${userId}` : ""}`,
+        `${process.env.REACT_APP_API_URL || 'https://denemefrontend-indol.vercel.app'}/api/users/profile${userId ? `/${userId}` : ""}`,
         config
       );
 
