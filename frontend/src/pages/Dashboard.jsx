@@ -296,7 +296,7 @@ const mealRecommendations = [
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common["Content-Type"] = "application/json";
 axios.defaults.headers.common["Accept"] = "application/json";
-axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'https://denemefrontend-indol.vercel.app/';
+axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'https://denemebackend.vercel.app';
 
 // Token yönetimi fonksiyonları
 const getAuthToken = () => {
