@@ -1056,7 +1056,7 @@ const Dashboard = () => {
         sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
         setUserData(updatedUserData);
-        setShowPhysicalDataPopup(false);
+        setIsBodyInfoPopupOpen(false);
         fetchUserData(); // Kullanıcı verilerini yeniden çek
       }
     } catch (error) {
