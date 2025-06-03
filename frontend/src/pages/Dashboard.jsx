@@ -8,6 +8,10 @@ import { api } from "../services/api";
 import Modal from "../components/Modal";
 import { useChat } from "../context/ChatContext";
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const mealRecommendations = [
   {
     id: 1,
@@ -385,7 +389,7 @@ const Dashboard = () => {
 
       console.log("Fetching user data with token:", token);
       const response = await axios.get(
-        "http://localhost:5000/api/users/profile",
+        `${API_URL}/users/profile`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -559,7 +563,7 @@ const Dashboard = () => {
       };
 
       const response = await axios.put(
-        "http://localhost:5000/api/users/profile",
+        `${API_URL}/users/profile`,
         profileData,
         {
           headers: {
@@ -750,12 +754,10 @@ const Dashboard = () => {
   useEffect(() => {
     const fetchPendingRequests = async () => {
       try {
-        const token =
-          localStorage.getItem("userToken") ||
-          sessionStorage.getItem("userToken");
+        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         const config = { headers: { Authorization: `Bearer ${token}` } };
         const response = await axios.get(
-          "http://localhost:5000/api/friends/requests",
+          `${API_URL}/friends/requests`,
           config
         );
         setPendingRequests(response.data);
@@ -770,11 +772,9 @@ const Dashboard = () => {
 
   const handleAcceptRequest = async (requestId) => {
     try {
-      const token =
-        localStorage.getItem("userToken") ||
-        sessionStorage.getItem("userToken");
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       await axios.post(
-        `http://localhost:5000/api/friends/accept/${requestId}`,
+        `${API_URL}/friends/accept/${requestId}`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -787,11 +787,9 @@ const Dashboard = () => {
 
   const handleRejectRequest = async (requestId) => {
     try {
-      const token =
-        localStorage.getItem("userToken") ||
-        sessionStorage.getItem("userToken");
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       await axios.delete(
-        `http://localhost:5000/api/friends/reject/${requestId}`,
+        `${API_URL}/friends/reject/${requestId}`,
         { headers: { Authorization: `Bearer ${token}` } }
       );
       setPendingRequests((prev) => prev.filter((req) => req._id !== requestId));
@@ -810,7 +808,7 @@ const Dashboard = () => {
             sessionStorage.getItem("userToken");
           const config = { headers: { Authorization: `Bearer ${token}` } };
           const response = await axios.get(
-            "http://localhost:5000/api/coaches/athlete-requests",
+            `${API_URL}/coaches/athlete-requests`,
             config
           );
           setPendingAthleteRequests(response.data);
@@ -828,7 +826,7 @@ const Dashboard = () => {
         localStorage.getItem("userToken") ||
         sessionStorage.getItem("userToken");
       await axios.post(
-        `http://localhost:5000/api/coaches/athlete-requests/${requestId}/accept`,
+        `${API_URL}/coaches/athlete-requests/${requestId}/accept`,
         {},
         { headers: { Authorization: `Bearer ${token}` } }
       );
@@ -854,7 +852,7 @@ const Dashboard = () => {
 
       try {
         await axios.post(
-          `http://localhost:5000/api/coaches/athlete-relationships/${requestId}/reject`,
+          `${API_URL}/coaches/athlete-relationships/${requestId}/reject`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );
@@ -877,7 +875,7 @@ const Dashboard = () => {
           sessionStorage.getItem("userToken");
         if (!token) return;
         const res = await axios.get(
-          "http://localhost:5000/api/athletes/streak",
+          `${API_URL}/athletes/streak`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -900,7 +898,7 @@ const Dashboard = () => {
           if (!token) return;
           const config = { headers: { Authorization: `Bearer ${token}` } };
           const response = await axios.get(
-            "http://localhost:5000/api/coaches/athletes",
+            `${API_URL}/coaches/athletes`,
             config
           );
           setAllAthletes(response.data);
@@ -979,7 +977,7 @@ const Dashboard = () => {
         }
         const config = { headers: { Authorization: `Bearer ${token}` } };
         const response = await axios.get(
-          "http://localhost:5000/api/leaderboard",
+          `${API_URL}/leaderboard`,
           config
         );
 
@@ -1595,7 +1593,7 @@ const Dashboard = () => {
                             src={
                               request.from.photoUrl.startsWith("http")
                                 ? request.from.photoUrl
-                                : `http://localhost:5000${request.from.photoUrl}`
+                                : `${API_URL}${request.from.photoUrl}`
                             }
                             alt={request.from.fullName}
                             className="w-full h-full object-cover rounded-full"
@@ -1686,7 +1684,7 @@ const Dashboard = () => {
                           src={
                             athlete.profile.photoUrl.startsWith("http")
                               ? athlete.profile.photoUrl
-                              : `http://localhost:5000${athlete.profile.photoUrl}`
+                              : `${API_URL}${athlete.profile.photoUrl}`
                           }
                           alt={athlete.profile.fullName}
                           className="w-full h-full object-cover rounded-full"
@@ -1876,7 +1874,7 @@ const Dashboard = () => {
                         src={
                           userData.coach.profile.photoUrl.startsWith("http")
                             ? userData.coach.profile.photoUrl
-                            : `http://localhost:5000${userData.coach.profile.photoUrl}`
+                            : `${API_URL}${userData.coach.profile.photoUrl}`
                         }
                         alt={userData.coach.profile.fullName}
                         className="w-full h-full rounded-full object-cover"
@@ -2377,7 +2375,7 @@ const Dashboard = () => {
                           src={
                             user.photoUrl.startsWith("http")
                               ? user.photoUrl
-                              : `http://localhost:5000${user.photoUrl}`
+                              : `${API_URL}${user.photoUrl}`
                           }
                           alt={user.name}
                           className="w-full h-full object-cover"
@@ -2683,7 +2681,7 @@ const Dashboard = () => {
                     src={
                       selectedAthleteDetail.profile.photoUrl.startsWith("http")
                         ? selectedAthleteDetail.profile.photoUrl
-                        : `http://localhost:5000${selectedAthleteDetail.profile.photoUrl}`
+                        : `${API_URL}${selectedAthleteDetail.profile.photoUrl}`
                     }
                     alt={selectedAthleteDetail.profile.fullName}
                     className="w-full h-full object-cover rounded-full"

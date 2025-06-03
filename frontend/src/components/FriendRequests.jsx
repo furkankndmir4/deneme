@@ -1,6 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const FriendRequests = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -16,7 +20,7 @@ const FriendRequests = () => {
           },
         };
 
-        const response = await axios.get('http://localhost:5000/api/friends/requests', config);
+        const response = await axios.get(`${API_URL}/friends/requests`, config);
         setRequests(response.data);
         console.log('Gelen istekler:', response.data);
         response.data.forEach((req, idx) => {
@@ -42,7 +46,7 @@ const FriendRequests = () => {
         },
       };
 
-      await axios.post(`http://localhost:5000/api/friends/accept/${requestId}`, {}, config);
+      await axios.post(`${API_URL}/friends/accept/${requestId}`, {}, config);
       
       setRequests(requests.filter(req => req._id !== requestId));
     } catch (error) {
@@ -60,7 +64,7 @@ const FriendRequests = () => {
         },
       };
 
-      await axios.delete(`http://localhost:5000/api/friends/reject/${requestId}`, config);
+      await axios.delete(`${API_URL}/friends/reject/${requestId}`, config);
       
       setRequests(requests.filter(req => req._id !== requestId));
     } catch (error) {

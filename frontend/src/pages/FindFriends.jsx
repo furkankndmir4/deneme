@@ -2,6 +2,10 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const FindFriends = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -24,7 +28,7 @@ const FindFriends = () => {
         },
       };
 
-      const response = await axios.get(`http://localhost:5000/api/users/search?q=${searchTerm}`, config);
+      const response = await axios.get(`${API_URL}/users/search?q=${searchTerm}`, config);
       setSearchResults(response.data);
     } catch (error) {
       console.error('Kullanıcı araması başarısız:', error);
@@ -44,7 +48,7 @@ const FindFriends = () => {
         },
       };
 
-      await axios.post(`http://localhost:5000/api/friends/request/${userId}`, {}, config);
+      await axios.post(`${API_URL}/friends/request/${userId}`, {}, config);
       if (window.refetchAchievementsProgress) window.refetchAchievementsProgress();
       setSearchResults(prevResults => 
         prevResults.map(user => 
@@ -116,7 +120,7 @@ const FindFriends = () => {
                   <div className="w-12 h-12 rounded-full bg-gray-700 mr-3 flex items-center justify-center overflow-hidden">
                     {user.profile.photoUrl ? (
                       <img 
-                        src={user.profile.photoUrl.startsWith('http') ? user.profile.photoUrl : `http://localhost:5000${user.profile.photoUrl}`} 
+                        src={user.profile.photoUrl.startsWith('http') ? user.profile.photoUrl : `${API_URL.replace('/api', '')}${user.profile.photoUrl}`} 
                         alt={user.profile.fullName} 
                         className="w-full h-full object-cover" 
                       />

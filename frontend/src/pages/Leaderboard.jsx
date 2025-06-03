@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,7 +25,7 @@ const Leaderboard = () => {
           return;
         }
 
-        const response = await axios.get("http://localhost:5000/api/leaderboard", {
+        const response = await axios.get(`${API_URL}/leaderboard`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -106,7 +110,7 @@ const Leaderboard = () => {
                   <div className="w-8 h-8 bg-gray-700 rounded-full mr-2 flex items-center justify-center text-xs border-2 border-gray-600 overflow-hidden">
                     {user.photoUrl ? (
                       <img 
-                        src={user.photoUrl.startsWith('http') ? user.photoUrl : `http://localhost:5000${user.photoUrl}`} 
+                        src={user.photoUrl.startsWith('http') ? user.photoUrl : `${API_URL.replace('/api', '')}${user.photoUrl}`} 
                         alt={user.name} 
                         className="w-full h-full object-cover" 
                       />

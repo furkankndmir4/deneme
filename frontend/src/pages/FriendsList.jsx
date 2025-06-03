@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { Link } from 'react-router-dom';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const FriendsList = () => {
   const [friends, setFriends] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +21,7 @@ const FriendsList = () => {
           },
         };
 
-        const response = await axios.get('http://localhost:5000/api/friends', config);
+        const response = await axios.get(`${API_URL}/friends`, config);
         setFriends(response.data);
       } catch (error) {
         console.error('Arkadaş listesi alınamadı:', error);
@@ -39,7 +43,7 @@ const FriendsList = () => {
         },
       };
 
-      await axios.delete(`http://localhost:5000/api/friends/${friendId}`, config);
+      await axios.delete(`${API_URL}/friends/${friendId}`, config);
 
       setFriends(friends.filter(friend => friend._id !== friendId));
     } catch (error) {
@@ -85,7 +89,7 @@ const FriendsList = () => {
                   <div className="w-12 h-12 rounded-full bg-gray-700 mr-3 flex items-center justify-center overflow-hidden">
                     {friend.profile?.photoUrl ? (
                       <img 
-                        src={friend.profile.photoUrl.startsWith('http') ? friend.profile.photoUrl : `http://localhost:5000${friend.profile.photoUrl}`} 
+                        src={friend.profile.photoUrl.startsWith('http') ? friend.profile.photoUrl : `${API_URL.replace('/api', '')}${friend.profile.photoUrl}`} 
                         alt={friend.profile?.fullName || friend.fullName} 
                         className="w-full h-full object-cover" 
                       />

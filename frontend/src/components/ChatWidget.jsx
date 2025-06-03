@@ -10,6 +10,10 @@ import axios from "axios";
 import { useChat } from "../context/ChatContext";
 import { api } from '../services/api';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const ChatWidget = () => {
   const { isOpen, setIsOpen, activeChat, setActiveChat } = useChat();
   const [content, setContent] = useState("");
@@ -48,7 +52,7 @@ const ChatWidget = () => {
     const config = getAuthConfig();
     if (!config) return;
     try {
-      const friendsRes = await axios.get("http://localhost:5000/api/friends", config);
+      const friendsRes = await axios.get(`${API_URL}/friends`, config);
       setFriends(friendsRes.data);
     } catch (error) {
       console.error("Arkadaş listesi alınamadı:", error);
@@ -56,7 +60,7 @@ const ChatWidget = () => {
     }
 
     try {
-      const messagesRes = await axios.get("http://localhost:5000/api/messages", config);
+      const messagesRes = await axios.get(`${API_URL}/messages`, config);
       dispatch(setMessages(messagesRes.data));
     } catch (error) {
       console.error("Mesajlar alınamadı:", error);
@@ -92,7 +96,7 @@ const ChatWidget = () => {
     if (!config) return;
     dispatch(setLoading(true));
     try {
-      const res = await axios.get("http://localhost:5000/api/messages", config);
+      const res = await axios.get(`${API_URL}/messages`, config);
       const messages = res.data;
       console.log("Fetched messages:", messages);
       
@@ -226,7 +230,7 @@ const ChatWidget = () => {
     if (!config) return;
     
     try {
-      const res = await axios.get("http://localhost:5000/api/messages", config);
+      const res = await axios.get(`${API_URL}/messages`, config);
       const messages = res.data;
       
       // Bu kullanıcıdan gelen okunmamış mesajları bul

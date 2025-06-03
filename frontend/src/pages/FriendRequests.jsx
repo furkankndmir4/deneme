@@ -2,6 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const FriendRequestsPage = () => {
   const [requests, setRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -18,7 +22,7 @@ const FriendRequestsPage = () => {
           },
         };
 
-        const response = await axios.get('http://localhost:5000/api/friends/requests', config);
+        const response = await axios.get(`${API_URL}/friends/requests`, config);
         setRequests(response.data);
       } catch (error) {
         console.error('Arkadaşlık istekleri alınamadı:', error);
@@ -40,7 +44,7 @@ const FriendRequestsPage = () => {
         },
       };
 
-      await axios.post(`http://localhost:5000/api/friends/accept/${requestId}`, {}, config);
+      await axios.post(`${API_URL}/friends/accept/${requestId}`, {}, config);
       
       // İsteği listeden kaldır
       setRequests(requests.filter(req => req._id !== requestId));
@@ -63,7 +67,7 @@ const FriendRequestsPage = () => {
         },
       };
 
-      await axios.delete(`http://localhost:5000/api/friends/reject/${requestId}`, config);
+      await axios.delete(`${API_URL}/friends/reject/${requestId}`, config);
       
       // İsteği listeden kaldır
       setRequests(requests.filter(req => req._id !== requestId));
@@ -111,7 +115,7 @@ const FriendRequestsPage = () => {
                   <div className="w-12 h-12 rounded-full bg-gray-700 mr-3 flex items-center justify-center overflow-hidden">
                     {request.from.photoUrl ? (
                       <img 
-                        src={request.from.photoUrl.startsWith('http') ? request.from.photoUrl : `http://localhost:5000${request.from.photoUrl}`} 
+                        src={request.from.photoUrl.startsWith('http') ? request.from.photoUrl : `${API_URL.replace('/api', '')}${request.from.photoUrl}`} 
                         alt={request.from.fullName} 
                         className="w-full h-full object-cover" 
                       />

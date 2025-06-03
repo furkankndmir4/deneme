@@ -4,6 +4,10 @@ import { useNavigate, useLocation, Link, useParams } from "react-router-dom";
 import axios from "axios";
 import Modal from "../components/Modal";
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const ProgramCreator = () => {
   const navigate = useNavigate();
   const location = useLocation();
@@ -313,7 +317,7 @@ const ProgramCreator = () => {
             localStorage.getItem("userToken") ||
             sessionStorage.getItem("userToken");
           const response = await axios.get(
-            `http://localhost:5000/api/training-programs/${programId}`,
+            `${API_URL}/training-programs/${programId}`,
             {
               headers: { Authorization: `Bearer ${token}` },
             }
@@ -382,7 +386,7 @@ const ProgramCreator = () => {
           }
 
           const response = await axios.get(
-            "http://localhost:5000/api/coaches/athletes",
+            `${API_URL}/coaches/athletes`,
             {
               headers: {
                 Authorization: `Bearer ${token}`,
@@ -519,7 +523,7 @@ const ProgramCreator = () => {
         // Eğer edit modundaysa, eski workouts'u bul
         let oldWorkouts = [];
         if (isEditMode && programId) {
-          const programRes = await axios.get(`http://localhost:5000/api/training-programs/${programId}`, {
+          const programRes = await axios.get(`${API_URL}/training-programs/${programId}`, {
             headers: { Authorization: `Bearer ${token}` },
           });
           oldWorkouts = programRes.data.workouts || [];
@@ -551,7 +555,7 @@ const ProgramCreator = () => {
         if (isEditMode && programId) {
           // GÜNCELLEME
           const response = await axios.put(
-            `http://localhost:5000/api/training-programs/${programId}`,
+            `${API_URL}/training-programs/${programId}`,
             programData,
             {
               headers: {
@@ -569,7 +573,7 @@ const ProgramCreator = () => {
         } else {
           // YENİ OLUŞTURMA
           const response = await axios.post(
-            "http://localhost:5000/api/training-programs",
+            `${API_URL}/training-programs`,
             programData,
             {
               headers: {
@@ -1096,14 +1100,10 @@ const ProgramCreator = () => {
                     <button
                       className="px-6 py-2 bg-red-600 text-white rounded hover:bg-red-700 font-bold"
                       onClick={async () => {
-                        console.log("Silinecek programId:", programId);
-
                         try {
-                          const token =
-                            localStorage.getItem("userToken") ||
-                            sessionStorage.getItem("userToken");
+                          const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
                           await axios.delete(
-                            `http://localhost:5000/api/training-programs/${programId}`,
+                            `${API_URL}/training-programs/${programId}`,
                             {
                               headers: { Authorization: `Bearer ${token}` },
                             }

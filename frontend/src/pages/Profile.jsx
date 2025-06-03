@@ -11,6 +11,10 @@ import { Trophy } from "lucide-react";
 import { useRef } from "react";
 import allBadges from '../data/achievements.json';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const Profile = () => {
   const fileInputRef = useRef();
   const { userId } = useParams();
@@ -143,7 +147,7 @@ const Profile = () => {
 
       console.log("Sending data to API:", profileData);
       const response = await axios.put(
-        "http://localhost:5000/api/users/profile",
+        `${API_URL}/users/profile`,
         profileData,
         {
           headers: {
@@ -169,7 +173,7 @@ const Profile = () => {
 
       if (Object.keys(physicalDataToSend).length > 0) {
         await axios.put(
-          "http://localhost:5000/api/users/physical-data",
+          `${API_URL}/users/physical-data`,
           physicalDataToSend,
           {
             headers: {
@@ -251,7 +255,7 @@ const Profile = () => {
       console.log("Sending privacy settings:", privacyData);
 
       const response = await axios.put(
-        "http://localhost:5000/api/users/privacy-settings",
+        `${API_URL}/users/privacy-settings`,
         privacyData,
         config
       );
@@ -292,7 +296,7 @@ const Profile = () => {
       };
 
       await axios.post(
-        `http://localhost:5000/api/friends/request/${userId}`,
+        `${API_URL}/friends/request/${userId}`,
         {},
         config
       );
@@ -315,7 +319,7 @@ const Profile = () => {
       };
 
       await axios.post(
-        `http://localhost:5000/api/friends/accept/${userId}`,
+        `${API_URL}/friends/accept/${userId}`,
         {},
         config
       );
@@ -340,7 +344,7 @@ const Profile = () => {
       };
 
       await axios.delete(
-        `http://localhost:5000/api/friends/reject/${userId}`,
+        `${API_URL}/friends/reject/${userId}`,
         config
       );
       setFriendRequestReceived(false);
@@ -361,7 +365,7 @@ const Profile = () => {
         },
       };
 
-      await axios.delete(`http://localhost:5000/api/friends/${userId}`, config);
+      await axios.delete(`${API_URL}/friends/${userId}`, config);
       setIsFriend(false);
     } catch (error) {
       console.error("Arkadaşlıktan çıkarma hatası:", error);
@@ -402,7 +406,7 @@ const Profile = () => {
         localStorage.getItem("userToken") ||
         sessionStorage.getItem("userToken");
       const response = await fetch(
-        "http://localhost:5000/api/users/profile/photo",
+        `${API_URL}/users/profile/photo`,
         {
           method: "POST",
           headers: {
@@ -438,7 +442,7 @@ const Profile = () => {
       };
 
       const response = await axios.get(
-        `${process.env.REACT_APP_API_URL || 'https://denemebackend.vercel.app'}/api/users/profile${userId ? `/${userId}` : ""}`,
+        `${API_URL}/users/profile${userId ? `/${userId}` : ""}`,
         config
       );
 
@@ -570,7 +574,7 @@ const Profile = () => {
       const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       if (!token) return;
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const res = await axios.get("http://localhost:5000/api/achievements/progress", config);
+      const res = await axios.get(`${API_URL}/achievements/progress`, config);
       // Progress ile badge'leri birleştir
       const progressArr = res.data.progress || [];
       const merged = allBadges.map(badge => {
@@ -671,7 +675,7 @@ const Profile = () => {
                   src={
                     userData.profile.photoUrl.startsWith("http")
                       ? userData.profile.photoUrl
-                      : `http://localhost:5000${userData.profile.photoUrl}`
+                      : `${API_URL.replace('/api', '')}${userData.profile.photoUrl}`
                   }
                   alt="Profil Fotoğrafı"
                   className="w-full h-full object-cover"

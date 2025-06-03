@@ -4,6 +4,10 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import React from "react";
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const CoachList = () => {
   const [coaches, setCoaches] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -31,20 +35,15 @@ const CoachList = () => {
   useEffect(() => {
     const fetchUserData = async () => {
       try {
-        const token =
-          localStorage.getItem("userToken") ||
-          sessionStorage.getItem("userToken");
+        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         if (!token) {
           navigate("/");
           return;
         }
 
-        const response = await axios.get(
-          "http://localhost:5000/api/users/profile",
-          {
-            headers: { Authorization: `Bearer ${token}` },
-          }
-        );
+        const response = await axios.get(`${API_URL}/users/profile`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
         setUserData(response.data);
       } catch (err) {
         console.error("User data fetch error:", err);
@@ -58,9 +57,7 @@ const CoachList = () => {
     const fetchCoaches = async () => {
       try {
         setLoading(true);
-        const token =
-          localStorage.getItem("userToken") ||
-          sessionStorage.getItem("userToken");
+        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
 
         if (!token) {
           navigate("/");
@@ -73,10 +70,7 @@ const CoachList = () => {
           },
         };
 
-        const response = await axios.get(
-          "http://localhost:5000/api/coaches",
-          config
-        );
+        const response = await axios.get(`${API_URL}/coaches`, config);
         setCoaches(response.data);
       } catch (err) {
         console.error("Coaches fetch error:", err);
@@ -92,15 +86,10 @@ const CoachList = () => {
   useEffect(() => {
     const fetchSentCoachRequests = async () => {
       try {
-        const token =
-          localStorage.getItem("userToken") ||
-          sessionStorage.getItem("userToken");
+        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         if (!token) return;
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const response = await axios.get(
-          "http://localhost:5000/api/athletes/my-coach-requests",
-          config
-        );
+        const response = await axios.get(`${API_URL}/athletes/my-coach-requests`, config);
         setSentCoachRequests(response.data);
       } catch (err) {
         setSentCoachRequests([]);
@@ -115,7 +104,7 @@ const CoachList = () => {
       try {
         const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         if (!token) return;
-        const response = await axios.get("http://localhost:5000/api/users/profile", {
+        const response = await axios.get(`${API_URL}/users/profile`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         setUserId(response.data._id);
@@ -131,9 +120,7 @@ const CoachList = () => {
 
     try {
       setIsSubmitting(true);
-      const token =
-        localStorage.getItem("userToken") ||
-        sessionStorage.getItem("userToken");
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -141,7 +128,7 @@ const CoachList = () => {
       };
 
       await axios.post(
-        "http://localhost:5000/api/athletes/select-coach",
+        `${API_URL}/athletes/select-coach`,
         {
           coachId: selectedCoach._id,
           message,
@@ -150,10 +137,7 @@ const CoachList = () => {
       );
 
       // İstek başarılıysa, pending/accepted istekleri tekrar çek
-      const response = await axios.get(
-        "http://localhost:5000/api/athletes/my-coach-requests",
-        config
-      );
+      const response = await axios.get(`${API_URL}/athletes/my-coach-requests`, config);
       setSentCoachRequests(response.data);
 
       setSuccess(true);
@@ -163,14 +147,9 @@ const CoachList = () => {
     } catch (err) {
       // Hata alsan bile, pending/accepted istekleri tekrar çek
       try {
-        const token =
-          localStorage.getItem("userToken") ||
-          sessionStorage.getItem("userToken");
+        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const response = await axios.get(
-          "http://localhost:5000/api/athletes/my-coach-requests",
-          config
-        );
+        const response = await axios.get(`${API_URL}/athletes/my-coach-requests`, config);
         setSentCoachRequests(response.data);
       } catch (e) {
         // ignore
@@ -199,7 +178,7 @@ const CoachList = () => {
     try {
       const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get(`http://localhost:5000/api/coaches/${coach._id}/ratings`, config);
+      const response = await axios.get(`${API_URL}/coaches/${coach._id}/ratings`, config);
       if (response.data && Array.isArray(response.data) && userId) {
         const myRating = response.data.find(r => r.athlete && (r.athlete._id === userId || r.athlete === userId));
         if (myRating) {
@@ -214,9 +193,7 @@ const CoachList = () => {
 
   const handleRateCoach = async () => {
     try {
-      const token =
-        localStorage.getItem("userToken") ||
-        sessionStorage.getItem("userToken");
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       const config = {
         headers: {
           Authorization: `Bearer ${token}`,
@@ -224,7 +201,7 @@ const CoachList = () => {
       };
 
       await axios.post(
-        `http://localhost:5000/api/coaches/${ratingCoach._id}/rate`,
+        `${API_URL}/coaches/${ratingCoach._id}/rate`,
         {
           rating,
           comment: ratingComment,
@@ -238,10 +215,7 @@ const CoachList = () => {
       setRatingCoach(null);
 
       // Refresh coach data
-      const response = await axios.get(
-        "http://localhost:5000/api/coaches",
-        config
-      );
+      const response = await axios.get(`${API_URL}/coaches`, config);
       setCoaches(response.data);
     } catch (err) {
       console.error("Rating error:", err);
@@ -256,17 +230,17 @@ const CoachList = () => {
       const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
 
-      await axios.post('http://localhost:5000/api/athletes/end-coach-relationship', {}, config);
+      await axios.post(`${API_URL}/athletes/end-coach-relationship`, {}, config);
       
       // Refresh user data and coach list
-      const userResponse = await axios.get("http://localhost:5000/api/users/profile", config);
+      const userResponse = await axios.get(`${API_URL}/users/profile`, config);
       setUserData(userResponse.data);
       
-      const coachesResponse = await axios.get("http://localhost:5000/api/coaches", config);
+      const coachesResponse = await axios.get(`${API_URL}/coaches`, config);
       setCoaches(coachesResponse.data);
 
       // Refresh sent coach requests
-      const requestsResponse = await axios.get("http://localhost:5000/api/athletes/my-coach-requests", config);
+      const requestsResponse = await axios.get(`${API_URL}/athletes/my-coach-requests`, config);
       setSentCoachRequests(requestsResponse.data);
 
       // Show success message
@@ -290,7 +264,7 @@ const CoachList = () => {
     try {
       const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       const config = { headers: { Authorization: `Bearer ${token}` } };
-      const response = await axios.get(`http://localhost:5000/api/coaches/${coach._id}/ratings`, config);
+      const response = await axios.get(`${API_URL}/coaches/${coach._id}/ratings`, config);
       setComments(response.data || []);
     } catch (err) {
       setComments([]);
@@ -433,7 +407,7 @@ const CoachList = () => {
                     <div className="w-16 h-16 rounded-full bg-gray-700 flex-shrink-0 border-2 border-yellow-500 flex items-center justify-center overflow-hidden">
                       {coach.profile?.photoUrl ? (
                         <img
-                          src={coach.profile.photoUrl.startsWith('http') ? coach.profile.photoUrl : `http://localhost:5000${coach.profile.photoUrl}`}
+                          src={coach.profile.photoUrl.startsWith('http') ? coach.profile.photoUrl : `${API_URL.replace('/api', '')}${coach.profile.photoUrl}`}
                           alt={coach.profile.fullName}
                           className="w-full h-full object-cover"
                         />
@@ -728,7 +702,7 @@ const CoachList = () => {
                     <div className="flex-shrink-0">
                       {c.athlete?.profile?.photoUrl ? (
                         <img 
-                          src={c.athlete.profile.photoUrl.startsWith('http') ? c.athlete.profile.photoUrl : `http://localhost:5000${c.athlete.profile.photoUrl}`} 
+                          src={c.athlete.profile.photoUrl.startsWith('http') ? c.athlete.profile.photoUrl : `${API_URL.replace('/api', '')}${c.athlete.profile.photoUrl}`} 
                           alt={c.athlete.profile.fullName} 
                           className="w-10 h-10 rounded-full object-cover" 
                         />

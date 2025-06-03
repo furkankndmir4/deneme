@@ -4,6 +4,10 @@ import axios from 'axios';
 import { useSelector, useDispatch } from 'react-redux';
 import { setMessages, setLoading, setError } from '../store/slices/messageSlice';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const Messages = () => {
   const [content, setContent] = useState('');
   const [receiver, setReceiver] = useState('');
@@ -20,7 +24,7 @@ const Messages = () => {
       try {
         const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const friendsRes = await axios.get('http://localhost:5000/api/friends', config);
+        const friendsRes = await axios.get(`${API_URL}/friends`, config);
         setFriends(friendsRes.data);
         if (user?.coach) setCoach(user.coach);
       } catch (err) {

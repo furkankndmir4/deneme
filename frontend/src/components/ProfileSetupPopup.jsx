@@ -3,6 +3,10 @@ import { useState } from 'react';
 import { updateUserProfile } from '../services/api';
 import axios from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const ProfileSetupPopup = ({ onClose, onSave }) => {
   const [step, setStep] = useState(1);
   const [profileData, setProfileData] = useState({
@@ -59,7 +63,7 @@ const ProfileSetupPopup = ({ onClose, onSave }) => {
 
       // API çağrısı
       const response = await axios.put(
-        "http://localhost:5000/api/users/profile",
+        `${API_URL}/users/profile`,
         profileDataToSave,
         {
           headers: {

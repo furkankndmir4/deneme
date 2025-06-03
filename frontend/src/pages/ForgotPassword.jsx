@@ -2,6 +2,10 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const ForgotPassword = () => {
   const [email, setEmail] = useState('');
   const [loading, setLoading] = useState(false);
@@ -15,7 +19,7 @@ const ForgotPassword = () => {
     setSuccess(false);
 
     try {
-      const response = await axios.post('http://localhost:5000/api/users/forgot-password', { email });
+      const response = await axios.post(`${API_URL}/users/forgot-password`, { email });
       console.log('Şifre sıfırlama yanıtı:', response.data);
       setSuccess(true);
     } catch (err) {

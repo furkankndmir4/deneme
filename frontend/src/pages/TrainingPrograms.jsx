@@ -2,6 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const TrainingPrograms = () => {
   const [activeProgram, setActiveProgram] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -21,7 +25,7 @@ const TrainingPrograms = () => {
         }
         const config = { headers: { Authorization: `Bearer ${token}` } };
         const res = await axios.get(
-          "http://localhost:5000/api/athletes/active-program",
+          `${API_URL}/athletes/active-program`,
           config
         );
         setActiveProgram(res.data);

@@ -1,6 +1,10 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 function PendingAthleteRequests() {
   const [pendingRequests, setPendingRequests] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -12,7 +16,7 @@ function PendingAthleteRequests() {
         setLoading(true);
         const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
         const config = { headers: { Authorization: `Bearer ${token}` } };
-        const res = await axios.get('http://localhost:5000/api/coaches/athlete-requests', config);
+        const res = await axios.get(`${API_URL}/coaches/athlete-requests`, config);
         setPendingRequests(res.data);
       } catch (err) {
         setError('Bekleyen istekler alınamadı');

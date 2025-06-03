@@ -2,6 +2,10 @@ import React, { useState } from "react";
 import { updatePhysicalData } from "../services/api";
 import axios from "axios";
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
   const [physicalData, setPhysicalData] = useState({
     bodyFat: initialData.bodyFat || "",
@@ -73,7 +77,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
 
       // API çağrısı
       const response = await axios.put(
-        "http://localhost:5000/api/users/physical-data",
+        `${API_URL}/users/physical-data`,
         physicalDataToSave,
         {
           headers: {

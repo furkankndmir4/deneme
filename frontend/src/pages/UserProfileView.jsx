@@ -4,6 +4,10 @@ import axios from 'axios';
 import { AchievementBadgeGroup, AchievementDetail } from '../components/achievement/AchievementBadge';
 import { Trophy } from 'lucide-react';
 
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const UserProfileView = () => {
     const { userId } = useParams();
     const navigate = useNavigate();
@@ -31,7 +35,7 @@ const UserProfileView = () => {
                     },
                 };
 
-                const response = await axios.get(`http://localhost:5000/api/users/profile/${userId}`, config);
+                const response = await axios.get(`${API_URL}/users/profile/${userId}`, config);
                 console.log("Profile data received:", response.data);
                 setUserData(response.data);
 
@@ -66,7 +70,7 @@ const UserProfileView = () => {
                 },
             };
     
-            const response = await axios.post(`http://localhost:5000/api/friends/request/${userId}`, {}, config);
+            const response = await axios.post(`${API_URL}/friends/request/${userId}`, {}, config);
             console.log("Arkadaşlık isteği cevabı:", response.data);
             setFriendRequestSent(true);
             setSuccess('Arkadaşlık isteği gönderildi');
@@ -90,7 +94,7 @@ const UserProfileView = () => {
                 },
             };
 
-            await axios.post(`http://localhost:5000/api/friends/accept/${userId}`, {}, config);
+            await axios.post(`${API_URL}/friends/accept/${userId}`, {}, config);
             setIsFriend(true);
             setFriendRequestReceived(false);
             setSuccess('Arkadaşlık isteği kabul edildi');
@@ -113,7 +117,7 @@ const UserProfileView = () => {
                 },
             };
 
-            await axios.delete(`http://localhost:5000/api/friends/reject/${userId}`, config);
+            await axios.delete(`${API_URL}/friends/reject/${userId}`, config);
             setFriendRequestReceived(false);
             setSuccess('Arkadaşlık isteği reddedildi');
 
@@ -135,7 +139,7 @@ const UserProfileView = () => {
                 },
             };
 
-            await axios.delete(`http://localhost:5000/api/friends/${userId}`, config);
+            await axios.delete(`${API_URL}/friends/${userId}`, config);
             setIsFriend(false);
             setSuccess('Arkadaşlıktan çıkarıldı');
 
@@ -311,7 +315,7 @@ const UserProfileView = () => {
                             <div className="w-32 h-32 rounded-full bg-gray-800 border-2 border-yellow-500 mb-4 flex items-center justify-center overflow-hidden">
                                 {userData?.profile?.photoUrl ? (
                                     <img 
-                                        src={userData.profile.photoUrl.startsWith('http') ? userData.profile.photoUrl : `http://localhost:5000${userData.profile.photoUrl}`} 
+                                        src={userData.profile.photoUrl.startsWith('http') ? userData.profile.photoUrl : `${API_URL.replace('/api', '')}${userData.profile.photoUrl}`} 
                                         alt={userData.profile.fullName} 
                                         className="w-full h-full object-cover" 
                                     />
