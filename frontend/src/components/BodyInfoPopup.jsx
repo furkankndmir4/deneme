@@ -72,7 +72,21 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
       console.log("Physical data save response:", response.data);
 
       if (response.data) {
-        onSave(physicalDataToSave);
+        // Kullanıcı verilerini güncelle
+        const currentUserData = JSON.parse(localStorage.getItem("user") || "{}");
+        const updatedUserData = {
+          ...currentUserData,
+          physicalData: {
+            ...currentUserData.physicalData,
+            ...response.data.physicalData,
+          },
+        };
+
+        localStorage.setItem("user", JSON.stringify(updatedUserData));
+        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
+
+        onSave(updatedUserData.physicalData);
+        onClose();
       }
     } catch (error) {
       console.error("Error saving physical data:", error);
