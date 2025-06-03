@@ -1024,7 +1024,7 @@ const Dashboard = () => {
           ...currentUserData,
           physicalData: {
             ...currentUserData.physicalData,
-            ...response.data.physicalData,
+            ...physicalData,
           },
         };
 

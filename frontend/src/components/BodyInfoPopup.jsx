@@ -6,38 +6,33 @@ const API_URL = process.env.NODE_ENV === 'development'
   ? 'http://localhost:5000/api'
   : 'https://denemebackend.vercel.app/api';
 
-const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
+const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
   const [physicalData, setPhysicalData] = useState({
-    height: initialData.height || "",
-    weight: initialData.weight || "",
-    bodyFat: initialData.bodyFat || "",
-    neckCircumference: initialData.neckCircumference || "",
-    waistCircumference: initialData.waistCircumference || "",
-    hipCircumference: initialData.hipCircumference || "",
-    chestCircumference: initialData.chestCircumference || "",
-    bicepCircumference: initialData.bicepCircumference || "",
-    thighCircumference: initialData.thighCircumference || "",
-    calfCircumference: initialData.calfCircumference || "",
-    shoulderWidth: initialData.shoulderWidth || "",
+    bodyFat: initialData?.bodyFat || "",
+    neckCircumference: initialData?.neckCircumference || "",
+    waistCircumference: initialData?.waistCircumference || "",
+    hipCircumference: initialData?.hipCircumference || "",
+    chestCircumference: initialData?.chestCircumference || "",
+    bicepCircumference: initialData?.bicepCircumference || "",
+    thighCircumference: initialData?.thighCircumference || "",
+    calfCircumference: initialData?.calfCircumference || "",
+    shoulderWidth: initialData?.shoulderWidth || "",
   });
 
-  // Add useEffect to update state when initialData changes
+  // initialData değiştiğinde state'i güncelle
   useEffect(() => {
-    if (initialData) {
-      setPhysicalData({
-        height: initialData.height || "",
-        weight: initialData.weight || "",
-        bodyFat: initialData.bodyFat || "",
-        neckCircumference: initialData.neckCircumference || "",
-        waistCircumference: initialData.waistCircumference || "",
-        hipCircumference: initialData.hipCircumference || "",
-        chestCircumference: initialData.chestCircumference || "",
-        bicepCircumference: initialData.bicepCircumference || "",
-        thighCircumference: initialData.thighCircumference || "",
-        calfCircumference: initialData.calfCircumference || "",
-        shoulderWidth: initialData.shoulderWidth || "",
-      });
-    }
+    console.log("Initial data changed:", initialData);
+    setPhysicalData({
+      bodyFat: initialData?.bodyFat || "",
+      neckCircumference: initialData?.neckCircumference || "",
+      waistCircumference: initialData?.waistCircumference || "",
+      hipCircumference: initialData?.hipCircumference || "",
+      chestCircumference: initialData?.chestCircumference || "",
+      bicepCircumference: initialData?.bicepCircumference || "",
+      thighCircumference: initialData?.thighCircumference || "",
+      calfCircumference: initialData?.calfCircumference || "",
+      shoulderWidth: initialData?.shoulderWidth || "",
+    });
   }, [initialData]);
 
   const [loading, setLoading] = useState(false);
@@ -45,45 +40,19 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setPhysicalData((prevState) => ({
-      ...prevState,
-      [name]: value,
-    }));
+    // Sadece sayısal değerleri kabul et
+    if (value === "" || /^\d*\.?\d*$/.test(value)) {
+      setPhysicalData((prev) => ({
+        ...prev,
+        [name]: value,
+      }));
+    }
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-
-    try {
-      // Fiziksel verileri hazırla
-      const physicalDataToSave = {
-        bodyFat: parseFloat(physicalData.bodyFat) || 0,
-        neckCircumference: parseFloat(physicalData.neckCircumference) || 0,
-        waistCircumference: parseFloat(physicalData.waistCircumference) || 0,
-        hipCircumference: parseFloat(physicalData.hipCircumference) || 0,
-        chestCircumference: parseFloat(physicalData.chestCircumference) || 0,
-        bicepCircumference: parseFloat(physicalData.bicepCircumference) || 0,
-        thighCircumference: parseFloat(physicalData.thighCircumference) || 0,
-        calfCircumference: parseFloat(physicalData.calfCircumference) || 0,
-        shoulderWidth: parseFloat(physicalData.shoulderWidth) || 0,
-      };
-
-      console.log("Saving physical data:", physicalDataToSave);
-
-      // Verileri Dashboard bileşenine gönder
-      onSave(physicalDataToSave);
-      onClose();
-    } catch (error) {
-      console.error("Error saving physical data:", error);
-      setError(
-        error.response?.data?.message ||
-          "Fiziksel veriler kaydedilirken bir hata oluştu"
-      );
-    } finally {
-      setLoading(false);
-    }
+    console.log("Submitting physical data:", physicalData);
+    onSave(physicalData);
   };
 
   return (
