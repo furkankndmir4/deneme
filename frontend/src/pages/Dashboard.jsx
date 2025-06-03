@@ -1002,6 +1002,57 @@ const Dashboard = () => {
     fetchLeaderboardData();
   }, [userData?.points]);
 
+  const handlePhysicalDataSave = async (data) => {
+    try {
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+      if (!token) {
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        return;
+      }
+
+      const physicalData = {
+        bodyFat: parseFloat(data.bodyFat),
+        waistCircumference: parseFloat(data.waistCircumference),
+        neckCircumference: parseFloat(data.neckCircumference),
+        hipCircumference: parseFloat(data.hipCircumference),
+        height: parseFloat(data.height),
+        weight: parseFloat(data.weight)
+      };
+
+      const response = await axios.put(
+        `${API_URL}/users/physical-data`,
+        physicalData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+
+      if (response.data) {
+        setUserData(response.data);
+        localStorage.setItem("user", JSON.stringify(response.data));
+        sessionStorage.setItem("user", JSON.stringify(response.data));
+        setNeedsPhysicalData(false);
+        setIsBodyInfoPopupOpen(false);
+        fetchUserData();
+      }
+    } catch (error) {
+      console.error("Physical data save error:", error);
+      if (error.response?.status === 401) {
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        clearAuthData();
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        const errorMessage = error.response?.data?.message || "Fiziksel veriler kaydedilirken bir hata oluştu";
+        setError(errorMessage);
+      }
+    }
+  };
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-screen">
