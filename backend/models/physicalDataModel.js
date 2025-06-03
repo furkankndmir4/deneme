@@ -39,6 +39,15 @@ const physicalDataSchema = mongoose.Schema(
     fatGrams: {
       type: Number, // Günlük yağ gram hedefi
     },
+    neckCircumference: { 
+      type: Number,
+    },
+    waistCircumference: { 
+      type: Number,
+    },
+    hipCircumference: { 
+      type: Number,
+    },
     chestCircumference: {
       type: Number,
     },
