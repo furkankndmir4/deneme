@@ -32,33 +32,17 @@ app.use((req, res, next) => {
   next();
 });
 
-// Gelişmiş CORS yapılandırması
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = [
-      'https://denemefrontend-indol.vercel.app',
-      'https://denemebackend.vercel.app',
-      'http://localhost:5173'
-    ];
-    console.log('Request Origin:', origin);
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      console.log('CORS blocked for origin:', origin);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
+// Basitleştirilmiş CORS yapılandırması
+app.use(cors({
+  origin: '*', // Tüm originlere izin ver
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
   optionsSuccessStatus: 200
-};
-
-// CORS middleware'ini en başta uygula
-app.use(cors(corsOptions));
+}));
 
 // OPTIONS isteklerini işle
-app.options('*', cors(corsOptions));
+app.options('*', cors());
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
@@ -109,7 +93,7 @@ const PORT = process.env.PORT || 5000;
 // Sunucuyu başlat
 const server = app.listen(PORT, () => {
   console.log(`Server ${PORT} portunda çalışıyor`);
-  console.log('CORS Origins:', corsOptions.origin);
+  console.log('CORS Origins:', cors.origin);
 });
 
 // Vercel için export
