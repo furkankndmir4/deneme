@@ -33,9 +33,12 @@ const Login = () => {
       console.log("Login response:", response.data);
 
       if (response.data.token) {
-        // Token'ı hem localStorage hem de sessionStorage'a kaydet
-        localStorage.setItem("userToken", response.data.token);
-        sessionStorage.setItem("userToken", response.data.token);
+        // Beni hatırla seçeneğine göre token'ı kaydet
+        if (rememberMe) {
+          localStorage.setItem("userToken", response.data.token);
+        } else {
+          sessionStorage.setItem("userToken", response.data.token);
+        }
         
         // Kullanıcı bilgilerini kaydet
         const userData = {
@@ -46,12 +49,20 @@ const Login = () => {
           physicalData: response.data.physicalData || {},
         };
         
-        localStorage.setItem("user", JSON.stringify(userData));
-        sessionStorage.setItem("user", JSON.stringify(userData));
+        // Kullanıcı bilgilerini de aynı storage'a kaydet
+        if (rememberMe) {
+          localStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          sessionStorage.setItem("user", JSON.stringify(userData));
+        }
 
         // Profil kurulumu kontrolü
         const profileSetupDone = response.data.profile && response.data.profile.fullName;
-        localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        if (rememberMe) {
+          localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        } else {
+          sessionStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        }
 
         // Kullanıcı tipine göre yönlendirme
         if (response.data.userType === "coach") {
