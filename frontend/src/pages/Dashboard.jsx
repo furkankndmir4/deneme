@@ -428,7 +428,8 @@ const Dashboard = () => {
           response.data.profile.height &&
           response.data.profile.weight &&
           response.data.profile.age &&
-          response.data.profile.gender;
+          response.data.profile.gender &&
+          response.data.profile.fullName;
 
         const hasPhysicalData =
           response.data.physicalData &&
@@ -444,16 +445,6 @@ const Dashboard = () => {
 
         console.log("Profile data check:", { hasProfileData, hasPhysicalData });
 
-        const storedUser = JSON.parse(
-          localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
-        );
-        const updatedUser = {
-          ...storedUser,
-          ...response.data,
-        };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        sessionStorage.setItem("user", JSON.stringify(updatedUser));
-
         if (hasProfileData && hasPhysicalData) {
           localStorage.setItem("profileSetupDone", "true");
           setIsProfileSetupPopupOpen(false);
@@ -468,7 +459,6 @@ const Dashboard = () => {
           } else if (!hasPhysicalData) {
             console.log("Physical data is incomplete");
             setNeedsPhysicalData(true);
-            // Popup'ı otomatik açmayı kaldırıyoruz
             setIsBodyInfoPopupOpen(false);
           }
         }
@@ -581,7 +571,9 @@ const Dashboard = () => {
         localStorage.setItem("profileSetupDone", "true");
         setNeedsProfileSetup(false);
         setIsProfileSetupPopupOpen(false);
-        fetchUserData();
+        
+        // Profil verilerini güncelledikten sonra kullanıcı verilerini yeniden çek
+        await fetchUserData();
       }
     } catch (error) {
       console.error("Profile save error:", error);
