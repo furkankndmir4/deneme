@@ -1011,13 +1011,15 @@ const Dashboard = () => {
       }
 
       const physicalData = {
-        bodyFat: parseFloat(data.bodyFat),
-        waistCircumference: parseFloat(data.waistCircumference),
-        neckCircumference: parseFloat(data.neckCircumference),
-        hipCircumference: parseFloat(data.hipCircumference),
-        height: parseFloat(data.height),
-        weight: parseFloat(data.weight)
+        bodyFat: parseFloat(data.bodyFat) || 0,
+        waistCircumference: parseFloat(data.waistCircumference) || 0,
+        neckCircumference: parseFloat(data.neckCircumference) || 0,
+        hipCircumference: parseFloat(data.hipCircumference) || 0,
+        height: parseFloat(data.height) || 0,
+        weight: parseFloat(data.weight) || 0
       };
+
+      console.log("Gönderilen fiziksel veriler:", physicalData);
 
       const response = await axios.put(
         `${API_URL}/users/physical-data`,
@@ -1039,13 +1041,21 @@ const Dashboard = () => {
         fetchUserData();
       }
     } catch (error) {
-      console.error("Physical data save error:", error);
+      console.error("Physical data save error details:", {
+        message: error.message,
+        response: error.response?.data,
+        status: error.response?.status,
+        data: error.response?.data
+      });
+
       if (error.response?.status === 401) {
         setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
         clearAuthData();
         setTimeout(() => {
           navigate("/");
         }, 2000);
+      } else if (error.response?.status === 500) {
+        setError("Sunucu hatası: Fiziksel veriler kaydedilirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.");
       } else {
         const errorMessage = error.response?.data?.message || "Fiziksel veriler kaydedilirken bir hata oluştu";
         setError(errorMessage);
