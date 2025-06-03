@@ -1,4 +1,5 @@
 import axios from 'axios';
+import config from '../config';
 
 // Hardcoded production URL
 const API_URL = 'https://denemebackend.vercel.app/api';
@@ -6,7 +7,7 @@ const API_URL = 'https://denemebackend.vercel.app/api';
 console.log('Using API URL:', API_URL);
 
 const api = axios.create({
-  baseURL: API_URL,
+  baseURL: config.API_URL,
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -17,8 +18,7 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    // URL'i logla
-    console.log('Making request to:', `${API_URL}${config.url}`);
+    console.log('Making request to:', `${config.baseURL}${config.url}`);
     console.log('Request headers:', config.headers);
     
     const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
