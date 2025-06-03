@@ -1015,6 +1015,11 @@ const Dashboard = () => {
         waistCircumference: parseFloat(data.waistCircumference) || 0,
         neckCircumference: parseFloat(data.neckCircumference) || 0,
         hipCircumference: parseFloat(data.hipCircumference) || 0,
+        chestCircumference: parseFloat(data.chestCircumference) || 0,
+        bicepCircumference: parseFloat(data.bicepCircumference) || 0,
+        thighCircumference: parseFloat(data.thighCircumference) || 0,
+        calfCircumference: parseFloat(data.calfCircumference) || 0,
+        shoulderWidth: parseFloat(data.shoulderWidth) || 0,
         height: parseFloat(data.height) || 0,
         weight: parseFloat(data.weight) || 0
       };
