@@ -774,47 +774,49 @@ const savePhysicalData = asyncHandler(async (req, res) => {
   res.json(physicalData);
 });
 
-// Update physical data
 const updatePhysicalData = asyncHandler(async (req, res) => {
   const userId = req.user._id;
-  const { height, weight, bodyFat, waistCircumference, neckCircumference, hipCircumference, chestCircumference, bicepCircumference, thighCircumference, calfCircumference, shoulderWidth } = req.body;
+  const {
+    height,
+    weight,
+    bodyFat,
+    waistCircumference,
+    neckCircumference,
+    hipCircumference,
+    chestCircumference,
+    bicepCircumference,
+    thighCircumference,
+    calfCircumference,
+    shoulderWidth
+  } = req.body;
 
   let physicalData = await PhysicalData.findOne({ user: userId });
   if (!physicalData) {
     physicalData = new PhysicalData({ user: userId });
   }
 
-  // Son fiziksel veri geçmişini bul, sadece bodyFat olanları dikkate al
   const lastEntry = await PhysicalDataHistory.findOne({
     user: userId,
     bodyFat: { $ne: null, $exists: true }
-  })
-    .sort({ date: -1, createdAt: -1 }); // Hem date hem createdAt'e göre sırala
-
-  // Calculate all changes
-  console.log("Body Fat Change Calculation Debug:");
-  console.log("lastEntry bodyFat:", lastEntry?.bodyFat);
-  console.log("lastEntry ID:", lastEntry?._id);
-  console.log("lastEntry createdAt:", lastEntry?.createdAt);
-  console.log("req.body.bodyFat:", req.body.bodyFat);
+  }).sort({ date: -1, createdAt: -1 });
 
   const weightChange =
     lastEntry && typeof lastEntry.weight === "number" && typeof weight === "number"
       ? weight - lastEntry.weight
-      : physicalData ? physicalData.weightChange : 0;
+      : physicalData.weightChange || 0;
+
   const bodyFatChange =
-    // Sadece bodyFat değeri açıkça gönderildiğinde farkı hesapla
-    (bodyFat !== undefined && lastEntry && typeof lastEntry.bodyFat === "number" && typeof bodyFat === "number")
+    bodyFat !== undefined && lastEntry && typeof lastEntry.bodyFat === "number" && typeof bodyFat === "number"
       ? bodyFat - lastEntry.bodyFat
-      : physicalData ? physicalData.bodyFatChange : 0;
+      : physicalData.bodyFatChange || 0;
+
   const heightChange =
     lastEntry && typeof lastEntry.height === "number" && typeof height === "number"
       ? height - lastEntry.height
-      : physicalData ? physicalData.heightChange : 0;
+      : physicalData.heightChange || 0;
 
-  // Calculate BMI and BMI change
   let currentBMI = null;
-  let bmiChange = undefined; // Önceki değer yoksa undefined
+  let bmiChange = undefined;
   if (typeof height === "number" && typeof weight === "number" && height > 0) {
     currentBMI = weight / ((height / 100) * (height / 100));
     if (lastEntry && typeof lastEntry.bmi === "number") {
@@ -822,67 +824,56 @@ const updatePhysicalData = asyncHandler(async (req, res) => {
     }
   }
 
-  const newHistoryEntryData = { user: userId };
-
-  // PhysicalData koleksiyonundaki mevcut değerleri al
   const currentPhysicalData = await PhysicalData.findOne({ user: userId });
 
-  // History kaydı için verileri hazırla: mevcut değerler + req.body'deki varsa yeni değerler
-  // Değişim değerleri backend'de zaten hesaplandı (weightChange, bodyFatChange vb.)
   const dataForHistory = {
     user: userId,
-    height: req.body.height !== undefined ? req.body.height : currentPhysicalData?.height,
-    weight: req.body.weight !== undefined ? req.body.weight : currentPhysicalData?.weight,
-    bodyFat: req.body.bodyFat !== undefined ? req.body.bodyFat : currentPhysicalData?.bodyFat,
-    waistCircumference: req.body.waistCircumference !== undefined ? req.body.waistCircumference : currentPhysicalData?.waistCircumference,
-    neckCircumference: req.body.neckCircumference !== undefined ? req.body.neckCircumference : currentPhysicalData?.neckCircumference,
-    hipCircumference: req.body.hipCircumference !== undefined ? req.body.hipCircumference : currentPhysicalData?.hipCircumference,
-    chestCircumference: req.body.chestCircumference !== undefined ? req.body.chestCircumference : currentPhysicalData?.chestCircumference,
-    bicepCircumference: req.body.bicepCircumference !== undefined ? req.body.bicepCircumference : currentPhysicalData?.bicepCircumference,
-    thighCircumference: req.body.thighCircumference !== undefined ? req.body.thighCircumference : currentPhysicalData?.thighCircumference,
-    calfCircumference: req.body.calfCircumference !== undefined ? req.body.calfCircumference : currentPhysicalData?.calfCircumference,
-    shoulderWidth: req.body.shoulderWidth !== undefined ? req.body.shoulderWidth : currentPhysicalData?.shoulderWidth,
-    date: new Date(), // History kaydı için tarih ekle
-    // Değişim değerlerini de ekle
-    weightChange: safeNumber(weightChange),
-    bodyFatChange: safeNumber(bodyFatChange),
-    heightChange: safeNumber(heightChange),
-    bmiChange: safeNumber(bmiChange),
-    bmi: safeNumber(currentBMI),
+    height: height !== undefined ? height : currentPhysicalData?.height,
+    weight: weight !== undefined ? weight : currentPhysicalData?.weight,
+    bodyFat: bodyFat !== undefined ? bodyFat : currentPhysicalData?.bodyFat,
+    waistCircumference: waistCircumference !== undefined ? waistCircumference : currentPhysicalData?.waistCircumference,
+    neckCircumference: neckCircumference !== undefined ? neckCircumference : currentPhysicalData?.neckCircumference,
+    hipCircumference: hipCircumference !== undefined ? hipCircumference : currentPhysicalData?.hipCircumference,
+    chestCircumference: chestCircumference !== undefined ? chestCircumference : currentPhysicalData?.chestCircumference,
+    bicepCircumference: bicepCircumference !== undefined ? bicepCircumference : currentPhysicalData?.bicepCircumference,
+    thighCircumference: thighCircumference !== undefined ? thighCircumference : currentPhysicalData?.thighCircumference,
+    calfCircumference: calfCircumference !== undefined ? calfCircumference : currentPhysicalData?.calfCircumference,
+    shoulderWidth: shoulderWidth !== undefined ? shoulderWidth : currentPhysicalData?.shoulderWidth,
+    date: new Date(),
+    weightChange,
+    bodyFatChange,
+    heightChange,
+    bmiChange,
+    bmi: currentBMI
   };
 
-  // Yeni PhysicalDataHistory kaydını oluştur ve sadece değer atananları dahil et
-  const newHistoryEntry = new PhysicalDataHistory(Object.fromEntries(Object.entries(dataForHistory).filter(([_, v]) => v !== undefined)));
-
+  const newHistoryEntry = new PhysicalDataHistory(
+    Object.fromEntries(Object.entries(dataForHistory).filter(([_, v]) => v !== undefined))
+  );
   await newHistoryEntry.save();
 
-  // Update physical data (latest aggregated data)
-  if (height) physicalData.height = height;
-  if (weight) physicalData.weight = weight;
-  if (bodyFat) physicalData.bodyFat = bodyFat; // Yeni girilen değeri physicalData'ya kaydet
-  if (waistCircumference) physicalData.waistCircumference = waistCircumference;
-  if (neckCircumference) physicalData.neckCircumference = neckCircumference;
-  if (hipCircumference) physicalData.hipCircumference = hipCircumference;
-  if (chestCircumference) physicalData.chestCircumference = chestCircumference;
-  if (bicepCircumference) physicalData.bicepCircumference = bicepCircumference;
-  if (thighCircumference) physicalData.thighCircumference = thighCircumference;
-  if (calfCircumference) physicalData.calfCircumference = calfCircumference;
-  if (shoulderWidth) physicalData.shoulderWidth = shoulderWidth;
-  physicalData.weightChange = safeNumber(weightChange);
-  physicalData.bodyFatChange = safeNumber(bodyFatChange);
-  physicalData.heightChange = safeNumber(heightChange);
-  physicalData.bmiChange = safeNumber(bmiChange);
-  if (currentBMI) physicalData.bmi = safeNumber(currentBMI);
+  // Güncelleme - artık 0 gibi değerler de güncellenebilecek:
+  if (height !== undefined) physicalData.height = height;
+  if (weight !== undefined) physicalData.weight = weight;
+  if (bodyFat !== undefined) physicalData.bodyFat = bodyFat;
+  if (waistCircumference !== undefined) physicalData.waistCircumference = waistCircumference;
+  if (neckCircumference !== undefined) physicalData.neckCircumference = neckCircumference;
+  if (hipCircumference !== undefined) physicalData.hipCircumference = hipCircumference;
+  if (chestCircumference !== undefined) physicalData.chestCircumference = chestCircumference;
+  if (bicepCircumference !== undefined) physicalData.bicepCircumference = bicepCircumference;
+  if (thighCircumference !== undefined) physicalData.thighCircumference = thighCircumference;
+  if (calfCircumference !== undefined) physicalData.calfCircumference = calfCircumference;
+  if (shoulderWidth !== undefined) physicalData.shoulderWidth = shoulderWidth;
 
-  console.log("PhysicalData before save:", physicalData);
+  physicalData.weightChange = weightChange;
+  physicalData.bodyFatChange = bodyFatChange;
+  physicalData.heightChange = heightChange;
+  physicalData.bmiChange = bmiChange;
+  if (currentBMI !== null) physicalData.bmi = currentBMI;
+
   await physicalData.save();
-  console.log("PhysicalData after save:", physicalData);
 
-  // Create a new Measurement record for badge tracking
-  await Measurement.create({
-    user: userId,
-    date: new Date()
-  });
+  await Measurement.create({ user: userId, date: new Date() });
 
   const user = await User.findById(userId);
   if (!user.physicalData) {
@@ -890,7 +881,6 @@ const updatePhysicalData = asyncHandler(async (req, res) => {
     await user.save();
   }
 
-  console.log("PhysicalData sent to frontend:", physicalData);
   res.json({
     message: 'Physical data updated successfully',
     physicalData
