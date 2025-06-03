@@ -25,6 +25,13 @@ connectDB();
 
 const app = express();
 
+// Request logging middleware
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  console.log('Headers:', req.headers);
+  next();
+});
+
 // Gelişmiş CORS yapılandırması
 const corsOptions = {
   origin: [
@@ -51,6 +58,7 @@ app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Test endpointi
 app.get('/api/healthcheck', (req, res) => {
+  console.log('Healthcheck endpoint called');
   res.status(200).json({
     status: 'active',
     message: 'Server is running',
@@ -91,6 +99,7 @@ const PORT = process.env.PORT || 5000;
 // Sunucuyu başlat
 const server = app.listen(PORT, () => {
   console.log(`Server ${PORT} portunda çalışıyor`);
+  console.log('CORS Origins:', corsOptions.origin);
 });
 
 // Vercel için export
