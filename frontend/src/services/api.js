@@ -1,6 +1,11 @@
 import axios from 'axios';
 
-const API_URL = process.env.REACT_APP_API_URL || 'https://denemebackend.vercel.app/api';
+// API URL'ini environment variable'dan al, yoksa production URL'ini kullan
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
+console.log('API URL:', API_URL); // Debug için
 
 const api = axios.create({
   baseURL: API_URL,
@@ -11,6 +16,7 @@ const api = axios.create({
   withCredentials: true
 });
 
+// Request interceptor
 api.interceptors.request.use(
   (config) => {
     console.log('Making request to:', config.url);
@@ -27,6 +33,7 @@ api.interceptors.request.use(
   }
 );
 
+// Response interceptor
 api.interceptors.response.use(
   (response) => {
     console.log('Response received:', response.status);

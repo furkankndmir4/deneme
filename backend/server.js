@@ -36,12 +36,15 @@ app.use((req, res, next) => {
 const allowedOrigins = [
   'https://denemefrontend-indol.vercel.app',
   'https://denemebackend.vercel.app',
-  'http://localhost:5173'
+  'http://localhost:5173',
+  'http://localhost:3000'
 ];
 
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   console.log('Request Origin:', origin);
+  console.log('Request URL:', req.url);
+  console.log('Request Method:', req.method);
   
   if (allowedOrigins.includes(origin)) {
     res.setHeader('Access-Control-Allow-Origin', origin);
@@ -49,9 +52,12 @@ app.use((req, res, next) => {
     res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
     res.setHeader('Access-Control-Allow-Credentials', 'true');
     res.setHeader('Access-Control-Max-Age', '86400'); // 24 saat
+  } else {
+    console.log('Blocked origin:', origin);
   }
 
   if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
     res.status(200).end();
     return;
   }
