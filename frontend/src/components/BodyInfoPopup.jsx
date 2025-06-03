@@ -8,6 +8,8 @@ const API_URL = process.env.NODE_ENV === 'development'
 
 const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
   const [physicalData, setPhysicalData] = useState({
+    height: initialData.height || "",
+    weight: initialData.weight || "",
     bodyFat: initialData.bodyFat || "",
     neckCircumference: initialData.neckCircumference || "",
     waistCircumference: initialData.waistCircumference || "",
@@ -23,6 +25,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
   useEffect(() => {
     if (initialData) {
       setPhysicalData({
+        height: initialData.height || "",
+        weight: initialData.weight || "",
         bodyFat: initialData.bodyFat || "",
         neckCircumference: initialData.neckCircumference || "",
         waistCircumference: initialData.waistCircumference || "",
