@@ -2,11 +2,10 @@ import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL =
-        process.env.NODE_ENV === "development"
-          ? "http://localhost:5000/api"
-          : "https://denemebackend.vercel.app/api";
-          
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api'
+  : 'https://denemebackend.vercel.app/api';
+
 const Login = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -16,8 +15,7 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token =
-      localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+    const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
     const user = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (token && user && window.location.pathname === "/") {
       navigate("/dashboard", { replace: true });
@@ -38,7 +36,11 @@ const Login = () => {
       console.log("Login response:", response.data);
 
       if (response.data.token) {
-        // Beni hatırla seçeneğine göre token ve kullanıcı bilgilerini sakla
+        // Token'ı hem localStorage hem de sessionStorage'a kaydet
+        localStorage.setItem("userToken", response.data.token);
+        sessionStorage.setItem("userToken", response.data.token);
+        
+        // Kullanıcı bilgilerini kaydet
         const userData = {
           _id: response.data._id,
           email: response.data.email,
@@ -46,22 +48,13 @@ const Login = () => {
           profile: response.data.profile || {},
           physicalData: response.data.physicalData || {},
         };
-
-        if (rememberMe) {
-          localStorage.setItem("userToken", response.data.token);
-          localStorage.setItem("user", JSON.stringify(userData));
-        } else {
-          sessionStorage.setItem("userToken", response.data.token);
-          sessionStorage.setItem("user", JSON.stringify(userData));
-        }
+        
+        localStorage.setItem("user", JSON.stringify(userData));
+        sessionStorage.setItem("user", JSON.stringify(userData));
 
         // Profil kurulumu kontrolü
-        const profileSetupDone =
-          response.data.profile && response.data.profile.fullName;
-        localStorage.setItem(
-          "profileSetupDone",
-          profileSetupDone ? "true" : "false"
-        );
+        const profileSetupDone = response.data.profile && response.data.profile.fullName;
+        localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
 
         // Kullanıcı tipine göre yönlendirme
         if (response.data.userType === "coach") {
