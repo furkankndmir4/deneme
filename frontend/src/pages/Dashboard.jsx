@@ -1015,18 +1015,19 @@ const Dashboard = () => {
         return;
       }
 
+      // Ensure we're using the existing height and weight from userData if not provided in the form
       const physicalData = {
-        bodyFat: parseFloat(data.bodyFat) || 0,
-        waistCircumference: parseFloat(data.waistCircumference) || 0,
-        neckCircumference: parseFloat(data.neckCircumference) || 0,
-        hipCircumference: parseFloat(data.hipCircumference) || 0,
-        chestCircumference: parseFloat(data.chestCircumference) || 0,
-        bicepCircumference: parseFloat(data.bicepCircumference) || 0,
-        thighCircumference: parseFloat(data.thighCircumference) || 0,
-        calfCircumference: parseFloat(data.calfCircumference) || 0,
-        shoulderWidth: parseFloat(data.shoulderWidth) || 0,
-        height: parseFloat(data.height) || 0,
-        weight: parseFloat(data.weight) || 0
+        bodyFat: parseFloat(data.bodyFat) || userData?.physicalData?.bodyFat || 0,
+        waistCircumference: parseFloat(data.waistCircumference) || userData?.physicalData?.waistCircumference || 0,
+        neckCircumference: parseFloat(data.neckCircumference) || userData?.physicalData?.neckCircumference || 0,
+        hipCircumference: parseFloat(data.hipCircumference) || userData?.physicalData?.hipCircumference || 0,
+        chestCircumference: parseFloat(data.chestCircumference) || userData?.physicalData?.chestCircumference || 0,
+        bicepCircumference: parseFloat(data.bicepCircumference) || userData?.physicalData?.bicepCircumference || 0,
+        thighCircumference: parseFloat(data.thighCircumference) || userData?.physicalData?.thighCircumference || 0,
+        calfCircumference: parseFloat(data.calfCircumference) || userData?.physicalData?.calfCircumference || 0,
+        shoulderWidth: parseFloat(data.shoulderWidth) || userData?.physicalData?.shoulderWidth || 0,
+        height: parseFloat(data.height) || userData?.physicalData?.height || userData?.profile?.height || 0,
+        weight: parseFloat(data.weight) || userData?.physicalData?.weight || userData?.profile?.weight || 0
       };
 
       console.log("Gönderilen fiziksel veriler:", physicalData);
