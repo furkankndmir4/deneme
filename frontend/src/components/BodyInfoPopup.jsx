@@ -36,9 +36,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
 
     try {
       // Token kontrolü
-      const token =
-        localStorage.getItem("userToken") ||
-        sessionStorage.getItem("userToken");
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       if (!token) {
         setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
         return;
@@ -46,31 +44,15 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
 
       // Fiziksel verileri hazırla
       const physicalDataToSave = {
-        bodyFat: physicalData.bodyFat ? parseFloat(physicalData.bodyFat) : initialData.bodyFat || 0,
-        neckCircumference: physicalData.neckCircumference
-          ? parseFloat(physicalData.neckCircumference)
-          : initialData.neckCircumference || 0,
-        waistCircumference: physicalData.waistCircumference
-          ? parseFloat(physicalData.waistCircumference)
-          : initialData.waistCircumference || 0,
-        hipCircumference: physicalData.hipCircumference
-          ? parseFloat(physicalData.hipCircumference)
-          : initialData.hipCircumference || 0,
-        chestCircumference: physicalData.chestCircumference
-          ? parseFloat(physicalData.chestCircumference)
-          : initialData.chestCircumference || 0,
-        bicepCircumference: physicalData.bicepCircumference
-          ? parseFloat(physicalData.bicepCircumference)
-          : initialData.bicepCircumference || 0,
-        thighCircumference: physicalData.thighCircumference
-          ? parseFloat(physicalData.thighCircumference)
-          : initialData.thighCircumference || 0,
-        calfCircumference: physicalData.calfCircumference
-          ? parseFloat(physicalData.calfCircumference)
-          : initialData.calfCircumference || 0,
-        shoulderWidth: physicalData.shoulderWidth
-          ? parseFloat(physicalData.shoulderWidth)
-          : initialData.shoulderWidth || 0,
+        bodyFat: parseFloat(physicalData.bodyFat) || 0,
+        neckCircumference: parseFloat(physicalData.neckCircumference) || 0,
+        waistCircumference: parseFloat(physicalData.waistCircumference) || 0,
+        hipCircumference: parseFloat(physicalData.hipCircumference) || 0,
+        chestCircumference: parseFloat(physicalData.chestCircumference) || 0,
+        bicepCircumference: parseFloat(physicalData.bicepCircumference) || 0,
+        thighCircumference: parseFloat(physicalData.thighCircumference) || 0,
+        calfCircumference: parseFloat(physicalData.calfCircumference) || 0,
+        shoulderWidth: parseFloat(physicalData.shoulderWidth) || 0,
       };
 
       console.log("Saving physical data:", physicalDataToSave);
@@ -90,34 +72,14 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
       console.log("Physical data save response:", response.data);
 
       if (response.data) {
-        // Kullanıcı verilerini güncelle
-        const currentUserData = JSON.parse(
-          localStorage.getItem("user") || "{}"
-        );
-        const updatedUserData = {
-          ...currentUserData,
-          physicalData: {
-            ...currentUserData.physicalData,
-            ...response.data.physicalData,
-          },
-        };
-
-        localStorage.setItem("user", JSON.stringify(updatedUserData));
-        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
-
-        onSave(response.data);
-        onClose();
+        onSave(physicalDataToSave);
       }
     } catch (error) {
-      console.error("Physical data save error:", error);
-      if (error.response?.status === 401) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-      } else {
-        setError(
-          error.response?.data?.message ||
-            "Fiziksel veriler kaydedilirken bir hata oluştu"
-        );
-      }
+      console.error("Error saving physical data:", error);
+      setError(
+        error.response?.data?.message ||
+          "Fiziksel veriler kaydedilirken bir hata oluştu"
+      );
     } finally {
       setLoading(false);
     }
