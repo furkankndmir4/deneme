@@ -1011,23 +1011,21 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       if (!token) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        navigate("/login");
         return;
       }
 
-      // Ensure we're using the existing height and weight from userData if not provided in the form
+      // Fiziksel verileri hazırla
       const physicalData = {
-        bodyFat: parseFloat(data.bodyFat) || userData?.physicalData?.bodyFat || 0,
-        waistCircumference: parseFloat(data.waistCircumference) || userData?.physicalData?.waistCircumference || 0,
-        neckCircumference: parseFloat(data.neckCircumference) || userData?.physicalData?.neckCircumference || 0,
-        hipCircumference: parseFloat(data.hipCircumference) || userData?.physicalData?.hipCircumference || 0,
-        chestCircumference: parseFloat(data.chestCircumference) || userData?.physicalData?.chestCircumference || 0,
-        bicepCircumference: parseFloat(data.bicepCircumference) || userData?.physicalData?.bicepCircumference || 0,
-        thighCircumference: parseFloat(data.thighCircumference) || userData?.physicalData?.thighCircumference || 0,
-        calfCircumference: parseFloat(data.calfCircumference) || userData?.physicalData?.calfCircumference || 0,
-        shoulderWidth: parseFloat(data.shoulderWidth) || userData?.physicalData?.shoulderWidth || 0,
-        height: parseFloat(data.height) || userData?.physicalData?.height || userData?.profile?.height || 0,
-        weight: parseFloat(data.weight) || userData?.physicalData?.weight || userData?.profile?.weight || 0
+        bodyFat: parseFloat(data.bodyFat) || 0,
+        waistCircumference: parseFloat(data.waistCircumference) || 0,
+        neckCircumference: parseFloat(data.neckCircumference) || 0,
+        hipCircumference: parseFloat(data.hipCircumference) || 0,
+        chestCircumference: parseFloat(data.chestCircumference) || 0,
+        bicepCircumference: parseFloat(data.bicepCircumference) || 0,
+        thighCircumference: parseFloat(data.thighCircumference) || 0,
+        calfCircumference: parseFloat(data.calfCircumference) || 0,
+        shoulderWidth: parseFloat(data.shoulderWidth) || 0,
       };
 
       console.log("Gönderilen fiziksel veriler:", physicalData);
@@ -1044,32 +1042,32 @@ const Dashboard = () => {
       );
 
       if (response.data) {
-        setUserData(response.data);
-        localStorage.setItem("user", JSON.stringify(response.data));
-        sessionStorage.setItem("user", JSON.stringify(response.data));
-        setNeedsPhysicalData(false);
-        setIsBodyInfoPopupOpen(false);
-        fetchUserData();
+        // Kullanıcı verilerini güncelle
+        const currentUserData = JSON.parse(localStorage.getItem("user") || "{}");
+        const updatedUserData = {
+          ...currentUserData,
+          physicalData: {
+            ...currentUserData.physicalData,
+            ...response.data.physicalData,
+          },
+        };
+
+        localStorage.setItem("user", JSON.stringify(updatedUserData));
+        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
+
+        setUserData(updatedUserData);
+        setShowPhysicalDataPopup(false);
+        fetchUserData(); // Kullanıcı verilerini yeniden çek
       }
     } catch (error) {
-      console.error("Physical data save error details:", {
-        message: error.message,
-        response: error.response?.data,
-        status: error.response?.status,
-        data: error.response?.data
-      });
-
+      console.error("Physical data save error:", error);
       if (error.response?.status === 401) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        clearAuthData();
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else if (error.response?.status === 500) {
-        setError("Sunucu hatası: Fiziksel veriler kaydedilirken bir sorun oluştu. Lütfen daha sonra tekrar deneyin.");
+        navigate("/login");
       } else {
-        const errorMessage = error.response?.data?.message || "Fiziksel veriler kaydedilirken bir hata oluştu";
-        setError(errorMessage);
+        setError(
+          error.response?.data?.message ||
+            "Fiziksel veriler kaydedilirken bir hata oluştu"
+        );
       }
     }
   };
