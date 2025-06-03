@@ -46,31 +46,31 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
 
       // Fiziksel verileri hazırla
       const physicalDataToSave = {
-        bodyFat: physicalData.bodyFat ? parseFloat(physicalData.bodyFat) : null,
+        bodyFat: physicalData.bodyFat ? parseFloat(physicalData.bodyFat) : initialData.bodyFat || 0,
         neckCircumference: physicalData.neckCircumference
           ? parseFloat(physicalData.neckCircumference)
-          : null,
+          : initialData.neckCircumference || 0,
         waistCircumference: physicalData.waistCircumference
           ? parseFloat(physicalData.waistCircumference)
-          : null,
+          : initialData.waistCircumference || 0,
         hipCircumference: physicalData.hipCircumference
           ? parseFloat(physicalData.hipCircumference)
-          : null,
+          : initialData.hipCircumference || 0,
         chestCircumference: physicalData.chestCircumference
           ? parseFloat(physicalData.chestCircumference)
-          : null,
+          : initialData.chestCircumference || 0,
         bicepCircumference: physicalData.bicepCircumference
           ? parseFloat(physicalData.bicepCircumference)
-          : null,
+          : initialData.bicepCircumference || 0,
         thighCircumference: physicalData.thighCircumference
           ? parseFloat(physicalData.thighCircumference)
-          : null,
+          : initialData.thighCircumference || 0,
         calfCircumference: physicalData.calfCircumference
           ? parseFloat(physicalData.calfCircumference)
-          : null,
+          : initialData.calfCircumference || 0,
         shoulderWidth: physicalData.shoulderWidth
           ? parseFloat(physicalData.shoulderWidth)
-          : null,
+          : initialData.shoulderWidth || 0,
       };
 
       console.log("Saving physical data:", physicalDataToSave);
