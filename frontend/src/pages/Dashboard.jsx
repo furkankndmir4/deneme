@@ -9,7 +9,6 @@ import Modal from "../components/Modal";
 import { useChat } from "../context/ChatContext";
 
 const mealRecommendations = [
-  // KAHVALTILAR
   {
     id: 1,
     name: "Protein Pancake",
@@ -39,7 +38,6 @@ const mealRecommendations = [
     type: "balanced",
     prepTime: "10 dk",
   },
-  // ÖĞLE YEMEKLERİ
   {
     id: 3,
     name: "Izgara Tavuklu Bowl",
@@ -78,7 +76,6 @@ const mealRecommendations = [
     type: "lowcarb",
     prepTime: "15 dk",
   },
-  // ARA ÖĞÜNLER
   {
     id: 5,
     name: "Protein Bar",
@@ -103,7 +100,6 @@ const mealRecommendations = [
     type: "protein",
     prepTime: "5 dk",
   },
-  // AKŞAM YEMEKLERİ
   {
     id: 7,
     name: "Fırında Somon",
@@ -134,7 +130,6 @@ const mealRecommendations = [
     type: "protein",
     prepTime: "35 dk",
   },
-  // VEGAN SEÇENEKLER
   {
     id: 9,
     name: "Mercimek Köftesi",
@@ -159,7 +154,6 @@ const mealRecommendations = [
     type: "vegan",
     prepTime: "20 dk",
   },
-  // TOPARLANMA ÖĞÜNLERİ
   {
     id: 11,
     name: "Makarna ve Tavuk",
@@ -184,7 +178,6 @@ const mealRecommendations = [
     type: "recovery",
     prepTime: "20 dk",
   },
-  // HIZLI YEMEKLER
   {
     id: 13,
     name: "Wraplı Tavuk",
@@ -215,7 +208,6 @@ const mealRecommendations = [
     type: "quick",
     prepTime: "20 dk",
   },
-  // YÜKSEK KALORİLİ
   {
     id: 15,
     name: "Kuruyemişli Karışım",
@@ -240,7 +232,6 @@ const mealRecommendations = [
     type: "highcal",
     prepTime: "5 dk",
   },
-  // DÜŞÜK KALORİLİ
   {
     id: 17,
     name: "Sebze Çorbası",
@@ -265,7 +256,6 @@ const mealRecommendations = [
     type: "lowcal",
     prepTime: "20 dk",
   },
-  // SPORCU ÖĞÜNLERİ
   {
     id: 19,
     name: "Antrenman Sonrası Shake",
@@ -292,34 +282,28 @@ const mealRecommendations = [
   },
 ];
 
-// Axios için varsayılan yapılandırma
 axios.defaults.withCredentials = true;
 axios.defaults.headers.common["Content-Type"] = "application/json";
 axios.defaults.headers.common["Accept"] = "application/json";
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'https://denemebackend.vercel.app';
 
-// Token yönetimi fonksiyonları
 const getAuthToken = () => {
   try {
-    // Önce localStorage'dan token'ı al
     const localToken = localStorage.getItem("userToken");
     const sessionToken = sessionStorage.getItem("userToken");
 
-    // Debug için token bilgilerini logla
     console.log("Token Debug:", {
       localToken,
       sessionToken,
       tokenValue: localToken || sessionToken,
     });
 
-    // Token'ı al ve "Bearer" prefix'ini ekle
     const token = localToken || sessionToken;
     if (!token) {
       console.error("No token found in storage");
       return null;
     }
 
-    // Token'ı doğru formatta döndür
     return `Bearer ${token}`;
   } catch (error) {
     console.error("Error getting auth token:", error);
@@ -327,7 +311,6 @@ const getAuthToken = () => {
   }
 };
 
-// Token'ı kaydetme fonksiyonu
 const saveAuthToken = (token) => {
   try {
     localStorage.setItem("userToken", token);
@@ -337,7 +320,6 @@ const saveAuthToken = (token) => {
   }
 };
 
-// Token'ı temizleme fonksiyonu
 const clearAuthData = () => {
   try {
     localStorage.removeItem("userToken");
@@ -380,7 +362,6 @@ const Dashboard = () => {
     Date.now()
   );
   const [streak, setStreak] = useState(0);
-  // Yeni birleşik sporcu listesi oluştur
   const [allAthletes, setAllAthletes] = useState([]);
 
   const handleLogout = async () => {
@@ -417,13 +398,12 @@ const Dashboard = () => {
       if (response.data) {
         let updatedUserData = response.data;
 
-        // Ensure the main physicalData object includes the latest change values from history if available
         if (
           response.data.physicalDataHistory &&
           response.data.physicalDataHistory.length > 0
         ) {
           const latestHistoryEntry =
-            response.data.physicalDataHistory[0]; // En yeni kayıt ilk elemandadır
+            response.data.physicalDataHistory[0];
           updatedUserData.physicalData = {
             ...updatedUserData.physicalData,
             bodyFatChange: latestHistoryEntry.bodyFatChange,
@@ -437,9 +417,8 @@ const Dashboard = () => {
           );
         }
 
-        setUserData(updatedUserData); // Güncellenmiş veriyi state'e kaydet
+        setUserData(updatedUserData);
 
-        // Check if profile data is complete
         const hasProfileData =
           response.data.profile &&
           response.data.profile.height &&
@@ -447,7 +426,6 @@ const Dashboard = () => {
           response.data.profile.age &&
           response.data.profile.gender;
 
-        // Check if physical data is complete
         const hasPhysicalData =
           response.data.physicalData &&
           response.data.physicalData.bodyFat !== undefined &&
@@ -457,13 +435,11 @@ const Dashboard = () => {
 
         console.log("Profile data check:", { hasProfileData, hasPhysicalData });
 
-        // Debug log for physicalDataHistory
         console.log(
           "Physical Data History from API:",
           response.data.physicalDataHistory
         );
 
-        // Update local storage with the new data
         const storedUser = JSON.parse(
           localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
         );
@@ -474,7 +450,6 @@ const Dashboard = () => {
         localStorage.setItem("user", JSON.stringify(updatedUser));
         sessionStorage.setItem("user", JSON.stringify(updatedUser));
 
-        // Set profile setup as done if all data is complete
         if (hasProfileData && hasPhysicalData) {
           localStorage.setItem("profileSetupDone", "true");
           setIsProfileSetupPopupOpen(false);
@@ -482,7 +457,6 @@ const Dashboard = () => {
           setNeedsProfileSetup(false);
           setNeedsPhysicalData(false);
         } else {
-          // Show appropriate popup based on missing data
           if (!hasProfileData) {
             console.log("Showing profile setup popup");
             setIsProfileSetupPopupOpen(true);
@@ -494,7 +468,6 @@ const Dashboard = () => {
           }
         }
 
-        // Update progress card with new weight if available
         if (response.data.profile?.weight) {
           const progressCard = document.querySelector(".progress-card");
           if (progressCard) {
@@ -505,7 +478,6 @@ const Dashboard = () => {
               weightSpan.textContent = `${response.data.profile.weight} kg`;
             }
             
-            // Update body fat change
             const bodyFatChangeSpan = progressCard.querySelector(
               "[data-bodyfat-change]"
             );
@@ -535,7 +507,6 @@ const Dashboard = () => {
     }
   };
 
-  // İlk yükleme için useEffect
   useEffect(() => {
     const initializeData = async () => {
       try {
@@ -549,9 +520,8 @@ const Dashboard = () => {
     };
 
     initializeData();
-  }, []); // Boş dependency array ile sadece component mount olduğunda çalışır
+  }, []);
 
-  // Token kontrolü için useEffect
   useEffect(() => {
     const checkAuth = () => {
       const token = getAuthToken();
@@ -578,7 +548,6 @@ const Dashboard = () => {
         return;
       }
 
-      // Profil verilerini hazırla
       const profileData = {
         fullName: data.fullName.trim(),
         age: parseInt(data.age),
@@ -589,7 +558,6 @@ const Dashboard = () => {
         activityLevel: data.activityLevel || "moderate",
       };
 
-      // API çağrısı
       const response = await axios.put(
         "http://localhost:5000/api/users/profile",
         profileData,
@@ -601,15 +569,13 @@ const Dashboard = () => {
         }
       );
 
-      // API'den dönen güncel user verisini kullan!
       if (response.data) {
-        setUserData(response.data); // API'den dönen güncel user objesi
+        setUserData(response.data);
         localStorage.setItem("user", JSON.stringify(response.data));
         sessionStorage.setItem("user", JSON.stringify(response.data));
         localStorage.setItem("profileSetupDone", "true");
         setNeedsProfileSetup(false);
         setIsProfileSetupPopupOpen(false);
-        // Fiziksel veriler güncellendiğinde dashboard'u yenilemek için kullanıcı verisini tekrar çek
         fetchUserData();
       }
     } catch (error) {
@@ -654,15 +620,13 @@ const Dashboard = () => {
         }&year=${currentMonth.getFullYear()}`
       );
 
-      console.log("Fetched events:", response.data); // Debug log
+      console.log("Fetched events:", response.data);
 
-      // Bugünden eski etkinlikleri otomatik sil
       const todayStr = new Date().toISOString().split("T")[0];
       const futureOrTodayEvents = [];
       for (const event of response.data) {
         const eventDateStr = new Date(event.date).toISOString().split("T")[0];
         if (eventDateStr < todayStr) {
-          // Geçmiş etkinliği sil
           try {
             await api.delete(`/events/${event._id}`);
           } catch (err) {
@@ -707,10 +671,9 @@ const Dashboard = () => {
   const handleDayClick = (day) => {
     const year = currentMonth.getFullYear();
     const month = currentMonth.getMonth();
-    const newDate = new Date(year, month, day, 12, 0, 0); // Set time to noon to avoid timezone issues
+    const newDate = new Date(year, month, day, 12, 0, 0);
     setSelectedDate(newDate);
 
-    // O güne ait etkinlikleri bul
     const dateStr = newDate.toISOString().split("T")[0];
     const dayEvents = events.filter((event) => event.date === dateStr);
 
@@ -731,24 +694,20 @@ const Dashboard = () => {
 
   const handleSaveEvent = async (formData) => {
     try {
-      // Format the date to YYYY-MM-DD
       const formattedData = {
         ...formData,
         date: new Date(formData.date).toISOString().split("T")[0],
       };
 
-      console.log("Sending event data:", formattedData); // Debug log
+      console.log("Sending event data:", formattedData);
 
       if (selectedEvent && selectedEvent._id) {
-        // Mevcut etkinliği güncelle
         await api.put(`/events/${selectedEvent._id}`, formattedData);
       } else {
-        // Yeni etkinlik oluştur - ID olmadan
-        const { _id, ...newEventData } = formattedData; // ID'yi çıkar
+        const { _id, ...newEventData } = formattedData;
         await api.post("/events", newEventData);
       }
 
-      // Önce etkinlikleri güncelle, sonra modalı kapat
       await fetchEvents();
       setSelectedEvent(null);
       setIsEventModalOpen(false);
@@ -778,37 +737,6 @@ const Dashboard = () => {
       default:
         return "bg-gray-500";
     }
-  };
-
-  const showMoreMeals = () => {
-    setVisibleMeals((prev) => prev + 6);
-  };
-
-  const handleRemoveRequest = (athlete) => {
-    setSelectedAthlete(athlete);
-    setIsRemoveModalOpen(true);
-  };
-
-  const handleConfirmRemove = async () => {
-    if (!selectedAthlete) return;
-    try {
-      setLoading(true);
-      setMyAthletes(
-        myAthletes.filter((athlete) => athlete.id !== selectedAthlete.id)
-      );
-    } catch (error) {
-      console.error("Remove athlete error:", error);
-      setError("Sporcu kaldırılamadı");
-    } finally {
-      setLoading(false);
-      setIsRemoveModalOpen(false);
-      setSelectedAthlete(null);
-    }
-  };
-
-  const handleCancelRemove = () => {
-    setIsRemoveModalOpen(false);
-    setSelectedAthlete(null);
   };
 
   const filteredMeals = mealRecommendations.filter((meal) => {
@@ -873,7 +801,6 @@ const Dashboard = () => {
     }
   };
 
-  // Antrenör pending sporcu isteklerini çek
   useEffect(() => {
     const fetchPendingAthleteRequests = async () => {
       if (userData?.userType?.toLowerCase() === "coach") {
@@ -895,7 +822,6 @@ const Dashboard = () => {
     fetchPendingAthleteRequests();
   }, [userData]);
 
-  // Bekleyen sporcu isteğini kabul et
   const handleAcceptAthleteRequest = async (requestId, athleteId) => {
     try {
       const token =
@@ -916,19 +842,16 @@ const Dashboard = () => {
     }
   };
 
-  // Bekleyen sporcu isteğini reddet
   const handleRejectAthleteRequest = async (requestId, athleteId) => {
     try {
       const token =
         localStorage.getItem("userToken") ||
         sessionStorage.getItem("userToken");
 
-      // Önce state'den kaldır (UI'ı hemen güncelle)
       setAllAthletes((prev) =>
         prev.filter((athlete) => athlete._id !== athleteId)
       );
 
-      // Sonra backend'e istek gönder - doğru endpoint'i kullan
       try {
         await axios.post(
           `http://localhost:5000/api/coaches/athlete-relationships/${requestId}/reject`,
@@ -936,7 +859,6 @@ const Dashboard = () => {
           { headers: { Authorization: `Bearer ${token}` } }
         );
       } catch (error) {
-        // Backend hatası olsa bile state'i güncellemiş olduk
         console.error("Backend'de reddetme hatası:", error);
       }
 
@@ -968,7 +890,6 @@ const Dashboard = () => {
     fetchStreak();
   }, []);
 
-  // useEffect'i güncelle
   useEffect(() => {
     if (userData?.userType?.toLowerCase() === "coach") {
       const fetchAllAthletes = async () => {
@@ -992,7 +913,6 @@ const Dashboard = () => {
     }
   }, [userData]);
 
-  // Kullanıcının hedefine göre uygunluk kontrolü
   const getSuitableTypes = (goalType) => {
     switch (goalType) {
       case "muscle_gain":
@@ -1009,7 +929,6 @@ const Dashboard = () => {
   };
   const userGoalType = userData?.profile?.goalType || "maintenance";
   const suitableTypes = getSuitableTypes(userGoalType);
-  // Favoriler state'i
   const [favoriteMeals, setFavoriteMeals] = useState(() => {
     const stored = localStorage.getItem("favoriteMeals");
     return stored ? JSON.parse(stored) : [];
@@ -1026,7 +945,6 @@ const Dashboard = () => {
       return updated;
     });
   };
-  // Malzemeler aç/kapa state'i (her meal için)
   const [showAllIngredients, setShowAllIngredients] = useState({});
   const handleShowAllIngredients = (mealId, value) => {
     setShowAllIngredients((prev) => ({ ...prev, [mealId]: value }));
@@ -1047,7 +965,6 @@ const Dashboard = () => {
     fetchEvents();
   }, []);
 
-  // Liderlik tablosu verisini çek
   useEffect(() => {
     const fetchLeaderboardData = async () => {
       try {
@@ -1055,7 +972,6 @@ const Dashboard = () => {
           localStorage.getItem("userToken") ||
           sessionStorage.getItem("userToken");
         if (!token) {
-          // Eğer token yoksa, hata mesajı göstermeye ProtectedRoute bakıyor
           console.log("Liderlik tablosu için token bulunamadı.");
           setLeaderboardData([]);
           setUserRank(null);
@@ -1067,12 +983,9 @@ const Dashboard = () => {
           config
         );
 
-        // Backend'den gelen veri formatına göre ayarla
         if (response.data && Array.isArray(response.data.leaderboard)) {
           setLeaderboardData(response.data.leaderboard);
           setUserRank(response.data.currentUserRank);
-          // Son güncelleme zamanını da güncelleyebilirsin istersen
-          // setLastLeaderboardUpdate(Date.now());
         } else {
           console.error(
             "Liderlik tablosu API'sinden geçersiz formatta veri geldi:",
@@ -1083,14 +996,13 @@ const Dashboard = () => {
         }
       } catch (err) {
         console.error("Liderlik tablosu verisi alınırken hata:", err);
-        // Hata durumunda da boş liste ve null rank ayarla
         setLeaderboardData([]);
         setUserRank(null);
       }
     };
 
     fetchLeaderboardData();
-  }, [userData?.points]); // Kullanıcı puanı değişince liderlik tablosunu yenile (veya [] ile sadece ilk yüklemede çek)
+  }, [userData?.points]);
 
   if (loading) {
     return (
@@ -1108,7 +1020,6 @@ const Dashboard = () => {
     );
   }
 
-  // Takvim için gerekli değişkenler
   const year = currentMonth.getFullYear();
   const month = currentMonth.getMonth();
   const daysInMonth = getDaysInMonth(year, month);
@@ -1128,7 +1039,6 @@ const Dashboard = () => {
     "Aralık",
   ];
 
-  // Takvim günlerini oluştur
   const calendarDays = [];
   for (let i = 0; i < firstDayOfMonth; i++) {
     calendarDays.push(null);
@@ -1137,13 +1047,11 @@ const Dashboard = () => {
     calendarDays.push(day);
   }
 
-  // Seçili günün etkinliklerini bul
   const selectedDayEvents = events.filter(
     (event) =>
       new Date(event.date).toDateString() === selectedDate.toDateString()
   );
 
-  // Yardımcı: Son güncelleme zamanını formatla
   const formatLeaderboardUpdate = (timestamp) => {
     const date = new Date(timestamp);
     const now = new Date();
@@ -1152,13 +1060,11 @@ const Dashboard = () => {
       date.getMonth() === now.getMonth() &&
       date.getFullYear() === now.getFullYear()
     ) {
-      // Bugün ise
       return `Bugün, ${date.getHours().toString().padStart(2, "0")}:${date
         .getMinutes()
         .toString()
         .padStart(2, "0")}`;
     } else {
-      // Değilse
       return `${date.getDate()}.${
         date.getMonth() + 1
       }.${date.getFullYear()}, ${date
@@ -1178,7 +1084,6 @@ const Dashboard = () => {
     return goals[goalType] || "Belirlenmemiş";
   };
 
-  // Süreyi Türkçe ve okunabilir şekilde formatlayan yardımcı fonksiyon
   function formatDuration(duration) {
     if (!duration || typeof duration !== "object") return "";
     const { value, type } = duration;
@@ -1198,7 +1103,6 @@ const Dashboard = () => {
     return result.join(" ");
   }
 
-  // Kalan süreyi hesaplayan fonksiyon
   function formatRemainingDuration(duration, startDate) {
     if (!duration || !startDate) return "";
     const { value, type } = duration;
@@ -1212,7 +1116,6 @@ const Dashboard = () => {
     const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
     let kalan = totalDays - diffDays;
     if (kalan < 0) kalan = 0;
-    // Sadeleştirme: 7, 14, 21... ise hafta, 30, 60... ise ay
     if (kalan > 0 && kalan % 30 === 0) {
       return `${kalan / 30} ay`;
     }
@@ -1231,7 +1134,6 @@ const Dashboard = () => {
     return result.join(" ");
   }
 
-  // Yardımcı: Program süresini uygun ekle göster (örn: 4 haftalık program)
   function formatDurationWithSuffix(duration) {
     if (!duration || typeof duration !== "object") return "";
     const { value, type } = duration;
@@ -2179,7 +2081,6 @@ const Dashboard = () => {
                         )}
                       </div>
                     </div>
-                    {/* Öğün Ekle butonu kaldırıldı */}
                   </div>
                 );
               })}
@@ -2448,7 +2349,7 @@ const Dashboard = () => {
                 <div
                   key={`dashboard-list-${user.id}`}
                   className={`grid grid-cols-12 items-center py-1.5 px-1 rounded-lg border ${
-                    user.id === userData?._id // Check against logged-in user's ID
+                    user.id === userData?._id
                       ? "bg-yellow-900/20 border-yellow-700"
                       : idx === 0
                       ? "bg-yellow-900/20 border-yellow-800"
@@ -2460,7 +2361,6 @@ const Dashboard = () => {
                   }`}
                 >
                   <div className="col-span-1 text-center text-gray-500 font-semibold">
-                    {/* Display trophy/medal for top 3, number for others */}
                     {idx === 0 && <span className="text-yellow-400">🏆</span>}
                     {idx === 1 && idx !== 0 && (
                       <span className="text-gray-400">🥈</span>
@@ -2540,14 +2440,12 @@ const Dashboard = () => {
                   )}
                 </div>
               </div>
-              {/* Puanı doğrudan userData'dan al veya leaderboardData'dan kendi kullanıcıyı bul */}
               {userData?.points !== undefined ? (
                 <div className="text-yellow-400 font-bold">
                   {userData.points.toLocaleString()} puan
                 </div>
               ) : leaderboardData.length > 0 && userRank !== null ? (
                 <div className="text-yellow-400 font-bold">
-                  {/* Liderlik listesinde kendi kullanıcıyı bulup puanını göster */}
                   {leaderboardData
                     .find((user) => user.id === userData?._id)
                     ?.points.toLocaleString() || "--"}{" "}

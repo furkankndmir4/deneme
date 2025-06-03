@@ -22,7 +22,6 @@ connectDB();
 
 const app = express();
 
-// CORS yapılandırması
 app.use(cors({
   origin: ['https://denemefrontend-indol.vercel.app', 'http://localhost:5173'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -34,7 +33,6 @@ app.use(express.json());
 
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
-// Routes
 app.use('/api/users', userRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/coaches', coachRoutes);

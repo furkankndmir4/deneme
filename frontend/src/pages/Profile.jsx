@@ -63,10 +63,8 @@ const Profile = () => {
   const navigate = useNavigate();
   const achievementService = new AchievementService();
 
-  // Sadece değişen fiziksel verileri takip etmek için state
   const [changedPhysicalData, setChangedPhysicalData] = useState({});
 
-  // Token alma yardımcı fonksiyonu
   const getToken = () => {
     try {
       return (
@@ -117,7 +115,6 @@ const Profile = () => {
         [name]: value,
       },
     }));
-    // Değişen alanı kaydet
     setChangedPhysicalData(prev => ({
       ...prev,
       [name]: value
@@ -130,7 +127,6 @@ const Profile = () => {
     setError(null);
 
     try {
-      // Convert string values to appropriate types
       const profileData = {
         fullName: userData.profile.fullName,
         age: parseInt(userData.profile.age),
@@ -142,7 +138,7 @@ const Profile = () => {
         privacy: userData.profile.privacy,
         goals: userData.profile.goals,
         specialization: userData.profile.specialization,
-        coachNote: userData.profile.coachNote, // Bu satırı ekleyin
+        coachNote: userData.profile.coachNote,
       };
 
       console.log("Sending data to API:", profileData);
@@ -160,22 +156,17 @@ const Profile = () => {
       );
       console.log("API response:", response.data);
 
-      // --- Vücut ölçülerini de güncelle ---
-      // NaN değerleri undefined olarak gönder ve sadece değişenleri al
       const safeParse = (val) => {
         const num = parseFloat(val);
         return isNaN(num) ? undefined : num;
       };
-      // Physical data objesini oluştururken sadece değeri undefined veya null olmayanları dahil et
       const physicalDataToSend = {};
-      // Sadece değişen fiziksel veri alanlarını physicalDataToSend objesine ekle
       for (const key in changedPhysicalData) {
         if (changedPhysicalData[key] !== undefined && changedPhysicalData[key] !== null) {
           physicalDataToSend[key] = safeParse(changedPhysicalData[key]);
         }
       }
 
-      // Sadece en az bir fiziksel veri alanı varsa gönder
       if (Object.keys(physicalDataToSend).length > 0) {
         await axios.put(
           "http://localhost:5000/api/users/physical-data",
@@ -192,13 +183,11 @@ const Profile = () => {
       }
 
       if (response.data.profile) {
-        // Update the state with the new profile data
         setUserData((prev) => ({
           ...prev,
           profile: {
             ...prev.profile,
             ...response.data.profile,
-            // Convert numeric values to strings for form inputs
             age: response.data.profile.age?.toString() || "",
             height: response.data.profile.height?.toString() || "",
             weight: response.data.profile.weight?.toString() || "",
@@ -209,7 +198,6 @@ const Profile = () => {
           physicalData: response.data.physicalData || prev.physicalData,
         }));
 
-        // Store the updated data in localStorage/sessionStorage
         const storedUser = JSON.parse(
           localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
         );
@@ -223,7 +211,6 @@ const Profile = () => {
 
         setSuccess(true);
         setTimeout(() => setSuccess(false), 3000);
-        // En güncel verileri tekrar çek ve state'i güncelle
         await fetchUserData();
       }
     } catch (err) {
@@ -257,7 +244,6 @@ const Profile = () => {
         },
       };
 
-      // Gizlilik verilerini gönder
       const privacyData = {
         privacy: userData.profile.privacy,
       };
@@ -317,7 +303,6 @@ const Profile = () => {
     }
   };
 
-  // Arkadaşlık isteğini kabul etme
   const handleAcceptRequest = async () => {
     try {
       const token =
@@ -343,7 +328,6 @@ const Profile = () => {
     }
   };
 
-  // Arkadaşlık isteğini reddetme
   const handleRejectRequest = async () => {
     try {
       const token =
@@ -366,7 +350,6 @@ const Profile = () => {
     }
   };
 
-  // Arkadaşlıktan çıkarma
   const handleRemoveFriend = async () => {
     try {
       const token =
@@ -407,7 +390,6 @@ const Profile = () => {
     return levels[level] || "Belirlenmemiş";
   };
 
-  // Kazanılan rozetleri filtreleme
   const earnedAchievements = achievements.filter((ach) => ach.earned);
 
   const handlePhotoChange = async (e) => {
@@ -431,7 +413,6 @@ const Profile = () => {
       );
       const data = await response.json();
       if (data.photoUrl) {
-        // Fotoğraf yüklendikten sonra profil verisini tekrar çek
         fetchUserData();
       }
     } catch (err) {

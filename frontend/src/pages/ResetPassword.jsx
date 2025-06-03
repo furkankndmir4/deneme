@@ -122,7 +122,6 @@ const ResetPassword = () => {
         </div>
       </div>
       
-      {/* Dekoratif elementler */}
       <div className="absolute top-10 left-10 w-32 h-32 bg-yellow-500 rounded-full mix-blend-overlay filter blur-xl opacity-10 animate-pulse"></div>
       <div className="absolute bottom-10 right-10 w-32 h-32 bg-yellow-500 rounded-full mix-blend-overlay filter blur-xl opacity-10 animate-pulse animation-delay-2000"></div>
     </div>
