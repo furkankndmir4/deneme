@@ -415,10 +415,6 @@ const Dashboard = () => {
             heightChange: latestHistoryEntry.heightChange,
             bmiChange: latestHistoryEntry.bmiChange
           };
-          console.log(
-            "Updated physicalData with changes from history:",
-            updatedUserData.physicalData
-          );
         }
 
         setUserData(updatedUserData);
@@ -445,43 +441,35 @@ const Dashboard = () => {
 
         console.log("Profile data check:", { hasProfileData, hasPhysicalData });
 
-        if (hasProfileData && hasPhysicalData) {
+        // Profil verilerini localStorage'a kaydet
+        const storedUser = JSON.parse(
+          localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
+        );
+        const updatedUser = {
+          ...storedUser,
+          ...response.data,
+        };
+        localStorage.setItem("user", JSON.stringify(updatedUser));
+        sessionStorage.setItem("user", JSON.stringify(updatedUser));
+
+        // Profil setup durumunu kontrol et
+        const profileSetupDone = localStorage.getItem("profileSetupDone") === "true";
+        
+        if (hasProfileData) {
           localStorage.setItem("profileSetupDone", "true");
           setIsProfileSetupPopupOpen(false);
-          setIsBodyInfoPopupOpen(false);
           setNeedsProfileSetup(false);
-          setNeedsPhysicalData(false);
-        } else {
-          if (!hasProfileData) {
-            console.log("Showing profile setup popup");
-            setIsProfileSetupPopupOpen(true);
-            setNeedsProfileSetup(true);
-          } else if (!hasPhysicalData) {
-            console.log("Physical data is incomplete");
-            setNeedsPhysicalData(true);
-            setIsBodyInfoPopupOpen(false);
-          }
+        } else if (!profileSetupDone) {
+          setIsProfileSetupPopupOpen(true);
+          setNeedsProfileSetup(true);
         }
 
-        if (response.data.profile?.weight) {
-          const progressCard = document.querySelector(".progress-card");
-          if (progressCard) {
-            const weightSpan = progressCard.querySelector(
-              "[data-weight-value]"
-            );
-            if (weightSpan) {
-              weightSpan.textContent = `${response.data.profile.weight} kg`;
-            }
-            
-            const bodyFatChangeSpan = progressCard.querySelector(
-              "[data-bodyfat-change]"
-            );
-            if (bodyFatChangeSpan && updatedUserData.physicalData?.bodyFatChange !== undefined) {
-              const change = updatedUserData.physicalData.bodyFatChange;
-              const sign = change > 0 ? "+" : "";
-              bodyFatChangeSpan.textContent = `${sign}${change.toFixed(1)}%`;
-            }
-          }
+        if (hasPhysicalData) {
+          setIsBodyInfoPopupOpen(false);
+          setNeedsPhysicalData(false);
+        } else {
+          setNeedsPhysicalData(true);
+          setIsBodyInfoPopupOpen(false);
         }
       }
     } catch (error) {
