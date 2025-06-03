@@ -1,11 +1,9 @@
 import axios from 'axios';
 
-// API URL'ini environment variable'dan al, yoksa production URL'ini kullan
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+// Hardcoded production URL
+const API_URL = 'https://denemebackend.vercel.app/api';
 
-console.log('API URL:', API_URL); // Debug için
+console.log('Using API URL:', API_URL);
 
 const api = axios.create({
   baseURL: API_URL,
@@ -19,8 +17,10 @@ const api = axios.create({
 // Request interceptor
 api.interceptors.request.use(
   (config) => {
-    console.log('Making request to:', config.url);
+    // URL'i logla
+    console.log('Making request to:', `${API_URL}${config.url}`);
     console.log('Request headers:', config.headers);
+    
     const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
