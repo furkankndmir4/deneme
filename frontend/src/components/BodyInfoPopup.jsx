@@ -83,20 +83,19 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
   };
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-70 backdrop-blur-sm flex items-center justify-center z-50">
-      <div className="glass-panel p-6 max-w-md w-full">
-        <div className="flex justify-between items-center mb-6">
-          <h3 className="text-xl font-bold text-yellow-500">Vücut Ölçüleri</h3>
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+      <div className="bg-gray-900 rounded-xl shadow-lg p-6 w-full max-w-md max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center mb-4">
+          <h2 className="text-xl font-semibold text-yellow-500">Vücut Ölçüleri</h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-200 transition duration-200"
+            className="text-gray-400 hover:text-white transition-colors"
           >
             <svg
               className="w-6 h-6"
               fill="none"
               stroke="currentColor"
               viewBox="0 0 24 24"
-              xmlns="http://www.w3.org/2000/svg"
             >
               <path
                 strokeLinecap="round"
@@ -107,206 +106,184 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
             </svg>
           </button>
         </div>
+        <div className="overflow-y-auto pr-2 custom-styled-scrollbar flex-1">
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Boy (cm)
+                </label>
+                <input
+                  type="number"
+                  name="height"
+                  value={formData.height}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 175"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Kilo (kg)
+                </label>
+                <input
+                  type="number"
+                  name="weight"
+                  value={formData.weight}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 70"
+                />
+              </div>
+            </div>
 
-        {error && (
-          <div className="bg-red-900 bg-opacity-60 text-red-200 p-3 rounded-lg mb-4">
-            {error}
-          </div>
-        )}
+            <div>
+              <label className="block text-sm font-medium text-gray-300 mb-1">
+                Vücut Yağ Oranı (%)
+              </label>
+              <input
+                type="number"
+                name="bodyFat"
+                value={formData.bodyFat}
+                onChange={handleChange}
+                className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                placeholder="Örn: 15"
+              />
+            </div>
 
-        <p className="mb-6 text-gray-300">
-          İlerlemenizi düzgün şekilde takip etmek için vücut ölçülerinizi
-          almamız gerekiyor.
-        </p>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Boyun Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="neckCircumference"
+                  value={formData.neckCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 35"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Bel Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="waistCircumference"
+                  value={formData.waistCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 80"
+                />
+              </div>
+            </div>
 
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="bodyFat"
-            >
-              Vücut Yağ Oranı (%)
-            </label>
-            <input
-              id="bodyFat"
-              name="bodyFat"
-              type="text"
-              className="glass-input w-full p-3"
-              placeholder="18"
-              value={physicalData.bodyFat}
-              onChange={(e) => {
-                const { name, value } = e.target;
-                // Sadece sayısal karakterlere ve bir tane noktaya izin ver
-                const regex = /^\d*\.?\d*$/;
-                if (value === '' || regex.test(value)) {
-                  setPhysicalData((prevState) => ({
-                    ...prevState,
-                    [name]: value,
-                  }));
-                }
-              }}
-              required
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Kalça Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="hipCircumference"
+                  value={formData.hipCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 90"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Göğüs Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="chestCircumference"
+                  value={formData.chestCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 95"
+                />
+              </div>
+            </div>
 
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="neckCircumference"
-            >
-              Boyun Çevresi (cm)
-            </label>
-            <input
-              id="neckCircumference"
-              name="neckCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="35"
-              value={physicalData.neckCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Biceps Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="bicepCircumference"
+                  value={formData.bicepCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 30"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Uyluk Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="thighCircumference"
+                  value={formData.thighCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 55"
+                />
+              </div>
+            </div>
 
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="waistCircumference"
-            >
-              Bel Çevresi (cm)
-            </label>
-            <input
-              id="waistCircumference"
-              name="waistCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="85"
-              value={physicalData.waistCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Baldır Çevresi (cm)
+                </label>
+                <input
+                  type="number"
+                  name="calfCircumference"
+                  value={formData.calfCircumference}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 35"
+                />
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-300 mb-1">
+                  Omuz Genişliği (cm)
+                </label>
+                <input
+                  type="number"
+                  name="shoulderWidth"
+                  value={formData.shoulderWidth}
+                  onChange={handleChange}
+                  className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
+                  placeholder="Örn: 45"
+                />
+              </div>
+            </div>
 
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="hipCircumference"
-            >
-              Kalça Çevresi (cm)
-            </label>
-            <input
-              id="hipCircumference"
-              name="hipCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="90"
-              value={physicalData.hipCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="chestCircumference"
-            >
-              Göğüs Çevresi (cm)
-            </label>
-            <input
-              id="chestCircumference"
-              name="chestCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="95"
-              value={physicalData.chestCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="bicepCircumference"
-            >
-              Kol Çevresi (cm)
-            </label>
-            <input
-              id="bicepCircumference"
-              name="bicepCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="35"
-              value={physicalData.bicepCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="thighCircumference"
-            >
-              Bacak Çevresi (cm)
-            </label>
-            <input
-              id="thighCircumference"
-              name="thighCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="55"
-              value={physicalData.thighCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="calfCircumference"
-            >
-              Baldır Çevresi (cm)
-            </label>
-            <input
-              id="calfCircumference"
-              name="calfCircumference"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="35"
-              value={physicalData.calfCircumference}
-              onChange={handleChange}
-              required
-            />
-          </div>
-          <div>
-            <label
-              className="block text-gray-300 mb-2 text-sm"
-              htmlFor="shoulderWidth"
-            >
-              Omuz Genişliği (cm)
-            </label>
-            <input
-              id="shoulderWidth"
-              name="shoulderWidth"
-              type="number"
-              className="glass-input w-full p-3"
-              placeholder="45"
-              value={physicalData.shoulderWidth}
-              onChange={handleChange}
-              required
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <button
-              type="submit"
-              className="btn-primary py-2 px-4"
-              disabled={loading}
-            >
-              {loading ? "Kaydediliyor..." : "Kaydet ve Tamamla"}
-            </button>
-          </div>
-        </form>
+            <div className="flex justify-end space-x-3 mt-6">
+              <button
+                type="button"
+                onClick={onClose}
+                className="px-4 py-2 bg-gray-700 text-gray-300 rounded-lg hover:bg-gray-600 transition-colors"
+              >
+                İptal
+              </button>
+              <button
+                type="submit"
+                className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors"
+              >
+                Kaydet
+              </button>
+            </div>
+          </form>
+        </div>
       </div>
     </div>
   );
