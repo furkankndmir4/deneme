@@ -20,24 +20,54 @@ const User = require('./models/userModel');
 
 dotenv.config();
 
+// JWT Secret kontrolü
+if (!process.env.JWT_SECRET) {
+  console.error('JWT_SECRET environment variable is not set!');
+  process.exit(1);
+}
+
 // Veritabanı bağlantısı
 connectDB();
 
 const app = express();
 
-// CORS yapılandırması
-app.use(cors({
-  origin: 'https://denemefrontend-indol.vercel.app',
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
-
 // Request logging middleware
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
   console.log('Headers:', req.headers);
+  next();
+});
+
+// CORS yapılandırması
+const allowedOrigins = [
+  'https://denemefrontend-indol.vercel.app',
+  'https://denemebackend.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000'
+];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log('Request Origin:', origin);
+  console.log('Request URL:', req.url);
+  console.log('Request Method:', req.method);
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 saat
+  } else {
+    console.log('Blocked origin:', origin);
+  }
+
+  if (req.method === 'OPTIONS') {
+    console.log('Handling OPTIONS request');
+    res.status(200).end();
+    return;
+  }
+
   next();
 });
 
@@ -53,7 +83,11 @@ app.get('/api/healthcheck', (req, res) => {
   res.status(200).json({
     status: 'active',
     message: 'Server is running',
-    timestamp: new Date().toISOString()
+    timestamp: new Date().toISOString(),
+    env: {
+      nodeEnv: process.env.NODE_ENV,
+      hasJwtSecret: !!process.env.JWT_SECRET
+    }
   });
 });
 
@@ -90,7 +124,10 @@ const PORT = process.env.PORT || 5000;
 // Sunucuyu başlat
 const server = app.listen(PORT, () => {
   console.log(`Server ${PORT} portunda çalışıyor`);
-  console.log('CORS Origins:', cors.origin);
+  console.log('Environment:', {
+    NODE_ENV: process.env.NODE_ENV,
+    hasJwtSecret: !!process.env.JWT_SECRET
+  });
 });
 
 // Vercel için export
