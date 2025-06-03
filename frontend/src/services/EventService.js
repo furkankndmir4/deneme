@@ -1,8 +1,6 @@
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api/events'
-  : 'https://denemebackend.vercel.app/api/events';
+const API_URL = 'http://localhost:5000/api/events';
 
 class EventService {
   async getEvents(startDate, endDate) {
