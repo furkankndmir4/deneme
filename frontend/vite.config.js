@@ -13,6 +13,18 @@ export default defineConfig({
       'autoprefixer'
     ]
   },
+  build: {
+    outDir: 'dist',
+    assetsDir: 'assets',
+    sourcemap: true,
+    rollupOptions: {
+      output: {
+        manualChunks: {
+          vendor: ['react', 'react-dom', 'react-router-dom'],
+        },
+      },
+    },
+  },
   server: {
     proxy: {
       '/api': {
@@ -20,8 +32,10 @@ export default defineConfig({
           ? 'http://localhost:5000'
           : 'https://denemebackend.vercel.app',
         changeOrigin: true,
-        secure: false,
-      }
-    }
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
+    https: true,
   }
 })
