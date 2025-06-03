@@ -11,7 +11,8 @@ const Login = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
-    const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+    const token =
+      localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
     const user = localStorage.getItem("user") || sessionStorage.getItem("user");
     if (token && user && window.location.pathname === "/") {
       navigate("/dashboard", { replace: true });
@@ -24,8 +25,11 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const apiUrl = import.meta.env.REACT_APP_API_URL || '/api';
-      const response = await axios.post(`${apiUrl}/users/login`, {
+      const API_URL =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5000/api"
+          : "https://denemebackend.vercel.app/api";
+      const response = await axios.post(`${API_URL}/users/login`, {
         email,
         password,
       });
@@ -41,7 +45,7 @@ const Login = () => {
           profile: response.data.profile || {},
           physicalData: response.data.physicalData || {},
         };
-        
+
         if (rememberMe) {
           localStorage.setItem("userToken", response.data.token);
           localStorage.setItem("user", JSON.stringify(userData));
@@ -49,10 +53,14 @@ const Login = () => {
           sessionStorage.setItem("userToken", response.data.token);
           sessionStorage.setItem("user", JSON.stringify(userData));
         }
-        
+
         // Profil kurulumu kontrolü
-        const profileSetupDone = response.data.profile && response.data.profile.fullName;
-        localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        const profileSetupDone =
+          response.data.profile && response.data.profile.fullName;
+        localStorage.setItem(
+          "profileSetupDone",
+          profileSetupDone ? "true" : "false"
+        );
 
         // Kullanıcı tipine göre yönlendirme
         if (response.data.userType === "coach") {
