@@ -444,11 +444,6 @@ const Dashboard = () => {
 
         console.log("Profile data check:", { hasProfileData, hasPhysicalData });
 
-        console.log(
-          "Physical Data History from API:",
-          response.data.physicalDataHistory
-        );
-
         const storedUser = JSON.parse(
           localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
         );
@@ -471,9 +466,10 @@ const Dashboard = () => {
             setIsProfileSetupPopupOpen(true);
             setNeedsProfileSetup(true);
           } else if (!hasPhysicalData) {
-            console.log("Showing physical data popup");
-            setIsBodyInfoPopupOpen(true);
+            console.log("Physical data is incomplete");
             setNeedsPhysicalData(true);
+            // Popup'ı otomatik açmayı kaldırıyoruz
+            setIsBodyInfoPopupOpen(false);
           }
         }
 

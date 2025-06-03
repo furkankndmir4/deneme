@@ -53,13 +53,6 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
     setError(null);
 
     try {
-      // Token kontrolü
-      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-      if (!token) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        return;
-      }
-
       // Fiziksel verileri hazırla
       const physicalDataToSave = {
         bodyFat: parseFloat(physicalData.bodyFat) || 0,
@@ -75,37 +68,9 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
 
       console.log("Saving physical data:", physicalDataToSave);
 
-      // API çağrısı
-      const response = await axios.put(
-        `${API_URL}/users/physical-data`,
-        physicalDataToSave,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
-      );
-
-      console.log("Physical data save response:", response.data);
-
-      if (response.data) {
-        // Kullanıcı verilerini güncelle
-        const currentUserData = JSON.parse(localStorage.getItem("user") || "{}");
-        const updatedUserData = {
-          ...currentUserData,
-          physicalData: {
-            ...currentUserData.physicalData,
-            ...physicalDataToSave,
-          },
-        };
-
-        localStorage.setItem("user", JSON.stringify(updatedUserData));
-        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
-
-        onSave(physicalDataToSave);
-        onClose();
-      }
+      // Verileri Dashboard bileşenine gönder
+      onSave(physicalDataToSave);
+      onClose();
     } catch (error) {
       console.error("Error saving physical data:", error);
       setError(
