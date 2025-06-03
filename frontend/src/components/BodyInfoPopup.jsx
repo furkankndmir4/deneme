@@ -78,14 +78,14 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
           ...currentUserData,
           physicalData: {
             ...currentUserData.physicalData,
-            ...response.data.physicalData,
+            ...physicalDataToSave,
           },
         };
 
         localStorage.setItem("user", JSON.stringify(updatedUserData));
         sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
-        onSave(updatedUserData.physicalData);
+        onSave(physicalDataToSave);
         onClose();
       }
     } catch (error) {
