@@ -1011,21 +1011,21 @@ const Dashboard = () => {
     try {
       const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       if (!token) {
-        navigate("/login");
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
         return;
       }
 
-      // Fiziksel verileri hazırla ve mevcut değerleri koru
+      // Fiziksel verileri hazırla
       const physicalData = {
-        bodyFat: data.bodyFat ? parseFloat(data.bodyFat) : (userData?.physicalData?.bodyFat || 0),
-        waistCircumference: data.waistCircumference ? parseFloat(data.waistCircumference) : (userData?.physicalData?.waistCircumference || 0),
-        neckCircumference: data.neckCircumference ? parseFloat(data.neckCircumference) : (userData?.physicalData?.neckCircumference || 0),
-        hipCircumference: data.hipCircumference ? parseFloat(data.hipCircumference) : (userData?.physicalData?.hipCircumference || 0),
-        chestCircumference: data.chestCircumference ? parseFloat(data.chestCircumference) : (userData?.physicalData?.chestCircumference || 0),
-        bicepCircumference: data.bicepCircumference ? parseFloat(data.bicepCircumference) : (userData?.physicalData?.bicepCircumference || 0),
-        thighCircumference: data.thighCircumference ? parseFloat(data.thighCircumference) : (userData?.physicalData?.thighCircumference || 0),
-        calfCircumference: data.calfCircumference ? parseFloat(data.calfCircumference) : (userData?.physicalData?.calfCircumference || 0),
-        shoulderWidth: data.shoulderWidth ? parseFloat(data.shoulderWidth) : (userData?.physicalData?.shoulderWidth || 0),
+        bodyFat: parseFloat(data.bodyFat) || 0,
+        neckCircumference: parseFloat(data.neckCircumference) || 0,
+        waistCircumference: parseFloat(data.waistCircumference) || 0,
+        hipCircumference: parseFloat(data.hipCircumference) || 0,
+        chestCircumference: parseFloat(data.chestCircumference) || 0,
+        bicepCircumference: parseFloat(data.bicepCircumference) || 0,
+        thighCircumference: parseFloat(data.thighCircumference) || 0,
+        calfCircumference: parseFloat(data.calfCircumference) || 0,
+        shoulderWidth: parseFloat(data.shoulderWidth) || 0,
       };
 
       console.log("Gönderilen fiziksel veriler:", physicalData);
@@ -1055,15 +1055,16 @@ const Dashboard = () => {
         localStorage.setItem("user", JSON.stringify(updatedUserData));
         sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
+        // Kullanıcı verilerini güncelle
         setUserData(updatedUserData);
+        
+        // Popup'ı kapat
         setIsBodyInfoPopupOpen(false);
-        setNeedsPhysicalData(false);
-        fetchUserData(); // Kullanıcı verilerini yeniden çek
       }
     } catch (error) {
-      console.error("Physical data save error:", error);
+      console.error("Fiziksel veri kaydetme hatası:", error);
       if (error.response?.status === 401) {
-        navigate("/login");
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
       } else {
         setError(
           error.response?.data?.message ||
