@@ -435,7 +435,12 @@ const Dashboard = () => {
           response.data.physicalData.bodyFat !== undefined &&
           response.data.physicalData.waistCircumference !== undefined &&
           response.data.physicalData.neckCircumference !== undefined &&
-          response.data.physicalData.hipCircumference !== undefined;
+          response.data.physicalData.hipCircumference !== undefined &&
+          response.data.physicalData.chestCircumference !== undefined &&
+          response.data.physicalData.bicepCircumference !== undefined &&
+          response.data.physicalData.thighCircumference !== undefined &&
+          response.data.physicalData.calfCircumference !== undefined &&
+          response.data.physicalData.shoulderWidth !== undefined;
 
         console.log("Profile data check:", { hasProfileData, hasPhysicalData });
 
