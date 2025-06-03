@@ -2,11 +2,6 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 
-const API_URL =
-        process.env.NODE_ENV === "development"
-          ? "http://localhost:5000/api"
-          : "https://denemebackend.vercel.app/api";
-          
 const Register = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,6 +23,10 @@ const Register = () => {
     setLoading(true);
 
     try {
+      const API_URL =
+        process.env.NODE_ENV === "development"
+          ? "http://localhost:5000/api"
+          : "https://denemebackend.vercel.app/api";
       const response = await axios.post(
         `${API_URL}/users/register`,
         {
