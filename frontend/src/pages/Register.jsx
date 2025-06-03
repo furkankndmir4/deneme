@@ -23,15 +23,12 @@ const Register = () => {
     setLoading(true);
 
     try {
-      const response = await axios.post('/api/users/register', {
+      const response = await axios.post('https://denemebackend.vercel.app/api/users/register', {
         email,
         password,
         userType
       }, {
         withCredentials: true,
-        headers: {
-          'Content-Type': 'application/json'
-        }
       });
 
       if (response.data) {
