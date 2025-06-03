@@ -429,10 +429,10 @@ const Dashboard = () => {
 
         const hasPhysicalData =
           response.data.physicalData &&
-          response.data.physicalData.bodyFat !== undefined &&
-          response.data.physicalData.waistCircumference !== undefined &&
           response.data.physicalData.neckCircumference !== undefined &&
+          response.data.physicalData.waistCircumference !== undefined &&
           response.data.physicalData.hipCircumference !== undefined &&
+          response.data.physicalData.bodyFat !== undefined &&
           response.data.physicalData.chestCircumference !== undefined &&
           response.data.physicalData.bicepCircumference !== undefined &&
           response.data.physicalData.thighCircumference !== undefined &&
@@ -1036,6 +1036,10 @@ const Dashboard = () => {
         
         // Popup'ı kapat
         setIsBodyInfoPopupOpen(false);
+        setNeedsPhysicalData(false);
+
+        // Kullanıcı verilerini yeniden çek
+        await fetchUserData();
       }
     } catch (error) {
       console.error("Fiziksel veri kaydetme hatası:", error);
