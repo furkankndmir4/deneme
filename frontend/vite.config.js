@@ -16,7 +16,9 @@ export default defineConfig({
   server: {
     proxy: {
       '/api': {
-        target: 'http://localhost:5000',
+        target: process.env.NODE_ENV === 'development' 
+          ? 'http://localhost:5000'
+          : 'https://denemebackend.vercel.app',
         changeOrigin: true,
         secure: false,
       }

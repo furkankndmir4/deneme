@@ -67,7 +67,7 @@ const setAuthToken = (token) => {
 
 export const registerUser = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/users/register`, userData);
+    const response = await api.post('/users/register', userData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -76,7 +76,7 @@ export const registerUser = async (userData) => {
 
 export const loginUser = async (email, password) => {
   try {
-    const response = await axios.post(`${API_URL}/users/login`, { email, password });
+    const response = await api.post('/users/login', { email, password });
     
     if (response.data.token) {
       localStorage.setItem('userToken', response.data.token);
@@ -99,7 +99,7 @@ export const logoutUser = () => {
 export const getUserProfile = async () => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.get(`${API_URL}/users/profile`);
+    const response = await api.get('/users/profile');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -109,7 +109,7 @@ export const getUserProfile = async () => {
 export const updateUserProfile = async (profileData) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.put(`${API_URL}/users/profile`, profileData);
+    const response = await api.put('/users/profile', profileData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -119,7 +119,7 @@ export const updateUserProfile = async (profileData) => {
 export const updatePhysicalData = async (physicalData) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.put(`${API_URL}/users/physical-data`, physicalData);
+    const response = await api.put('/users/physical-data', physicalData);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -129,7 +129,7 @@ export const updatePhysicalData = async (physicalData) => {
 export const uploadProfilePhoto = async (formData) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.post(`${API_URL}/users/profile/photo`, formData, {
+    const response = await api.post('/users/profile/photo', formData, {
       headers: {
         'Content-Type': 'multipart/form-data',
       },
@@ -143,16 +143,16 @@ export const uploadProfilePhoto = async (formData) => {
 export const checkTodaysPhysicalRecord = async () => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.get(`${API_URL}/athletes/physical-data/today-check`);
+    const response = await api.get('/athletes/physical-data/today-check');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
   }
 };
-// services/api.js - Yeni fonksiyonlar ekleyin
+
 export const forgotPassword = async (email) => {
   try {
-    const response = await axios.post(`${API_URL}/users/forgot-password`, { email });
+    const response = await api.post('/users/forgot-password', { email });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -162,7 +162,7 @@ export const forgotPassword = async (email) => {
 export const deleteAccount = async () => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.delete(`${API_URL}/users/account`);
+    const response = await api.delete('/users/account');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -172,7 +172,7 @@ export const deleteAccount = async () => {
 export const getPhysicalDataHistory = async (startDate, endDate) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    let url = `${API_URL}/athletes/physical-data/history`;
+    let url = '/athletes/physical-data/history';
     
     // Tarih filtresi ekle
     if (startDate || endDate) {
@@ -182,7 +182,7 @@ export const getPhysicalDataHistory = async (startDate, endDate) => {
       if (endDate) url += `endDate=${endDate.toISOString()}`;
     }
     
-    const response = await axios.get(url);
+    const response = await api.get(url);
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -192,7 +192,7 @@ export const getPhysicalDataHistory = async (startDate, endDate) => {
 export const getTrainingTemplates = async () => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.get(`${API_URL}/training-programs/templates`);
+    const response = await api.get('/training-programs/templates');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -202,7 +202,7 @@ export const getTrainingTemplates = async () => {
 export const selectTrainingProgram = async (programId) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.post(`${API_URL}/athletes/training-program/select`, { programId });
+    const response = await api.post('/athletes/training-program/select', { programId });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -212,7 +212,7 @@ export const selectTrainingProgram = async (programId) => {
 export const getCoaches = async () => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.get(`${API_URL}/coaches`);
+    const response = await api.get('/coaches');
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -222,7 +222,7 @@ export const getCoaches = async () => {
 export const selectCoach = async (coachId, message) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.post(`${API_URL}/athletes/select-coach`, { coachId, message });
+    const response = await api.post('/athletes/select-coach', { coachId, message });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };
@@ -232,7 +232,7 @@ export const selectCoach = async (coachId, message) => {
 export const updateUserPrivacySettings = async (privacySettings) => {
   try {
     setAuthToken(localStorage.getItem('userToken') || sessionStorage.getItem('userToken'));
-    const response = await axios.put(`${API_URL}/users/privacy-settings`, { privacy: privacySettings });
+    const response = await api.put('/users/privacy-settings', { privacy: privacySettings });
     return response.data;
   } catch (error) {
     throw error.response?.data || { message: 'Bir hata oluştu' };

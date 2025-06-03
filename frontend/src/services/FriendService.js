@@ -1,6 +1,8 @@
 import axios from 'axios';
 
-const API_URL = 'http://localhost:5000/api/friends';
+const API_URL = process.env.NODE_ENV === 'development' 
+  ? 'http://localhost:5000/api/friends'
+  : 'https://denemebackend.vercel.app/api/friends';
 
 const getAuthHeader = () => ({
   headers: {
