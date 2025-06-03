@@ -33,11 +33,7 @@ const Login = () => {
       console.log("Login response:", response.data);
 
       if (response.data.token) {
-        // Token'ı hem localStorage hem de sessionStorage'a kaydet
-        localStorage.setItem("userToken", response.data.token);
-        sessionStorage.setItem("userToken", response.data.token);
-        
-        // Kullanıcı bilgilerini kaydet
+        // Beni hatırla seçeneğine göre token ve kullanıcı bilgilerini sakla
         const userData = {
           _id: response.data._id,
           email: response.data.email,
@@ -46,9 +42,14 @@ const Login = () => {
           physicalData: response.data.physicalData || {},
         };
         
-        localStorage.setItem("user", JSON.stringify(userData));
-        sessionStorage.setItem("user", JSON.stringify(userData));
-
+        if (rememberMe) {
+          localStorage.setItem("userToken", response.data.token);
+          localStorage.setItem("user", JSON.stringify(userData));
+        } else {
+          sessionStorage.setItem("userToken", response.data.token);
+          sessionStorage.setItem("user", JSON.stringify(userData));
+        }
+        
         // Profil kurulumu kontrolü
         const profileSetupDone = response.data.profile && response.data.profile.fullName;
         localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
