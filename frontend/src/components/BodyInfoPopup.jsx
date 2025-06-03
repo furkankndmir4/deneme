@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { updatePhysicalData } from "../services/api";
 import axios from "axios";
 
@@ -18,6 +18,24 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
     calfCircumference: initialData.calfCircumference || "",
     shoulderWidth: initialData.shoulderWidth || "",
   });
+
+  // Add useEffect to update state when initialData changes
+  useEffect(() => {
+    if (initialData) {
+      setPhysicalData({
+        bodyFat: initialData.bodyFat || "",
+        neckCircumference: initialData.neckCircumference || "",
+        waistCircumference: initialData.waistCircumference || "",
+        hipCircumference: initialData.hipCircumference || "",
+        chestCircumference: initialData.chestCircumference || "",
+        bicepCircumference: initialData.bicepCircumference || "",
+        thighCircumference: initialData.thighCircumference || "",
+        calfCircumference: initialData.calfCircumference || "",
+        shoulderWidth: initialData.shoulderWidth || "",
+      });
+    }
+  }, [initialData]);
+
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
