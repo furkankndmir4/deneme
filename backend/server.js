@@ -34,17 +34,27 @@ app.use((req, res, next) => {
 
 // Gelişmiş CORS yapılandırması
 const corsOptions = {
-  origin: [
-    'https://denemefrontend-indol.vercel.app',
-    'https://denemebackend.vercel.app',
-    'http://localhost:5173'
-  ],
+  origin: function (origin, callback) {
+    const allowedOrigins = [
+      'https://denemefrontend-indol.vercel.app',
+      'https://denemebackend.vercel.app',
+      'http://localhost:5173'
+    ];
+    console.log('Request Origin:', origin);
+    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      console.log('CORS blocked for origin:', origin);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
-  optionsSuccessStatus: 200 // Bazı tarayıcılar için gerekli
+  optionsSuccessStatus: 200
 };
 
+// CORS middleware'ini en başta uygula
 app.use(cors(corsOptions));
 
 // OPTIONS isteklerini işle
