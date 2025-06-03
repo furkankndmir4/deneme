@@ -1,3 +1,4 @@
+#!/usr/bin/env node
 const express = require('express');
 const dotenv = require('dotenv');
 const cors = require('cors');
@@ -15,24 +16,49 @@ const messageRoutes = require('./routes/messageRoutes');
 const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const goalController = require('./controllers/goalController');
 const goalRoutes = require('./routes/goalRoutes');
+const User = require('./models/userModel');
 
 dotenv.config();
 
+// Veritabanı bağlantısı
 connectDB();
 
 const app = express();
 
-app.use(cors({
-  origin: ['https://denemefrontend-indol.vercel.app', 'http://localhost:5173'],
+// Gelişmiş CORS yapılandırması
+const corsOptions = {
+  origin: [
+    'https://denemefrontend-indol.vercel.app',
+    'https://denemebackend.vercel.app',
+    'http://localhost:5173'
+  ],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
   credentials: true,
-}));
+  optionsSuccessStatus: 200 // Bazı tarayıcılar için gerekli
+};
 
-app.use(express.json());
+app.use(cors(corsOptions));
 
+// OPTIONS isteklerini işle
+app.options('*', cors(corsOptions));
+
+// JSON body parser
+app.use(express.json({ limit: '10mb' }));
+
+// Static dosyalar
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
+// Test endpointi
+app.get('/api/healthcheck', (req, res) => {
+  res.status(200).json({
+    status: 'active',
+    message: 'Server is running',
+    timestamp: new Date().toISOString()
+  });
+});
+
+// API Routes
 app.use('/api/users', userRoutes);
 app.use('/api/athletes', athleteRoutes);
 app.use('/api/coaches', coachRoutes);
@@ -44,9 +70,11 @@ app.use('/api/messages', messageRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/goals', goalRoutes);
 
+// Hata yönetimi middleware'leri
 app.use(notFound);
 app.use(errorHandler);
 
+// Periyodik görevler
 setInterval(async () => {
   try {
     const users = await User.find({});
@@ -60,6 +88,10 @@ setInterval(async () => {
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+// Sunucuyu başlat
+const server = app.listen(PORT, () => {
   console.log(`Server ${PORT} portunda çalışıyor`);
 });
+
+// Vercel için export
+module.exports = app;
