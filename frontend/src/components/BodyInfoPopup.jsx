@@ -116,7 +116,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="height"
-                  value={formData.height}
+                  value={physicalData.height}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 175"
@@ -129,7 +129,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="weight"
-                  value={formData.weight}
+                  value={physicalData.weight}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 70"
@@ -144,7 +144,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
               <input
                 type="number"
                 name="bodyFat"
-                value={formData.bodyFat}
+                value={physicalData.bodyFat}
                 onChange={handleChange}
                 className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 placeholder="Örn: 15"
@@ -159,7 +159,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="neckCircumference"
-                  value={formData.neckCircumference}
+                  value={physicalData.neckCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 35"
@@ -172,7 +172,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="waistCircumference"
-                  value={formData.waistCircumference}
+                  value={physicalData.waistCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 80"
@@ -188,7 +188,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="hipCircumference"
-                  value={formData.hipCircumference}
+                  value={physicalData.hipCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 90"
@@ -201,7 +201,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="chestCircumference"
-                  value={formData.chestCircumference}
+                  value={physicalData.chestCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 95"
@@ -217,7 +217,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="bicepCircumference"
-                  value={formData.bicepCircumference}
+                  value={physicalData.bicepCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 30"
@@ -230,7 +230,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="thighCircumference"
-                  value={formData.thighCircumference}
+                  value={physicalData.thighCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 55"
@@ -246,7 +246,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="calfCircumference"
-                  value={formData.calfCircumference}
+                  value={physicalData.calfCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 35"
@@ -259,7 +259,7 @@ const BodyInfoPopup = ({ onClose, onSave, initialData = {} }) => {
                 <input
                   type="number"
                   name="shoulderWidth"
-                  value={formData.shoulderWidth}
+                  value={physicalData.shoulderWidth}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 45"
