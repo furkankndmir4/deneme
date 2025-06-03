@@ -32,17 +32,32 @@ app.use((req, res, next) => {
   next();
 });
 
-// Basitleştirilmiş CORS yapılandırması
-app.use(cors({
-  origin: '*', // Tüm originlere izin ver
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
-  credentials: true,
-  optionsSuccessStatus: 200
-}));
+// CORS yapılandırması
+const allowedOrigins = [
+  'https://denemefrontend-indol.vercel.app',
+  'https://denemebackend.vercel.app',
+  'http://localhost:5173'
+];
 
-// OPTIONS isteklerini işle
-app.options('*', cors());
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  console.log('Request Origin:', origin);
+  
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400'); // 24 saat
+  }
+
+  if (req.method === 'OPTIONS') {
+    res.status(200).end();
+    return;
+  }
+
+  next();
+});
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));

@@ -14,6 +14,7 @@ const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     console.log('Making request to:', config.url);
+    console.log('Request headers:', config.headers);
     const token = localStorage.getItem('userToken') || sessionStorage.getItem('userToken');
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -29,10 +30,12 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response) => {
     console.log('Response received:', response.status);
+    console.log('Response headers:', response.headers);
     return response;
   },
   (error) => {
     console.error('Response error:', error.response?.status, error.response?.data);
+    console.error('Error headers:', error.response?.headers);
     if (error.response?.status === 401) {
       localStorage.removeItem('userToken');
       localStorage.removeItem('userInfo');
