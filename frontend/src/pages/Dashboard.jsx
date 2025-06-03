@@ -374,8 +374,8 @@ const Dashboard = () => {
     navigate("/");
   };
 
-  const fetchUserData = async () => {
-    try {
+    const fetchUserData = async () => {
+      try {
       setLoading(true);
       setError(null);
       const token =
@@ -458,10 +458,10 @@ const Dashboard = () => {
         if (hasProfileData) {
           localStorage.setItem("profileSetupDone", "true");
           setIsProfileSetupPopupOpen(false);
-          setNeedsProfileSetup(false);
+            setNeedsProfileSetup(false);
         } else if (!profileSetupDone) {
-          setIsProfileSetupPopupOpen(true);
-          setNeedsProfileSetup(true);
+            setIsProfileSetupPopupOpen(true);
+            setNeedsProfileSetup(true);
         }
 
         if (hasPhysicalData) {
@@ -470,31 +470,31 @@ const Dashboard = () => {
         } else {
           setNeedsPhysicalData(true);
           setIsBodyInfoPopupOpen(false);
+          }
         }
-      }
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      if (error.response?.status === 401) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        clearAuthData();
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else {
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+        if (error.response?.status === 401) {
+          setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+          clearAuthData();
+          setTimeout(() => {
+            navigate("/");
+          }, 2000);
+        } else {
         setError(
           "Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
         );
-      }
+        }
     } finally {
-      setLoading(false);
-    }
-  };
+        setLoading(false);
+      }
+    };
 
   useEffect(() => {
     const initializeData = async () => {
-      try {
+        try {
         await fetchUserData();
-      } catch (error) {
+        } catch (error) {
         console.error("Error initializing data:", error);
         setError(
           "Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
@@ -507,15 +507,15 @@ const Dashboard = () => {
 
   useEffect(() => {
     const checkAuth = () => {
-      const token = getAuthToken();
-      if (!token) {
-        console.error("No token found on page load");
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        clearAuthData();
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      }
+    const token = getAuthToken();
+    if (!token) {
+      console.error("No token found on page load");
+      setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+      clearAuthData();
+      setTimeout(() => {
+        navigate("/");
+      }, 2000);
+    }
     };
 
     checkAuth();
@@ -1333,12 +1333,12 @@ const Dashboard = () => {
                             : userData.physicalData.weightChange < 0
                               ? "text-green-400"
                               : "text-gray-400"
-                          }`}
+                        }`}
                       >
                         ({userData.physicalData.weightChange > 0 ? "+" : ""}
                         {userData.physicalData.weightChange?.toFixed(1)}kg)
                       </span>
-                    )}
+                  )}
                 </span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
@@ -1366,7 +1366,7 @@ const Dashboard = () => {
                             : userData.physicalData.bodyFatChange < 0
                               ? "text-green-400"
                               : "text-gray-400"
-                          }`}
+                        }`}
                       >
                         ({userData.physicalData.bodyFatChange > 0 ? "+" : ""}
                         {typeof userData.physicalData.bodyFatChange === "number"
@@ -1374,7 +1374,7 @@ const Dashboard = () => {
                           : "--"}
                         %)
                       </span>
-                    )}
+                  )}
                 </span>
               </div>
               <div className="w-full bg-gray-700 rounded-full h-2">
@@ -1400,9 +1400,9 @@ const Dashboard = () => {
                         className={`ml-1 ${userData.physicalData.heightChange > 0
                             ? "text-green-400"
                             : userData.physicalData.heightChange < 0
-                              ? "text-red-400"
+                            ? "text-red-400"
                               : "text-gray-400"
-                          }`}
+                        }`}
                       >
                         ({userData.physicalData.heightChange > 0 ? "+" : ""}
                         {userData.physicalData.heightChange?.toFixed(1)}cm)
@@ -1426,7 +1426,7 @@ const Dashboard = () => {
                               : userData.physicalData.bmiChange < 0
                                 ? "text-green-400"
                                 : "text-gray-400"
-                            }`}
+                          }`}
                         >
                           ({userData.physicalData.bmiChange > 0 ? "+" : ""}
                           {userData.physicalData.bmiChange?.toFixed(1)})
@@ -1535,8 +1535,8 @@ const Dashboard = () => {
                       <span className="text-gray-400 text-sm">
                         Bugünkü antrenman:
                       </span>
-                      <div className="flex items-center mt-1">
-                        <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
+                  <div className="flex items-center mt-1">
+                    <div className="w-2 h-2 bg-yellow-500 rounded-full mr-2"></div>
                         <span className="text-gray-200 font-semibold">
                           {
                             [
@@ -1551,7 +1551,7 @@ const Dashboard = () => {
                           }{" "}
                           Antrenmanı
                         </span>
-                      </div>
+                  </div>
                       <div className="text-sm text-gray-400 mt-1">
                         {todayWorkout.exercises &&
                         todayWorkout.exercises.length > 0
@@ -1731,25 +1731,25 @@ const Dashboard = () => {
                     style={{ minHeight: 64, maxWidth: 440 }}
                   >
                     <div className="w-10 h-10 rounded-full bg-gray-700 flex items-center justify-center text-lg text-yellow-400 font-bold border border-yellow-500 overflow-hidden">
-                      {athlete.profile?.photoUrl ? (
-                        <img
+                        {athlete.profile?.photoUrl ? (
+                          <img
                           src={
                             athlete.profile.photoUrl.startsWith("http")
                               ? athlete.profile.photoUrl
                               : `${API_URL}${athlete.profile.photoUrl}`
                           }
-                          alt={athlete.profile.fullName}
+                            alt={athlete.profile.fullName}
                           className="w-full h-full object-cover rounded-full"
-                        />
-                      ) : (
-                        athlete.profile?.fullName?.charAt(0) || "A"
-                      )}
-                    </div>
+                          />
+                        ) : (
+                          athlete.profile?.fullName?.charAt(0) || "A"
+                        )}
+                      </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2">
                         <p className="font-semibold text-base text-gray-100 truncate">
-                          {athlete.profile?.fullName || "İsimsiz Sporcu"}
-                        </p>
+                              {athlete.profile?.fullName || "İsimsiz Sporcu"}
+                            </p>
                         {athlete.status === "pending" ? (
                           <span className="text-xs px-2 py-0.5 bg-yellow-500 bg-opacity-20 text-yellow-400 rounded-full">
                             Bekliyor
@@ -1761,14 +1761,14 @@ const Dashboard = () => {
                         )}
                       </div>
                       <p className="text-xs text-gray-400 truncate">
-                        {athlete.profile?.age
-                          ? `${athlete.profile.age} yaş • `
-                          : ""}
+                              {athlete.profile?.age
+                                ? `${athlete.profile.age} yaş • `
+                                : ""}
                         {athlete.profile?.goalType
                           ? getGoalTypeText(athlete.profile.goalType)
                           : "Hedef belirlenmedi"}
-                      </p>
-                    </div>
+                            </p>
+                          </div>
                     <div className="flex gap-2 ml-2">
                       {athlete.status === "pending" ? (
                         <>
@@ -2027,44 +2027,44 @@ const Dashboard = () => {
                   ? meal.ingredients
                   : meal.ingredients.slice(0, maxIngredients);
                 return (
-                  <div
-                    key={meal.id}
-                    className="bg-gray-800 bg-opacity-40 p-4 rounded-lg border border-gray-700 hover:border-yellow-500 transition"
-                  >
-                    <div className="flex justify-between items-start mb-2">
+                <div
+                  key={meal.id}
+                  className="bg-gray-800 bg-opacity-40 p-4 rounded-lg border border-gray-700 hover:border-yellow-500 transition"
+                >
+                  <div className="flex justify-between items-start mb-2">
                       <div className="flex items-center">
                         <h4 className="text-lg font-medium text-yellow-500 mr-2">
-                          {meal.name}
-                        </h4>
-                        <span
-                          className={`px-2 py-1 rounded-full text-xs ${
-                            meal.type === "protein"
-                              ? "bg-blue-900 text-blue-300"
-                              : meal.type === "vegan"
-                              ? "bg-green-900 text-green-300"
-                              : meal.type === "quick"
-                              ? "bg-purple-900 text-purple-300"
+                        {meal.name}
+                      </h4>
+                    <span
+                      className={`px-2 py-1 rounded-full text-xs ${
+                        meal.type === "protein"
+                          ? "bg-blue-900 text-blue-300"
+                          : meal.type === "vegan"
+                          ? "bg-green-900 text-green-300"
+                          : meal.type === "quick"
+                          ? "bg-purple-900 text-purple-300"
                               : meal.type === "lowcarb"
                               ? "bg-pink-900 text-pink-300"
-                              : "bg-gray-700 text-gray-300"
-                          }`}
-                        >
-                          {meal.type === "protein"
-                            ? "Protein"
-                            : meal.type === "vegan"
-                            ? "Vegan"
-                            : meal.type === "quick"
-                            ? "Hızlı"
-                            : meal.type === "lowcarb"
-                            ? "Düşük Karbonhidrat"
-                            : "Diğer"}
-                        </span>
+                          : "bg-gray-700 text-gray-300"
+                      }`}
+                    >
+                      {meal.type === "protein"
+                        ? "Protein"
+                        : meal.type === "vegan"
+                        ? "Vegan"
+                        : meal.type === "quick"
+                        ? "Hızlı"
+                        : meal.type === "lowcarb"
+                        ? "Düşük Karbonhidrat"
+                        : "Diğer"}
+                    </span>
                         {isSuitable && (
                           <span className="ml-2 text-xs bg-green-700 text-white px-2 py-1 rounded">
                             Senin hedefin için uygun
                           </span>
                         )}
-                      </div>
+                  </div>
                       <button
                         onClick={() => toggleFavorite(meal.id)}
                         className={`ml-2 px-2 py-1 rounded text-xs ${
@@ -2079,35 +2079,35 @@ const Dashboard = () => {
                         {isFavorite ? "★" : "☆"}
                       </button>
                     </div>
-                    <div className="grid grid-cols-3 gap-2 mb-3 text-center">
-                      <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
-                        <p className="text-xs text-gray-400">Protein</p>
-                        <p className="text-blue-400 font-medium">
-                          {meal.protein}g
-                        </p>
-                      </div>
-                      <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
-                        <p className="text-xs text-gray-400">Karbonhidrat</p>
-                        <p className="text-yellow-400 font-medium">
-                          {meal.carbs}g
-                        </p>
-                      </div>
-                      <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
-                        <p className="text-xs text-gray-400">Yağ</p>
-                        <p className="text-red-400 font-medium">{meal.fat}g</p>
-                      </div>
+                  <div className="grid grid-cols-3 gap-2 mb-3 text-center">
+                    <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
+                      <p className="text-xs text-gray-400">Protein</p>
+                      <p className="text-blue-400 font-medium">
+                        {meal.protein}g
+                      </p>
                     </div>
-                    <div className="mb-3">
-                      <p className="text-xs text-gray-400 mb-1">Malzemeler:</p>
-                      <div className="flex flex-wrap gap-1">
+                    <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
+                      <p className="text-xs text-gray-400">Karbonhidrat</p>
+                      <p className="text-yellow-400 font-medium">
+                        {meal.carbs}g
+                      </p>
+                    </div>
+                    <div className="bg-gray-900 bg-opacity-50 p-1 rounded">
+                      <p className="text-xs text-gray-400">Yağ</p>
+                      <p className="text-red-400 font-medium">{meal.fat}g</p>
+                    </div>
+                  </div>
+                  <div className="mb-3">
+                    <p className="text-xs text-gray-400 mb-1">Malzemeler:</p>
+                    <div className="flex flex-wrap gap-1">
                         {visibleIngredients.map((ingredient, index) => (
-                          <span
-                            key={index}
-                            className="px-2 py-0.5 bg-gray-700 rounded-full text-xs text-gray-300"
-                          >
-                            {ingredient}
-                          </span>
-                        ))}
+                        <span
+                          key={index}
+                          className="px-2 py-0.5 bg-gray-700 rounded-full text-xs text-gray-300"
+                        >
+                          {ingredient}
+                        </span>
+                      ))}
                         {meal.ingredients.length > maxIngredients &&
                           !isShowingAll && (
                             <span
@@ -2129,9 +2129,9 @@ const Dashboard = () => {
                             gizle
                           </span>
                         )}
-                      </div>
                     </div>
                   </div>
+                </div>
                 );
               })}
             </div>
@@ -2141,21 +2141,21 @@ const Dashboard = () => {
         <div className="bg-gray-900 bg-opacity-60 backdrop-blur-lg p-6 rounded-xl border border-gray-800 shadow-lg transition-all duration-300 hover:shadow-yellow-900/20">
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-xl font-semibold text-gray-100">Takvim</h3>
-            <div className="p-2 bg-yellow-500 rounded-full">
-              <svg
-                className="w-5 h-5 text-black"
-                fill="none"
-                stroke="currentColor"
-                viewBox="0 0 24 24"
-                xmlns="http://www.w3.org/2000/svg"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth={2}
-                  d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
-                />
-              </svg>
+              <div className="p-2 bg-yellow-500 rounded-full">
+                <svg
+                  className="w-5 h-5 text-black"
+                  fill="none"
+                  stroke="currentColor"
+                  viewBox="0 0 24 24"
+                  xmlns="http://www.w3.org/2000/svg"
+                >
+                  <path
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    strokeWidth={2}
+                    d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"
+                  />
+                </svg>
             </div>
           </div>
 
@@ -2439,28 +2439,28 @@ const Dashboard = () => {
                     <span
                       className={`truncate text-sm ${
                         user.id === userData?._id
-                          ? "text-yellow-400 font-medium"
-                          : "text-gray-300"
+                            ? "text-yellow-400 font-medium"
+                            : "text-gray-300"
                       }`}
-                    >
+                      >
                       {user.name} {user.id === userData?._id && "(Siz)"}
-                    </span>
-                  </div>
-                  <div
+                      </span>
+                    </div>
+                    <div
                     className={`col-span-4 text-right text-sm font-semibold ${
                       user.id === userData?._id
                         ? "text-yellow-400"
-                        : "text-gray-400"
-                    }`}
-                  >
-                    {user.points.toLocaleString()}
+                          : "text-gray-400"
+                      }`}
+                    >
+                      {user.points.toLocaleString()}
+                    </div>
                   </div>
-                </div>
-              ))}
+                ))}
               {leaderboardData.length === 0 && (
                 <div className="text-gray-400 text-center py-4">
                   Liderlik verileri yüklenemedi veya boş.
-                </div>
+              </div>
               )}
             </div>
           </div>
@@ -2470,19 +2470,19 @@ const Dashboard = () => {
               <div className="flex items-center">
                 {/* userRank null ise veya 0 ise gösterme */}
                 {userRank !== null && userRank > 0 && (
-                  <div className="bg-yellow-500 text-black rounded-full w-7 h-7 flex items-center justify-center font-bold mr-2">
-                    {userRank}
-                  </div>
+                <div className="bg-yellow-500 text-black rounded-full w-7 h-7 flex items-center justify-center font-bold mr-2">
+                  {userRank}
+                </div>
                 )}
                 <div>
                   <p className="text-gray-200">Sıralamanız</p>
                   {userRank !== null && userRank > 0 ? (
-                    <p className="text-xs text-gray-400">
+                  <p className="text-xs text-gray-400">
                       {/* Sıralama 100'den küçük veya eşitse göster */}
                       {userRank <= 100
                         ? "İlk 100 içerisindesiniz!"
                         : "Sıralamanız 100+."}
-                    </p>
+                  </p>
                   ) : (
                     <p className="text-xs text-gray-400">
                       Sıralama henüz belirlenmedi.
@@ -2495,12 +2495,12 @@ const Dashboard = () => {
                   {userData.points.toLocaleString()} puan
                 </div>
               ) : leaderboardData.length > 0 && userRank !== null ? (
-                <div className="text-yellow-400 font-bold">
-                  {leaderboardData
+              <div className="text-yellow-400 font-bold">
+                {leaderboardData
                     .find((user) => user.id === userData?._id)
                     ?.points.toLocaleString() || "--"}{" "}
-                  puan
-                </div>
+                puan
+              </div>
               ) : (
                 <div className="text-yellow-400 font-bold">-- puan</div>
               )}

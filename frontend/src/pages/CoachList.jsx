@@ -42,7 +42,7 @@ const CoachList = () => {
         }
 
         const response = await axios.get(`${API_URL}/users/profile`, {
-          headers: { Authorization: `Bearer ${token}` },
+            headers: { Authorization: `Bearer ${token}` },
         });
         setUserData(response.data);
       } catch (err) {
