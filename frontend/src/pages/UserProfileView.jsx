@@ -3,6 +3,7 @@ import { Link, useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { AchievementBadgeGroup, AchievementDetail } from '../components/achievement/AchievementBadge';
 import { Trophy } from 'lucide-react';
+import allBadges from '../data/achievements.json';
 
 const API_URL = process.env.NODE_ENV === 'development' 
   ? 'http://localhost:5000/api'
@@ -37,7 +38,15 @@ const UserProfileView = () => {
 
                 const response = await axios.get(`${API_URL}/users/profile/${userId}`, config);
                 console.log("Profile data received:", response.data);
-                setUserData(response.data);
+                
+                // Backend'den gelen achievement ID'lerini, tüm rozet detaylarıyla birleştir
+                const earnedAchievementIds = response.data.achievements ? response.data.achievements.map(a => a.id) : [];
+                const detailedEarnedAchievements = allBadges.filter(badge => earnedAchievementIds.includes(badge.id));
+
+                setUserData({
+                    ...response.data,
+                    achievements: detailedEarnedAchievements // Detaylı rozet verisi ile güncelle
+                });
 
                 // Arkadaşlık durumunu kontrol et
                 if (response.data.friendshipStatus) {
