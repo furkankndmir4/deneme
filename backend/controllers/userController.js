@@ -918,7 +918,7 @@ const updatePhysicalData = asyncHandler(async (req, res) => {
 
   let currentBMI = null;
   let bmiChange = undefined;
-  if (typeof height === "number" && typeof weight === "number" && height > 0) {
+  if (typeof height === "number" && height > 0 && typeof weight === "number" && weight > 0) {
     currentBMI = weight / ((height / 100) * (height / 100));
     if (lastEntry && typeof lastEntry.bmi === "number") {
       bmiChange = currentBMI - lastEntry.bmi;

@@ -902,6 +902,8 @@ const Profile = () => {
                           id="height"
                           name="height"
                           type="number"
+                          min="0"
+                          step="0.1"
                           className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
                           value={userData?.profile?.height || ""}
                           onChange={handleChange}
@@ -918,6 +920,8 @@ const Profile = () => {
                           id="weight"
                           name="weight"
                           type="number"
+                          min="0"
+                          step="0.1"
                           className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
                           value={userData?.profile?.weight || ""}
                           onChange={handleChange}
@@ -993,11 +997,11 @@ const Profile = () => {
                             id="bodyFat"
                             name="bodyFat"
                             type="number"
-                            step="0.1"
                             min="0"
+                            step="0.1"
                             max="100"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.bodyFat ?? ""}
+                            value={userData?.physicalData?.bodyFat || (userData?.physicalData?.bodyFat === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1009,8 +1013,10 @@ const Profile = () => {
                             id="waistCircumference"
                             name="waistCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.waistCircumference ?? ""}
+                            value={userData?.physicalData?.waistCircumference || (userData?.physicalData?.waistCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1022,8 +1028,10 @@ const Profile = () => {
                             id="neckCircumference"
                             name="neckCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.neckCircumference ?? ""}
+                            value={userData?.physicalData?.neckCircumference || (userData?.physicalData?.neckCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1035,8 +1043,10 @@ const Profile = () => {
                             id="hipCircumference"
                             name="hipCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.hipCircumference ?? ""}
+                            value={userData?.physicalData?.hipCircumference || (userData?.physicalData?.hipCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1048,8 +1058,10 @@ const Profile = () => {
                             id="chestCircumference"
                             name="chestCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.chestCircumference ?? ""}
+                            value={userData?.physicalData?.chestCircumference || (userData?.physicalData?.chestCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1061,8 +1073,10 @@ const Profile = () => {
                             id="bicepCircumference"
                             name="bicepCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.bicepCircumference ?? ""}
+                            value={userData?.physicalData?.bicepCircumference || (userData?.physicalData?.bicepCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1074,8 +1088,10 @@ const Profile = () => {
                             id="thighCircumference"
                             name="thighCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.thighCircumference ?? ""}
+                            value={userData?.physicalData?.thighCircumference || (userData?.physicalData?.thighCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1087,8 +1103,10 @@ const Profile = () => {
                             id="calfCircumference"
                             name="calfCircumference"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.calfCircumference ?? ""}
+                            value={userData?.physicalData?.calfCircumference || (userData?.physicalData?.calfCircumference === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
@@ -1100,8 +1118,10 @@ const Profile = () => {
                             id="shoulderWidth"
                             name="shoulderWidth"
                             type="number"
+                            min="0"
+                            step="0.1"
                             className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
-                            value={userData?.physicalData?.shoulderWidth ?? ""}
+                            value={userData?.physicalData?.shoulderWidth || (userData?.physicalData?.shoulderWidth === 0 ? '0' : '')}
                             onChange={handlePhysicalDataChange}
                           />
                         </div>
