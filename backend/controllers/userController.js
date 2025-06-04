@@ -231,69 +231,71 @@ const getUserProfile = asyncHandler(async (req, res) => {
 // @access  Private
 const getUserProfileById = asyncHandler(async (req, res) => {
   try {
-  const userId = req.params.userId;
-  const currentUserId = req.user._id;
+    const userId = req.params.userId;
+    const currentUserId = req.user._id;
 
-  if (userId === currentUserId.toString()) {
-    const user = await User.findById(req.user._id)
-      .populate('profile')
-      .populate({
-        path: 'coach',
-        populate: {
-          path: 'profile',
-          select: 'fullName photoUrl specialization'
-        }
-      })
-      .populate('physicalData');
+    if (userId === currentUserId.toString()) {
+      const user = await User.findById(req.user._id)
+        .populate('profile')
+        .populate({
+          path: 'coach',
+          populate: {
+            path: 'profile',
+            select: 'fullName photoUrl specialization'
+          }
+        })
+        .populate('physicalData');
 
-    if (user) {
-      return res.json({
-        _id: user._id,
-        email: user.email,
-        userType: user.userType,
-        profile: user.profile,
-        physicalData: user.physicalData,
-        coach: user.coach,
-        createdAt: user.createdAt
-      });
-    } else {
-      res.status(404);
-      throw new Error('User not found');
-    }
-  }
-
-  const user = await User.findById(userId).select('-password');
-  if (!user) {
-    res.status(404);
-    throw new Error('Kullanıcı bulunamadı');
-  }
-  const profile = await Profile.findOne({ user: userId });
-  if (!profile) {
-    res.status(404);
-    throw new Error('Bu kullanıcının profili bulunmuyor');
-  }
-    // Antrenör kontrolü: profiline bakan kişi, bu kullanıcının antrenörü mü?
-    const isCoach = user.coach && String(user.coach) === String(currentUserId);
-  const friendship = await Friend.findOne({
-    $or: [
-      { requester: currentUserId, recipient: userId },
-      { requester: userId, recipient: currentUserId }
-    ]
-  });
-  let friendshipStatus = null;
-  let isFriend = false;
-  if (friendship) {
-    if (friendship.status === 'accepted') {
-      friendshipStatus = 'friends';
-      isFriend = true;
-    } else if (friendship.status === 'pending') {
-      if (friendship.requester.toString() === currentUserId.toString()) {
-        friendshipStatus = 'request_sent';
+      if (user) {
+        return res.json({
+          _id: user._id,
+          email: user.email,
+          userType: user.userType,
+          profile: user.profile,
+          physicalData: user.physicalData,
+          coach: user.coach,
+          createdAt: user.createdAt
+        });
       } else {
-        friendshipStatus = 'request_received';
+        res.status(404);
+        throw new Error('User not found');
       }
     }
-  }
+
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      res.status(404);
+      throw new Error('Kullanıcı bulunamadı');
+    }
+    const profile = await Profile.findOne({ user: userId });
+    if (!profile) {
+      res.status(404);
+      throw new Error('Bu kullanıcının profili bulunmuyor');
+    }
+
+    // Antrenör kontrolü: profiline bakan kişi, bu kullanıcının antrenörü mü?
+    const isCoach = user.coach && String(user.coach) === String(currentUserId);
+    const friendship = await Friend.findOne({
+      $or: [
+        { requester: currentUserId, recipient: userId },
+        { requester: userId, recipient: currentUserId }
+      ]
+    });
+    let friendshipStatus = null;
+    let isFriend = false;
+    if (friendship) {
+      if (friendship.status === 'accepted') {
+        friendshipStatus = 'friends';
+        isFriend = true;
+      } else if (friendship.status === 'pending') {
+        if (friendship.requester.toString() === currentUserId.toString()) {
+          friendshipStatus = 'request_sent';
+        } else {
+          friendshipStatus = 'request_received';
+        }
+      }
+    }
+
     let filteredProfile;
     let physicalDataResponse = null;
     const latestPhysicalData = await PhysicalData.findOne({ user: userId }).sort({ createdAt: -1 });
@@ -323,12 +325,12 @@ const getUserProfileById = asyncHandler(async (req, res) => {
         photoUrl: profile.photoUrl,
         gender: profile.gender
       };
-  if (!profile.privacy || profile.privacy.showAge) filteredProfile.age = profile.age;
-  if (!profile.privacy || profile.privacy.showWeight) filteredProfile.weight = profile.weight;
-  if (!profile.privacy || profile.privacy.showHeight) filteredProfile.height = profile.height;
-  if (!profile.privacy || profile.privacy.showGoals) {
-    filteredProfile.goalType = profile.goalType;
-    filteredProfile.activityLevel = profile.activityLevel;
+      if (!profile.privacy || profile.privacy.showAge) filteredProfile.age = profile.age;
+      if (!profile.privacy || profile.privacy.showWeight) filteredProfile.weight = profile.weight;
+      if (!profile.privacy || profile.privacy.showHeight) filteredProfile.height = profile.height;
+      if (!profile.privacy || profile.privacy.showGoals) {
+        filteredProfile.goalType = profile.goalType;
+        filteredProfile.activityLevel = profile.activityLevel;
       }
       if (latestPhysicalData) {
         if (!profile.privacy || profile.privacy.showBodyMeasurements) {
@@ -353,32 +355,29 @@ const getUserProfileById = asyncHandler(async (req, res) => {
         }
       }
     }
+
     // Rozet ilerlemesi ve kazanılan rozetler
     let achievementsArr = [];
     let progressArr = [];
     try {
-      const achievementUtils = require('../utils/achievementUtils');
-      // Kullanıcı istatistiklerini çek (ör: hedefler, arkadaş sayısı vs.)
-      // Burada userStats fonksiyonunu kendi koduna göre doldurmalısın
-      const userStats = await achievementUtils.getUserStats(userId);
-      const badgeResult = await achievementUtils.checkAndAwardBadges(userId, userStats);
-      achievementsArr = badgeResult.progress.filter(a => a.earned);
-      progressArr = badgeResult.progress;
+      // Kullanıcının mevcut rozetlerini al
+      achievementsArr = user.achievements.filter(a => a.earned);
+      progressArr = user.achievements;
     } catch (e) {
       console.error('Rozetler alınırken hata:', e);
-  }
+    }
 
-  const responseData = {
-    _id: user._id,
-    email: user.email,
-    userType: user.userType,
-    profile: filteredProfile,
+    const responseData = {
+      _id: user._id,
+      email: user.email,
+      userType: user.userType,
+      profile: filteredProfile,
       friendshipStatus,
       physicalData: physicalDataResponse,
       achievements: achievementsArr,
       progress: progressArr
-  };
-  res.json(responseData);
+    };
+    res.json(responseData);
   } catch (error) {
     console.error('getUserProfileById error:', error);
     res.status(500).json({ message: error.message, stack: error.stack });
