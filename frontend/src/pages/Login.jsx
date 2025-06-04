@@ -36,25 +36,34 @@ const Login = () => {
       console.log("Login response:", response.data);
 
       if (response.data.token) {
-        // Token'ı hem localStorage hem de sessionStorage'a kaydet
-        localStorage.setItem("userToken", response.data.token);
-        sessionStorage.setItem("userToken", response.data.token);
-        
-        // Kullanıcı bilgilerini kaydet
-        const userData = {
-          _id: response.data._id,
-          email: response.data.email,
-          userType: response.data.userType,
-          profile: response.data.profile || {},
-          physicalData: response.data.physicalData || {},
-        };
-        
-        localStorage.setItem("user", JSON.stringify(userData));
-        sessionStorage.setItem("user", JSON.stringify(userData));
+        // Beni hatırla seçeneğine göre token'ı sakla
+        if (rememberMe) {
+          localStorage.setItem("userToken", response.data.token);
+          localStorage.setItem("user", JSON.stringify({
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            profile: response.data.profile || {},
+            physicalData: response.data.physicalData || {},
+          }));
+        } else {
+          sessionStorage.setItem("userToken", response.data.token);
+          sessionStorage.setItem("user", JSON.stringify({
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            profile: response.data.profile || {},
+            physicalData: response.data.physicalData || {},
+          }));
+        }
 
         // Profil kurulumu kontrolü
         const profileSetupDone = response.data.profile && response.data.profile.fullName;
-        localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        if (rememberMe) {
+          localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        } else {
+          sessionStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
+        }
 
         // Kullanıcı tipine göre yönlendirme
         if (response.data.userType === "coach") {
