@@ -478,11 +478,16 @@ const UserProfileView = () => {
                                                 <span className="text-gray-300">Kazanılan Rozetler: {userData.achievements.filter(a => a.earned).length}</span>
                                             </div>
 
-                                            <AchievementBadgeGroup
-                                                achievements={userData.achievements.filter(a => a.earned)}
-                                                size="sm"
-                                                onBadgeClick={setSelectedAchievement}
-                                            />
+                                            {/* Kazanılan rozetleri listele */}
+                                            <div className="grid grid-cols-3 gap-2">
+                                                {userData.achievements.filter(a => a.earned).map(badge => (
+                                                    <div key={badge.id} className="flex flex-col items-center text-center">
+                                                        <span className="text-2xl">{badge.icon}</span>
+                                                        <span className="text-xs text-gray-300 mt-1">{badge.name}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+
                                         </div>
                                     ) : (
                                         <p className="text-gray-400 text-center py-3">Bu kullanıcı henüz rozet kazanmamış.</p>
