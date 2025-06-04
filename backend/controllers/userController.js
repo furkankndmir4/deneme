@@ -51,29 +51,32 @@ const registerUser = asyncHandler(async (req, res) => {
 // @desc    Auth user & get token
 // @route   POST /api/users/login
 // @access  Public
-const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
-
-  if (!email || !password) {
-    res.status(400);
-    throw new Error('E-posta ve şifre gereklidir');
-  }
-
-  const user = await User.findOne({ email });
-
-  if (!user) {
-    res.status(401);
-    throw new Error('Geçersiz e-posta veya şifre');
-  }
-
-  const isMatch = await user.matchPassword(password);
-
-  if (!isMatch) {
-    res.status(401);
-    throw new Error('Geçersiz e-posta veya şifre');
-  }
-
+const loginUser = async (req, res) => {
   try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({
+        message: 'E-posta ve şifre gereklidir'
+      });
+    }
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      return res.status(401).json({
+        message: 'Geçersiz e-posta veya şifre'
+      });
+    }
+
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      return res.status(401).json({
+        message: 'Geçersiz e-posta veya şifre'
+      });
+    }
+
     await Login.create({ user: user._id, date: new Date() });
 
     // --- STREAK GÜNCELLEME ---
@@ -103,7 +106,7 @@ const loginUser = asyncHandler(async (req, res) => {
     const profile = await Profile.findOne({ user: user._id });
     const hasPhysicalData = await PhysicalData.exists({ user: user._id });
 
-    res.status(200).json({
+    return res.status(200).json({
       _id: user._id,
       email: user.email,
       userType: user.userType,
@@ -112,13 +115,13 @@ const loginUser = asyncHandler(async (req, res) => {
       token: generateToken(user._id),
     });
   } catch (error) {
-    console.error('Login process error:', error);
-    res.status(500).json({
-      message: 'Giriş işlemi sırasında bir hata oluştu',
-      error: process.env.NODE_ENV === 'development' ? error.message : undefined
+    console.error('Login error:', error);
+    return res.status(500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
     });
   }
-});
+};
 
 // @desc    Get user profile
 // @route   GET /api/users/profile
