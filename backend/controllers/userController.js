@@ -49,14 +49,31 @@ const registerUser = asyncHandler(async (req, res) => {
 });
 
 // @desc    Auth user & get token
-// @route   POST /api/users/auth
+// @route   POST /api/users/login
 // @access  Public
 const loginUser = asyncHandler(async (req, res) => {
-  const { email, password } = req.body;
+  try {
+    const { email, password } = req.body;
 
-  const user = await User.findOne({ email });
+    if (!email || !password) {
+      res.status(400);
+      throw new Error('E-posta ve şifre gereklidir');
+    }
 
-  if (user && (await user.matchPassword(password))) {
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      res.status(401);
+      throw new Error('Geçersiz e-posta veya şifre');
+    }
+
+    const isMatch = await user.matchPassword(password);
+
+    if (!isMatch) {
+      res.status(401);
+      throw new Error('Geçersiz e-posta veya şifre');
+    }
+
     await Login.create({ user: user._id, date: new Date() });
 
     // --- STREAK GÜNCELLEME ---
@@ -94,9 +111,12 @@ const loginUser = asyncHandler(async (req, res) => {
       hasPhysicalData: !!hasPhysicalData,
       token: generateToken(user._id),
     });
-  } else {
-    res.status(401);
-    throw new Error('Geçersiz e-posta veya şifre');
+  } catch (error) {
+    console.error('Login error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
   }
 });
 
