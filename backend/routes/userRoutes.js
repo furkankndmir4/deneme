@@ -15,7 +15,9 @@ const {
   updatePrivacySettings,
   updatePhysicalData,
   getPhysicalDataHistory,
-  adminResetPassword
+  adminResetPassword,
+  checkUserAccounts,
+  updateUserEmail
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const uploadMiddleware = require('../middleware/uploadMiddleware');
@@ -27,6 +29,8 @@ router.post('/login', loginUser);
 router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:resetToken', resetPassword);
 router.post('/admin-reset-password', adminResetPassword);
+router.get('/check-accounts', checkUserAccounts);
+router.put('/update-email', updateUserEmail);
 
 router.post('/logout', protect, logoutUser);
 router.get('/profile', protect, getUserProfile);

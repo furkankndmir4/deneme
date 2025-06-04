@@ -83,16 +83,20 @@ const loginUser = async (req, res) => {
       });
     }
 
-    const user = await User.findOne({ email });
+    // E-posta adresini küçük harfe çevir ve boşlukları temizle
+    const normalizedEmail = email.toLowerCase().trim();
+    console.log('Normalized email:', normalizedEmail); // Debug log
+
+    const user = await User.findOne({ email: normalizedEmail });
 
     if (!user) {
-      console.log('User not found:', email); // Debug log
+      console.log('User not found:', normalizedEmail); // Debug log
       return res.status(401).json({
         message: 'Geçersiz e-posta veya şifre'
       });
     }
 
-    console.log('User found:', { userId: user._id }); // Debug log
+    console.log('User found:', { userId: user._id, email: user.email }); // Debug log
 
     const isMatch = await user.matchPassword(password);
     console.log('Password match result:', isMatch); // Debug log
@@ -1012,6 +1016,79 @@ const adminResetPassword = asyncHandler(async (req, res) => {
   }
 });
 
+// @desc    Check user accounts
+// @route   GET /api/users/check-accounts
+// @access  Public
+const checkUserAccounts = asyncHandler(async (req, res) => {
+  try {
+    const { email } = req.query;
+    console.log('Checking accounts for email:', email); // Debug log
+
+    const users = await User.find({
+      email: { $in: [email, email.replace('@gmail.com', '@outlook.com'), email.replace('@outlook.com', '@gmail.com')] }
+    }).select('-password');
+
+    console.log('Found users:', users); // Debug log
+
+    res.json({
+      message: 'Kullanıcı hesapları kontrol edildi',
+      users: users
+    });
+  } catch (error) {
+    console.error('Check accounts error:', error);
+    res.status(500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
+  }
+});
+
+// @desc    Update user email
+// @route   PUT /api/users/update-email
+// @access  Public
+const updateUserEmail = asyncHandler(async (req, res) => {
+  try {
+    const { oldEmail, newEmail } = req.body;
+    console.log('Updating email from:', oldEmail, 'to:', newEmail); // Debug log
+
+    // Önce eski e-posta ile kullanıcıyı bul
+    const user = await User.findOne({ email: oldEmail });
+    if (!user) {
+      console.log('User not found with old email:', oldEmail); // Debug log
+      res.status(404);
+      throw new Error('Kullanıcı bulunamadı');
+    }
+
+    // Yeni e-posta adresi başka bir kullanıcı tarafından kullanılıyor mu kontrol et
+    const existingUser = await User.findOne({ email: newEmail });
+    if (existingUser) {
+      console.log('New email already in use:', newEmail); // Debug log
+      res.status(400);
+      throw new Error('Bu e-posta adresi zaten kullanılıyor');
+    }
+
+    // E-posta adresini güncelle
+    user.email = newEmail;
+    await user.save();
+    console.log('Email updated successfully'); // Debug log
+
+    res.json({
+      message: 'E-posta adresi başarıyla güncellendi',
+      user: {
+        _id: user._id,
+        email: user.email,
+        userType: user.userType
+      }
+    });
+  } catch (error) {
+    console.error('Update email error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -1029,5 +1106,7 @@ module.exports = {
   savePhysicalData,
   updatePhysicalData,
   getPhysicalDataHistory,
-  adminResetPassword
+  adminResetPassword,
+  checkUserAccounts,
+  updateUserEmail
 };
