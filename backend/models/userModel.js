@@ -63,17 +63,34 @@ const userSchema = mongoose.Schema(
 
 // Şifre karşılaştırma metodu
 userSchema.methods.matchPassword = async function (enteredPassword) {
-  return await bcrypt.compare(enteredPassword, this.password);
+  try {
+    console.log('Comparing passwords...'); // Debug log
+    const isMatch = await bcrypt.compare(enteredPassword, this.password);
+    console.log('Password comparison result:', isMatch); // Debug log
+    return isMatch;
+  } catch (error) {
+    console.error('Password comparison error:', error);
+    throw error;
+  }
 };
 
 // Kaydetmeden önce şifreyi hash'leme
 userSchema.pre('save', async function (next) {
-  if (!this.isModified('password')) {
-    next();
-  }
+  try {
+    if (!this.isModified('password')) {
+      console.log('Password not modified, skipping hash'); // Debug log
+      return next();
+    }
 
-  const salt = await bcrypt.genSalt(10);
-  this.password = await bcrypt.hash(this.password, salt);
+    console.log('Hashing password...'); // Debug log
+    const salt = await bcrypt.genSalt(10);
+    this.password = await bcrypt.hash(this.password, salt);
+    console.log('Password hashed successfully'); // Debug log
+    next();
+  } catch (error) {
+    console.error('Password hashing error:', error);
+    next(error);
+  }
 });
 
 // Cascade delete profile and physical data when a user is removed

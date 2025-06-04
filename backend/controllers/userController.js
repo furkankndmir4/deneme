@@ -55,6 +55,8 @@ const loginUser = async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    console.log('Login attempt:', { email }); // Debug log
+
     if (!email || !password) {
       return res.status(400).json({
         message: 'E-posta ve şifre gereklidir'
@@ -64,12 +66,16 @@ const loginUser = async (req, res) => {
     const user = await User.findOne({ email });
 
     if (!user) {
+      console.log('User not found:', email); // Debug log
       return res.status(401).json({
         message: 'Geçersiz e-posta veya şifre'
       });
     }
 
+    console.log('User found:', { userId: user._id }); // Debug log
+
     const isMatch = await user.matchPassword(password);
+    console.log('Password match result:', isMatch); // Debug log
 
     if (!isMatch) {
       return res.status(401).json({
@@ -106,13 +112,16 @@ const loginUser = async (req, res) => {
     const profile = await Profile.findOne({ user: user._id });
     const hasPhysicalData = await PhysicalData.exists({ user: user._id });
 
+    const token = generateToken(user._id);
+    console.log('Generated token:', token); // Debug log
+
     return res.status(200).json({
       _id: user._id,
       email: user.email,
       userType: user.userType,
       hasProfile: !!profile,
       hasPhysicalData: !!hasPhysicalData,
-      token: generateToken(user._id),
+      token: token,
     });
   } catch (error) {
     console.error('Login error:', error);
