@@ -110,7 +110,7 @@ const Leaderboard = () => {
                   <div className="w-8 h-8 bg-gray-700 rounded-full mr-2 flex items-center justify-center text-xs border-2 border-gray-600 overflow-hidden">
                     {user.photoUrl ? (
                       <img 
-                        src={user.photoUrl.startsWith('http') ? user.photoUrl : `${API_URL.replace('/api', '')}${user.photoUrl}`} 
+                        src={user.photoUrl} 
                         alt={user.name} 
                         className="w-full h-full object-cover" 
                       />

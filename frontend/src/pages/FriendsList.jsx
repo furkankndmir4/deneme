@@ -89,7 +89,7 @@ const FriendsList = () => {
                   <div className="w-12 h-12 rounded-full bg-gray-700 mr-3 flex items-center justify-center overflow-hidden">
                     {friend.profile?.photoUrl ? (
                       <img 
-                        src={friend.profile.photoUrl.startsWith('http') ? friend.profile.photoUrl : `${API_URL.replace('/api', '')}${friend.profile.photoUrl}`} 
+                        src={friend.profile.photoUrl} 
                         alt={friend.profile?.fullName || friend.fullName} 
                         className="w-full h-full object-cover" 
                       />

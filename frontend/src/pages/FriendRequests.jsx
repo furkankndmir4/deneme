@@ -115,7 +115,7 @@ const FriendRequestsPage = () => {
                   <div className="w-12 h-12 rounded-full bg-gray-700 mr-3 flex items-center justify-center overflow-hidden">
                     {request.from.photoUrl ? (
                       <img 
-                        src={request.from.photoUrl.startsWith('http') ? request.from.photoUrl : `${API_URL.replace('/api', '')}${request.from.photoUrl}`} 
+                        src={request.from.photoUrl} 
                         alt={request.from.fullName} 
                         className="w-full h-full object-cover" 
                       />

@@ -339,7 +339,7 @@ const UserProfileView = () => {
                             <div className="w-32 h-32 rounded-full bg-gray-800 border-2 border-yellow-500 mb-4 flex items-center justify-center overflow-hidden">
                                 {userData?.profile?.photoUrl ? (
                                     <img 
-                                        src={userData.profile.photoUrl.startsWith('http') ? userData.profile.photoUrl : `${API_URL.replace('/api', '')}${userData.profile.photoUrl}`} 
+                                        src={userData.profile.photoUrl} 
                                         alt={userData.profile.fullName} 
                                         className="w-full h-full object-cover" 
                                     />

@@ -120,7 +120,7 @@ const FindFriends = () => {
                   <div className="w-12 h-12 rounded-full bg-gray-700 mr-3 flex items-center justify-center overflow-hidden">
                     {user.profile.photoUrl ? (
                       <img 
-                        src={user.profile.photoUrl.startsWith('http') ? user.profile.photoUrl : `${API_URL.replace('/api', '')}${user.profile.photoUrl}`} 
+                        src={user.profile.photoUrl} 
                         alt={user.profile.fullName} 
                         className="w-full h-full object-cover" 
                       />
