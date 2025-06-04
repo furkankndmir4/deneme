@@ -19,32 +19,52 @@ const safeNumber = (val) => (isNaN(val) ? undefined : val);
 // @route   POST /api/users
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
-  const { email, password, userType } = req.body;
+  try {
+    const { email, password, userType } = req.body;
 
-  const userExists = await User.findOne({ email });
+    console.log('Register attempt:', { email, userType }); // Debug log
 
-  if (userExists) {
-    res.status(400);
-    throw new Error('Bu e-posta adresi zaten kullanılıyor');
-  }
+    if (!email || !password || !userType) {
+      console.log('Missing required fields'); // Debug log
+      res.status(400);
+      throw new Error('Tüm alanlar gereklidir');
+    }
 
-  const user = await User.create({
-    email,
-    password,
-    userType,
-    verified: true
-  });
+    const userExists = await User.findOne({ email });
 
-  if (user) {
-    res.status(201).json({
-      _id: user._id,
-      email: user.email,
-      userType: user.userType,
-      token: generateToken(user._id),
+    if (userExists) {
+      console.log('User already exists:', email); // Debug log
+      res.status(400);
+      throw new Error('Bu e-posta adresi zaten kullanılıyor');
+    }
+
+    console.log('Creating new user...'); // Debug log
+    const user = await User.create({
+      email,
+      password,
+      userType,
+      verified: true
     });
-  } else {
-    res.status(400);
-    throw new Error('Geçersiz kullanıcı bilgileri');
+
+    if (user) {
+      console.log('User created successfully:', { userId: user._id }); // Debug log
+      res.status(201).json({
+        _id: user._id,
+        email: user.email,
+        userType: user.userType,
+        token: generateToken(user._id),
+      });
+    } else {
+      console.log('User creation failed'); // Debug log
+      res.status(400);
+      throw new Error('Geçersiz kullanıcı bilgileri');
+    }
+  } catch (error) {
+    console.error('Register error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
   }
 });
 
@@ -581,58 +601,85 @@ const deleteAccount = asyncHandler(async (req, res) => {
 // @route   POST /api/users/forgot-password
 // @access  Public
 const forgotPassword = asyncHandler(async (req, res) => {
-  const { email } = req.body;
+  try {
+    const { email } = req.body;
+    console.log('Forgot password request for:', email); // Debug log
 
-  const user = await User.findOne({ email });
+    const user = await User.findOne({ email });
 
-  if (!user) {
-    res.status(404);
-    throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı');
+    if (!user) {
+      console.log('User not found:', email); // Debug log
+      res.status(404);
+      throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı');
+    }
+
+    console.log('User found, generating reset token'); // Debug log
+    const resetToken = crypto.randomBytes(20).toString('hex');
+
+    user.resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(resetToken)
+      .digest('hex');
+
+    user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 dakika
+
+    await user.save();
+    console.log('Reset token generated and saved:', resetToken); // Debug log
+
+    res.json({
+      message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+      resetToken: resetToken
+    });
+  } catch (error) {
+    console.error('Forgot password error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
   }
-
-  const resetToken = crypto.randomBytes(20).toString('hex');
-
-  user.resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(resetToken)
-    .digest('hex');
-
-  user.resetPasswordExpire = Date.now() + 60 * 60 * 1000;
-
-  await user.save();
-
-  res.json({
-    message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
-    resetToken: resetToken
-  });
 });
 
 // @desc    Reset password
 // @route   POST /api/users/reset-password/:resetToken
 // @access  Public
 const resetPassword = asyncHandler(async (req, res) => {
-  const resetPasswordToken = crypto
-    .createHash('sha256')
-    .update(req.params.resetToken)
-    .digest('hex');
+  try {
+    console.log('Reset password request with token:', req.params.resetToken); // Debug log
 
-  const user = await User.findOne({
-    resetPasswordToken,
-    resetPasswordExpire: { $gt: Date.now() }
-  });
+    const resetPasswordToken = crypto
+      .createHash('sha256')
+      .update(req.params.resetToken)
+      .digest('hex');
 
-  if (!user) {
-    res.status(400);
-    throw new Error('Geçersiz veya süresi dolmuş token');
+    console.log('Hashed token:', resetPasswordToken); // Debug log
+
+    const user = await User.findOne({
+      resetPasswordToken,
+      resetPasswordExpire: { $gt: Date.now() }
+    });
+
+    if (!user) {
+      console.log('Invalid or expired token'); // Debug log
+      res.status(400);
+      throw new Error('Geçersiz veya süresi dolmuş token');
+    }
+
+    console.log('User found, resetting password'); // Debug log
+    user.password = req.body.password;
+    user.resetPasswordToken = undefined;
+    user.resetPasswordExpire = undefined;
+
+    await user.save();
+    console.log('Password reset successful'); // Debug log
+
+    res.json({ message: 'Şifreniz başarıyla sıfırlandı' });
+  } catch (error) {
+    console.error('Reset password error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
   }
-
-  user.password = req.body.password;
-  user.resetPasswordToken = undefined;
-  user.resetPasswordExpire = undefined;
-
-  await user.save();
-
-  res.json({ message: 'Şifreniz başarıyla sıfırlandı' });
 });
 
 // @desc    Search users
