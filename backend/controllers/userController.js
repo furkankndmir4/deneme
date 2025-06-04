@@ -357,12 +357,10 @@ const getUserProfileById = asyncHandler(async (req, res) => {
     }
 
     // Rozet ilerlemesi ve kazanılan rozetler
-    let achievementsArr = [];
-    let progressArr = [];
+    let achievementsList = []; // Tüm rozetler, kazanma durumu dahil
     try {
-      // Kullanıcının mevcut rozetlerini al
-      achievementsArr = user.achievements.filter(a => a.earned);
-      progressArr = user.achievements;
+      // Kullanıcının mevcut rozetlerini al (kazanma durumu dahil)
+      achievementsList = user.achievements || [];
     } catch (e) {
       console.error('Rozetler alınırken hata:', e);
     }
@@ -374,8 +372,8 @@ const getUserProfileById = asyncHandler(async (req, res) => {
       profile: filteredProfile,
       friendshipStatus,
       physicalData: physicalDataResponse,
-      achievements: achievementsArr,
-      progress: progressArr
+      achievements: achievementsList, // Tüm rozet listesini gönder
+      progress: achievementsList // İlerleme için de aynı listeyi kullanabiliriz
     };
     res.json(responseData);
   } catch (error) {

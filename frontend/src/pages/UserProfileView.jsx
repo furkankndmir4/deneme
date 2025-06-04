@@ -38,14 +38,16 @@ const UserProfileView = () => {
 
                 const response = await axios.get(`${API_URL}/users/profile/${userId}`, config);
                 console.log("Profile data received:", response.data);
-                
-                // Backend'den gelen achievement ID'lerini, tüm rozet detaylarıyla birleştir
-                const earnedAchievementIds = response.data.achievements ? response.data.achievements.map(a => a.id) : [];
-                const detailedEarnedAchievements = allBadges.filter(badge => earnedAchievementIds.includes(badge.id));
+
+                // Backend'den gelen tüm rozet listesini al (kazanma durumu dahil)
+                const allUserAchievements = response.data.achievements || [];
+
+                // Sadece kazanılmış olanları filtrele
+                const earnedAchievements = allUserAchievements.filter(badge => badge.earned);
 
                 setUserData({
                     ...response.data,
-                    achievements: detailedEarnedAchievements // Detaylı rozet verisi ile güncelle
+                    achievements: earnedAchievements // Sadece kazanılmış rozet verisi ile güncelle
                 });
 
                 // Arkadaşlık durumunu kontrol et
