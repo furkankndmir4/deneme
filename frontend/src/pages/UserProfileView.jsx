@@ -39,15 +39,28 @@ const UserProfileView = () => {
                 const response = await axios.get(`${API_URL}/users/profile/${userId}`, config);
                 console.log("Profile data received:", response.data);
 
-                // Backend'den gelen tüm rozet listesini al (kazanma durumu dahil)
-                const allUserAchievements = response.data.achievements || [];
+                // Backend'den gelen kazanılan rozet listesini al (id, earned, earnedDate içerir)
+                const earnedAchievementsBackend = response.data.achievements || [];
 
-                // Sadece kazanılmış olanları filtrele
-                const earnedAchievements = allUserAchievements.filter(badge => badge.earned);
+                // Backend'den gelen her kazanılmış rozet için allBadges'tan detayları al ve birleştir
+                const detailedEarnedAchievements = earnedAchievementsBackend.map(earnedBadge => {
+                  const badgeDetail = allBadges.find(badge => badge.id === earnedBadge.id);
+                  if (badgeDetail) {
+                    return {
+                      ...badgeDetail, // allBadges'tan detaylar (id, name, icon, description, etc.)
+                      earned: earnedBadge.earned, // Backend'den gelen kazanma durumu (tekrar ekliyoruz garantilemek için)
+                      earnedDate: earnedBadge.earnedDate // Backend'den gelen kazanma tarihi
+                    };
+                  } else {
+                    // Eğer allBadges'ta eşleşme bulunamazsa, sadece backend'den geleni kullan
+                    console.warn('Badge detail not found for ID:', earnedBadge.id);
+                    return earnedBadge; // Tam detaylar olmasa da backend'den geleni göster
+                  }
+                }).filter(badge => badge.earned); // Sadece gerçekten kazanılmış olanları filtrele
 
                 setUserData({
                     ...response.data,
-                    achievements: earnedAchievements // Sadece kazanılmış rozet verisi ile güncelle
+                    achievements: detailedEarnedAchievements // Detaylı ve kazanılmış rozet verisi ile güncelle
                 });
 
                 // Arkadaşlık durumunu kontrol et
