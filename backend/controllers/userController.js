@@ -541,25 +541,46 @@ const updateUserProfile = asyncHandler(async (req, res) => {
 // @route   POST /api/users/profile/photo
 // @access  Private
 const uploadProfilePhoto = asyncHandler(async (req, res) => {
-  const profile = await Profile.findOne({ user: req.user._id });
+  try {
+    const profile = await Profile.findOne({ user: req.user._id });
 
-  if (!profile) {
-    res.status(404);
-    throw new Error('Önce profil oluşturmalısınız');
+    if (!profile) {
+      res.status(404);
+      throw new Error('Önce profil oluşturmalısınız');
+    }
+
+    if (!req.file) {
+      res.status(400);
+      throw new Error('Lütfen bir dosya yükleyin');
+    }
+
+    // Vercel'de dosya yolu
+    const filePath = `/tmp/${req.file.filename}`;
+    console.log('Uploaded file path:', filePath); // Debug log
+
+    // Dosyayı base64'e çevir
+    const fs = require('fs');
+    const imageBuffer = fs.readFileSync(filePath);
+    const base64Image = `data:${req.file.mimetype};base64,${imageBuffer.toString('base64')}`;
+
+    // Profili güncelle
+    profile.photoUrl = base64Image;
+    await profile.save();
+
+    // Geçici dosyayı sil
+    fs.unlinkSync(filePath);
+
+    res.json({
+      photoUrl: profile.photoUrl,
+      message: 'Profil fotoğrafı başarıyla güncellendi',
+    });
+  } catch (error) {
+    console.error('Upload profile photo error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
   }
-
-  if (!req.file) {
-    res.status(400);
-    throw new Error('Lütfen bir dosya yükleyin');
-  }
-
-  profile.photoUrl = `/uploads/${req.file.filename}`;
-  await profile.save();
-
-  res.json({
-    photoUrl: profile.photoUrl,
-    message: 'Profil fotoğrafı başarıyla güncellendi',
-  });
 });
 
 // @desc    Delete user account

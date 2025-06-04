@@ -1,37 +1,36 @@
 const multer = require('multer');
 const path = require('path');
 
-// Dosya depolama konfigürasyonu
+// Vercel'de geçici dosya depolama için yapılandırma
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, 'uploads/');
+    // Vercel'de /tmp dizini geçici depolama için kullanılabilir
+    cb(null, '/tmp');
   },
   filename: function (req, file, cb) {
-    cb(
-      null,
-      `${req.user._id}-${Date.now()}${path.extname(file.originalname)}`
-    );
-  },
+    // Benzersiz dosya adı oluştur
+    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
+    cb(null, file.fieldname + '-' + uniqueSuffix + path.extname(file.originalname));
+  }
 });
 
-
+// Dosya filtreleme
 const fileFilter = (req, file, cb) => {
-  const allowedFileTypes = /jpeg|jpg|png|gif/;
-  const extname = allowedFileTypes.test(
-    path.extname(file.originalname).toLowerCase()
-  );
-  const mimetype = allowedFileTypes.test(file.mimetype);
-
-  if (extname && mimetype) {
-    return cb(null, true);
+  // Sadece resim dosyalarını kabul et
+  if (file.mimetype.startsWith('image/')) {
+    cb(null, true);
   } else {
-    cb('Hata: Sadece resim dosyaları yüklenebilir!');
+    cb(new Error('Sadece resim dosyaları yüklenebilir!'), false);
   }
 };
 
-
-module.exports = multer({
-  storage,
-  fileFilter, 
-  limits: { fileSize: 1024 * 1024 * 5 }
+// Multer yapılandırması
+const upload = multer({
+  storage: storage,
+  fileFilter: fileFilter,
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  }
 });
+
+module.exports = upload;
