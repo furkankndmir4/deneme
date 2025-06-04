@@ -795,11 +795,15 @@ const Profile = () => {
               ) : achievementsError ? (
                 <div className="text-center text-red-500 text-sm py-2">{achievementsError}</div>
               ) : earnedAchievements.length > 0 ? (
-                <AchievementBadgeGroup
-                  achievements={earnedAchievements.slice(0, 3)}
-                  size="sm"
-                  onBadgeClick={setSelectedAchievement}
-                />
+                // Kazanılan rozetleri listele
+                <div className="grid grid-cols-3 gap-2">
+                  {earnedAchievements.map(badge => (
+                    <div key={badge.id} className="flex flex-col items-center text-center">
+                      <span className="text-2xl">{badge.icon}</span>
+                      <span className="text-xs text-gray-300 mt-1">{badge.name}</span>
+                    </div>
+                  ))}
+                </div>
               ) : (
                 <div className="text-center text-gray-500 text-sm py-2">
                   Henüz rozet kazanılmadı
