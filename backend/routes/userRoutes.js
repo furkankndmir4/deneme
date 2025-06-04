@@ -17,7 +17,7 @@ const {
   getPhysicalDataHistory,
   adminResetPassword,
   checkUserAccounts,
-  updateUserEmail
+  deleteDuplicateAccount
 } = require('../controllers/userController');
 const { protect } = require('../middleware/authMiddleware');
 const uploadMiddleware = require('../middleware/uploadMiddleware');
@@ -30,7 +30,7 @@ router.post('/forgot-password', forgotPassword);
 router.post('/reset-password/:resetToken', resetPassword);
 router.post('/admin-reset-password', adminResetPassword);
 router.get('/check-accounts', checkUserAccounts);
-router.put('/update-email', updateUserEmail);
+router.delete('/delete-duplicate', deleteDuplicateAccount);
 
 router.post('/logout', protect, logoutUser);
 router.get('/profile', protect, getUserProfile);

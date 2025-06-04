@@ -20,7 +20,7 @@ const safeNumber = (val) => (isNaN(val) ? undefined : val);
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   try {
-    const { email, password, userType } = req.body;
+  const { email, password, userType } = req.body;
 
     console.log('Register attempt:', { email, userType }); // Debug log
 
@@ -30,34 +30,34 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new Error('Tüm alanlar gereklidir');
     }
 
-    const userExists = await User.findOne({ email });
+  const userExists = await User.findOne({ email });
 
-    if (userExists) {
+  if (userExists) {
       console.log('User already exists:', email); // Debug log
-      res.status(400);
-      throw new Error('Bu e-posta adresi zaten kullanılıyor');
-    }
+    res.status(400);
+    throw new Error('Bu e-posta adresi zaten kullanılıyor');
+  }
 
     console.log('Creating new user...'); // Debug log
-    const user = await User.create({
-      email,
-      password,
-      userType,
-      verified: true
-    });
+  const user = await User.create({
+    email,
+    password,
+    userType,
+    verified: true
+  });
 
-    if (user) {
+  if (user) {
       console.log('User created successfully:', { userId: user._id }); // Debug log
-      res.status(201).json({
-        _id: user._id,
-        email: user.email,
-        userType: user.userType,
-        token: generateToken(user._id),
-      });
-    } else {
+    res.status(201).json({
+      _id: user._id,
+      email: user.email,
+      userType: user.userType,
+      token: generateToken(user._id),
+    });
+  } else {
       console.log('User creation failed'); // Debug log
-      res.status(400);
-      throw new Error('Geçersiz kullanıcı bilgileri');
+    res.status(400);
+    throw new Error('Geçersiz kullanıcı bilgileri');
     }
   } catch (error) {
     console.error('Register error:', error);
@@ -73,7 +73,7 @@ const registerUser = asyncHandler(async (req, res) => {
 // @access  Public
 const loginUser = async (req, res) => {
   try {
-    const { email, password } = req.body;
+  const { email, password } = req.body;
 
     console.log('Login attempt:', { email }); // Debug log
 
@@ -606,34 +606,34 @@ const deleteAccount = asyncHandler(async (req, res) => {
 // @access  Public
 const forgotPassword = asyncHandler(async (req, res) => {
   try {
-    const { email } = req.body;
+  const { email } = req.body;
     console.log('Forgot password request for:', email); // Debug log
 
-    const user = await User.findOne({ email });
+  const user = await User.findOne({ email });
 
-    if (!user) {
+  if (!user) {
       console.log('User not found:', email); // Debug log
-      res.status(404);
-      throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı');
-    }
+    res.status(404);
+    throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı');
+  }
 
     console.log('User found, generating reset token'); // Debug log
-    const resetToken = crypto.randomBytes(20).toString('hex');
+  const resetToken = crypto.randomBytes(20).toString('hex');
 
-    user.resetPasswordToken = crypto
-      .createHash('sha256')
-      .update(resetToken)
-      .digest('hex');
+  user.resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(resetToken)
+    .digest('hex');
 
     user.resetPasswordExpire = Date.now() + 10 * 60 * 1000; // 10 dakika
 
-    await user.save();
+  await user.save();
     console.log('Reset token generated and saved:', resetToken); // Debug log
 
-    res.json({
-      message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
-      resetToken: resetToken
-    });
+  res.json({
+    message: 'Şifre sıfırlama bağlantısı e-posta adresinize gönderildi',
+    resetToken: resetToken
+  });
   } catch (error) {
     console.error('Forgot password error:', error);
     res.status(error.status || 500).json({
@@ -650,33 +650,33 @@ const resetPassword = asyncHandler(async (req, res) => {
   try {
     console.log('Reset password request with token:', req.params.resetToken); // Debug log
 
-    const resetPasswordToken = crypto
-      .createHash('sha256')
-      .update(req.params.resetToken)
-      .digest('hex');
+  const resetPasswordToken = crypto
+    .createHash('sha256')
+    .update(req.params.resetToken)
+    .digest('hex');
 
     console.log('Hashed token:', resetPasswordToken); // Debug log
 
-    const user = await User.findOne({
-      resetPasswordToken,
-      resetPasswordExpire: { $gt: Date.now() }
-    });
+  const user = await User.findOne({
+    resetPasswordToken,
+    resetPasswordExpire: { $gt: Date.now() }
+  });
 
-    if (!user) {
+  if (!user) {
       console.log('Invalid or expired token'); // Debug log
-      res.status(400);
-      throw new Error('Geçersiz veya süresi dolmuş token');
-    }
+    res.status(400);
+    throw new Error('Geçersiz veya süresi dolmuş token');
+  }
 
     console.log('User found, resetting password'); // Debug log
-    user.password = req.body.password;
-    user.resetPasswordToken = undefined;
-    user.resetPasswordExpire = undefined;
+  user.password = req.body.password;
+  user.resetPasswordToken = undefined;
+  user.resetPasswordExpire = undefined;
 
-    await user.save();
+  await user.save();
     console.log('Password reset successful'); // Debug log
 
-    res.json({ message: 'Şifreniz başarıyla sıfırlandı' });
+  res.json({ message: 'Şifreniz başarıyla sıfırlandı' });
   } catch (error) {
     console.error('Reset password error:', error);
     res.status(error.status || 500).json({
@@ -1043,45 +1043,38 @@ const checkUserAccounts = asyncHandler(async (req, res) => {
   }
 });
 
-// @desc    Update user email
-// @route   PUT /api/users/update-email
+// @desc    Delete duplicate account
+// @route   DELETE /api/users/delete-duplicate
 // @access  Public
-const updateUserEmail = asyncHandler(async (req, res) => {
+const deleteDuplicateAccount = asyncHandler(async (req, res) => {
   try {
-    const { oldEmail, newEmail } = req.body;
-    console.log('Updating email from:', oldEmail, 'to:', newEmail); // Debug log
+    const { email } = req.query;
+    console.log('Deleting duplicate account for:', email); // Debug log
 
-    // Önce eski e-posta ile kullanıcıyı bul
-    const user = await User.findOne({ email: oldEmail });
+    const user = await User.findOne({ email });
     if (!user) {
-      console.log('User not found with old email:', oldEmail); // Debug log
       res.status(404);
       throw new Error('Kullanıcı bulunamadı');
     }
 
-    // Yeni e-posta adresi başka bir kullanıcı tarafından kullanılıyor mu kontrol et
-    const existingUser = await User.findOne({ email: newEmail });
-    if (existingUser) {
-      console.log('New email already in use:', newEmail); // Debug log
-      res.status(400);
-      throw new Error('Bu e-posta adresi zaten kullanılıyor');
-    }
-
-    // E-posta adresini güncelle
-    user.email = newEmail;
-    await user.save();
-    console.log('Email updated successfully'); // Debug log
-
-    res.json({
-      message: 'E-posta adresi başarıyla güncellendi',
-      user: {
-        _id: user._id,
-        email: user.email,
-        userType: user.userType
-      }
+    // İlişkili verileri sil
+    await Profile.findOneAndDelete({ user: user._id });
+    await PhysicalData.deleteMany({ user: user._id });
+    await Friend.deleteMany({
+      $or: [{ requester: user._id }, { recipient: user._id }]
     });
+    await Login.deleteMany({ user: user._id });
+    await Streak.deleteMany({ user: user._id });
+    await Measurement.deleteMany({ user: user._id });
+    await PhysicalDataHistory.deleteMany({ user: user._id });
+
+    // Kullanıcıyı sil
+    await User.findByIdAndDelete(user._id);
+
+    console.log('Duplicate account deleted successfully'); // Debug log
+    res.json({ message: 'Yinelenen hesap başarıyla silindi' });
   } catch (error) {
-    console.error('Update email error:', error);
+    console.error('Delete duplicate account error:', error);
     res.status(error.status || 500).json({
       message: error.message || 'Sunucu hatası',
       stack: process.env.NODE_ENV === 'development' ? error.stack : null
@@ -1108,5 +1101,5 @@ module.exports = {
   getPhysicalDataHistory,
   adminResetPassword,
   checkUserAccounts,
-  updateUserEmail
+  deleteDuplicateAccount
 };
