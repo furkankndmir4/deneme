@@ -443,6 +443,34 @@ const Dashboard = () => {
 
         setNeedsProfileSetup(!hasProfileData);
         setIsProfileSetupPopupOpen(!hasProfileData);
+
+        // Fiziksel veri setup durumunu kontrol et ve state'i güncelle
+        const hasPhysicalData =
+          response.data.physicalData &&
+          response.data.physicalData.neckCircumference !== undefined &&
+          response.data.physicalData.waistCircumference !== undefined &&
+          response.data.physicalData.hipCircumference !== undefined &&
+          response.data.physicalData.bodyFat !== undefined &&
+          response.data.physicalData.chestCircumference !== undefined &&
+          response.data.physicalData.bicepCircumference !== undefined &&
+          response.data.physicalData.thighCircumference !== undefined &&
+          response.data.physicalData.calfCircumference !== undefined &&
+          response.data.physicalData.shoulderWidth !== undefined;
+
+        console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData });
+
+        setNeedsPhysicalData(!hasPhysicalData);
+        // Fiziksel veri popupunu sadece profil setup tamamlandıysa veya fiziksel veri eksikse aç
+        if (!hasProfileData) {
+          // Profil setup popup zaten açık olacak
+          setIsBodyInfoPopupOpen(false);
+        } else if (!hasPhysicalData) {
+          // Profil setup tamamlandı ama fiziksel veri eksik
+          setIsBodyInfoPopupOpen(true);
+        } else {
+          // Hem profil hem fiziksel veri tamam
+          setIsBodyInfoPopupOpen(false);
+        }
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
