@@ -864,6 +864,8 @@ const Profile = () => {
                           id="age"
                           name="age"
                           type="number"
+                          min="1"
+                          step="1"
                           className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
                           value={userData?.profile?.age || ""}
                           onChange={handleChange}
