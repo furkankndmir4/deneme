@@ -981,6 +981,37 @@ const getPhysicalDataHistory = async (req, res) => {
   }
 };
 
+// @desc    Admin password reset
+// @route   POST /api/users/admin-reset-password
+// @access  Public
+const adminResetPassword = asyncHandler(async (req, res) => {
+  try {
+    const { email, newPassword } = req.body;
+    console.log('Admin reset password request for:', email); // Debug log
+
+    const user = await User.findOne({ email });
+
+    if (!user) {
+      console.log('User not found:', email); // Debug log
+      res.status(404);
+      throw new Error('Bu e-posta adresi ile kayıtlı kullanıcı bulunamadı');
+    }
+
+    console.log('User found, resetting password'); // Debug log
+    user.password = newPassword;
+    await user.save();
+    console.log('Password reset successful'); // Debug log
+
+    res.json({ message: 'Şifre başarıyla sıfırlandı' });
+  } catch (error) {
+    console.error('Admin reset password error:', error);
+    res.status(error.status || 500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
+  }
+});
+
 module.exports = {
   registerUser,
   loginUser,
@@ -997,5 +1028,6 @@ module.exports = {
   updatePrivacySettings,
   savePhysicalData,
   updatePhysicalData,
-  getPhysicalDataHistory
+  getPhysicalDataHistory,
+  adminResetPassword
 };
