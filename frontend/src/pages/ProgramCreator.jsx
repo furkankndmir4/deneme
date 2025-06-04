@@ -249,10 +249,8 @@ const ProgramCreator = () => {
     ],
   };
 
-  // Egzersiz inputlarında öneri seçimi
-  const [customMode, setCustomMode] = useState({}); // { "Bench Press": true, ... }
+  const [customMode, setCustomMode] = useState({});
 
-  // Haftanın günleri
   const weekDays = [
     { id: 1, label: "Pazartesi" },
     { id: 2, label: "Salı" },
@@ -263,7 +261,6 @@ const ProgramCreator = () => {
     { id: 7, label: "Pazar" },
   ];
 
-  // Hedef tipini Türkçeye çeviren yardımcı fonksiyon
   const getGoalTypeText = (goalType) => {
     const goals = {
       fat_loss: "Yağ Yakma",
@@ -274,12 +271,11 @@ const ProgramCreator = () => {
     return goals[goalType] || "Belirlenmemiş";
   };
 
-  // Süreyi Türkçe ve okunabilir şekilde formatlayan yardımcı fonksiyon
   function formatDuration({ value, type }) {
     let totalDays = 0;
     if (type === "day") totalDays = value;
     if (type === "week") totalDays = value * 7;
-    if (type === "month") totalDays = value * 30; // Ortalama 30 gün
+    if (type === "month") totalDays = value * 30;
 
     const ay = Math.floor(totalDays / 30);
     const kalanGün = totalDays % 30;
@@ -310,7 +306,6 @@ const ProgramCreator = () => {
           setSelectedAthlete(location.state.selectedAthlete);
         }
 
-        // Eğer programId varsa düzenleme moduna geç ve programı çek
         if (programId) {
           setIsEditMode(true);
           const token =
@@ -331,7 +326,6 @@ const ProgramCreator = () => {
           setSelectedAthlete(program.athlete || null);
           if (program.duration) setDuration(program.duration);
           if (program.programDays) setProgramDays(program.programDays.map(Number));
-          // Egzersizleri state'e uygun şekilde ata (tüm günler ve tekrarları önle)
           if (program.workouts && program.workouts.length > 0) {
             const exState = {
               chest: [],
@@ -342,13 +336,11 @@ const ProgramCreator = () => {
               core: [],
               cardio: [],
             };
-            // Tüm günlerin egzersizlerini tek tek ekle, tekrarları önle
             program.workouts.forEach((workout) => {
               workout.exercises.forEach((ex) => {
                 let found = false;
                 Object.entries(exercisesByCategory).forEach(([cat, arr]) => {
                   if (arr.includes(ex.name)) {
-                    // Aynı isimde egzersiz zaten ekli mi kontrol et
                     if (!exState[cat].some((e) => e.name === ex.name)) {
                       exState[cat].push({
                         name: ex.name,
@@ -376,7 +368,6 @@ const ProgramCreator = () => {
           }
         }
 
-        // Antrenörün sporcularını çek
         if (storedUser.userType?.toLowerCase() === "coach") {
           const token =
             localStorage.getItem("userToken") ||
@@ -425,7 +416,6 @@ const ProgramCreator = () => {
 
   const toggleExercise = (category, exercise) => {
     setSelectedExercises((prev) => {
-      // Egzersiz zaten varsa çıkar, yoksa ekle
       const exists = prev[category].some((ex) => ex.name === exercise);
       if (exists) {
         return {
@@ -433,7 +423,6 @@ const ProgramCreator = () => {
           [category]: prev[category].filter((ex) => ex.name !== exercise),
         };
       } else {
-        // Eklerken tekrar eklenmesini önle
         return {
           ...prev,
           [category]: [
@@ -520,7 +509,6 @@ const ProgramCreator = () => {
 
         const selectedExerciseList = Object.values(selectedExercises).flat();
 
-        // Eğer edit modundaysa, eski workouts'u bul
         let oldWorkouts = [];
         if (isEditMode && programId) {
           const programRes = await axios.get(`${API_URL}/training-programs/${programId}`, {
@@ -528,7 +516,6 @@ const ProgramCreator = () => {
           });
           oldWorkouts = programRes.data.workouts || [];
         }
-        // Her programDays için doğru day ile workout oluştur
         const workouts = programDays.map((day, idx) => {
           const oldWorkout = oldWorkouts.find(w => Number(w.day) === day);
           return {
@@ -571,7 +558,6 @@ const ProgramCreator = () => {
             throw new Error("Program güncellenemedi");
           }
         } else {
-          // YENİ OLUŞTURMA
           const response = await axios.post(
             `${API_URL}/training-programs`,
             programData,
