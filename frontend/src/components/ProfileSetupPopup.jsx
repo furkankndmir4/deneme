@@ -204,6 +204,8 @@ const ProfileSetupPopup = ({ onClose, onSave }) => {
                     id="height"
                     name="height"
                     type="number"
+                    min="0"
+                    step="0.1"
                     className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
                     placeholder="175"
                     value={profileData.height}
@@ -218,6 +220,8 @@ const ProfileSetupPopup = ({ onClose, onSave }) => {
                     id="weight"
                     name="weight"
                     type="number"
+                    min="0"
+                    step="0.1"
                     className="w-full p-3 bg-gray-800 bg-opacity-50 border border-gray-700 rounded-lg focus:outline-none focus:ring-2 focus:ring-yellow-400 text-gray-200"
                     placeholder="70"
                     value={profileData.weight}

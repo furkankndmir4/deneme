@@ -88,6 +88,9 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
               <input
                 type="number"
                 name="bodyFat"
+                min="0"
+                max="100"
+                step="0.1"
                 value={physicalData.bodyFat}
                 onChange={handleChange}
                 className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -103,6 +106,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="neckCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.neckCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -116,6 +121,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="waistCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.waistCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -132,6 +139,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="hipCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.hipCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -145,6 +154,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="chestCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.chestCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -161,6 +172,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="bicepCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.bicepCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -174,6 +187,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="thighCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.thighCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -190,6 +205,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="calfCircumference"
+                  min="0"
+                  step="0.1"
                   value={physicalData.calfCircumference}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
@@ -203,6 +220,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
                 <input
                   type="number"
                   name="shoulderWidth"
+                  min="0"
+                  step="0.1"
                   value={physicalData.shoulderWidth}
                   onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
