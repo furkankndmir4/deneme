@@ -369,20 +369,36 @@ const Dashboard = () => {
   const [allAthletes, setAllAthletes] = useState([]);
 
   const handleLogout = async () => {
-    localStorage.removeItem("user");
-    sessionStorage.removeItem("user");
-    navigate("/");
-  };
-
-    const fetchUserData = async () => {
-      try {
+    try {
+      // Tüm auth verilerini temizle
+      localStorage.removeItem("user");
+      localStorage.removeItem("userToken");
+      sessionStorage.removeItem("user");
+      sessionStorage.removeItem("userToken");
+      localStorage.removeItem("profileSetupDone");
+      sessionStorage.removeItem("profileSetupDone");
+      
+      // State'i sıfırla
+      setUserData(null);
       setLoading(true);
       setError(null);
-      const token =
-        localStorage.getItem("userToken") ||
-        sessionStorage.getItem("userToken");
+      
+      // Ana sayfaya yönlendir
+      navigate("/");
+    } catch (error) {
+      console.error("Logout error:", error);
+    }
+  };
+
+  const fetchUserData = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       if (!token) {
         console.log("No token found, redirecting to login");
+        clearAuthData(); // Tüm auth verilerini temizle
         navigate("/");
         return;
       }
@@ -402,12 +418,8 @@ const Dashboard = () => {
       if (response.data) {
         let updatedUserData = response.data;
 
-        if (
-          response.data.physicalDataHistory &&
-          response.data.physicalDataHistory.length > 0
-        ) {
-          const latestHistoryEntry =
-            response.data.physicalDataHistory[0];
+        if (response.data.physicalDataHistory && response.data.physicalDataHistory.length > 0) {
+          const latestHistoryEntry = response.data.physicalDataHistory[0];
           updatedUserData.physicalData = {
             ...updatedUserData.physicalData,
             bodyFatChange: latestHistoryEntry.bodyFatChange,
@@ -417,78 +429,36 @@ const Dashboard = () => {
           };
         }
 
+        // Kullanıcı verilerini hem state'e hem de storage'a kaydet
         setUserData(updatedUserData);
+        localStorage.setItem("user", JSON.stringify(updatedUserData));
+        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
-        const hasProfileData =
-          response.data.profile &&
+        const hasProfileData = response.data.profile &&
           response.data.profile.height &&
           response.data.profile.weight &&
           response.data.profile.age &&
           response.data.profile.gender &&
           response.data.profile.fullName;
 
-        const hasPhysicalData =
-          response.data.physicalData &&
-          response.data.physicalData.neckCircumference !== undefined &&
-          response.data.physicalData.waistCircumference !== undefined &&
-          response.data.physicalData.hipCircumference !== undefined &&
-          response.data.physicalData.bodyFat !== undefined &&
-          response.data.physicalData.chestCircumference !== undefined &&
-          response.data.physicalData.bicepCircumference !== undefined &&
-          response.data.physicalData.thighCircumference !== undefined &&
-          response.data.physicalData.calfCircumference !== undefined &&
-          response.data.physicalData.shoulderWidth !== undefined;
-
-        console.log("Profile data check:", { hasProfileData, hasPhysicalData });
-
-        // Profil verilerini localStorage'a kaydet
-        const storedUser = JSON.parse(
-          localStorage.getItem("user") || sessionStorage.getItem("user") || "{}"
-        );
-        const updatedUser = {
-          ...storedUser,
-          ...response.data,
-        };
-        localStorage.setItem("user", JSON.stringify(updatedUser));
-        sessionStorage.setItem("user", JSON.stringify(updatedUser));
-
-        // Profil setup durumunu kontrol et
-        const profileSetupDone = localStorage.getItem("profileSetupDone") === "true";
-        
-        if (hasProfileData) {
-          localStorage.setItem("profileSetupDone", "true");
-          setIsProfileSetupPopupOpen(false);
-            setNeedsProfileSetup(false);
-        } else if (!profileSetupDone) {
-            setIsProfileSetupPopupOpen(true);
-            setNeedsProfileSetup(true);
-        }
-
-        if (hasPhysicalData) {
-          setIsBodyInfoPopupOpen(false);
-          setNeedsPhysicalData(false);
-        } else {
-          setNeedsPhysicalData(true);
-          setIsBodyInfoPopupOpen(false);
-          }
-        }
-      } catch (error) {
-        console.error("Error fetching user data:", error);
-        if (error.response?.status === 401) {
-          setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-          clearAuthData();
-          setTimeout(() => {
-            navigate("/");
-          }, 2000);
-        } else {
-        setError(
-          "Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin."
-        );
-        }
-    } finally {
-        setLoading(false);
+        setNeedsProfileSetup(!hasProfileData);
+        setIsProfileSetupPopupOpen(!hasProfileData);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching user data:", error);
+      if (error.response?.status === 401) {
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        clearAuthData(); // Tüm auth verilerini temizle
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        setError("Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.");
+      }
+    } finally {
+      setLoading(false);
+    }
+  };
 
   useEffect(() => {
     const initializeData = async () => {

@@ -36,6 +36,14 @@ const Login = () => {
       console.log("Login response:", response.data);
 
       if (response.data.token) {
+        // Önce eski verileri temizle
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("user");
+        sessionStorage.removeItem("userToken");
+        sessionStorage.removeItem("user");
+        localStorage.removeItem("profileSetupDone");
+        sessionStorage.removeItem("profileSetupDone");
+
         // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
           localStorage.setItem("userToken", response.data.token);
@@ -66,20 +74,13 @@ const Login = () => {
         }
 
         // Kullanıcı tipine göre yönlendirme
-        if (response.data.userType === "coach") {
-          navigate("/dashboard");
-        } else {
-          navigate("/dashboard");
-        }
+        navigate("/dashboard");
       } else {
         setError("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError(
-        error.response?.data?.message ||
-          "Giriş yapılırken bir hata oluştu. Lütfen tekrar deneyin."
-      );
+      setError(error.response?.data?.message || "Giriş yapılırken bir hata oluştu.");
     } finally {
       setLoading(false);
     }
