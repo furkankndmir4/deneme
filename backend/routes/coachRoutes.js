@@ -71,20 +71,7 @@ router.get('/', protect, async (req, res) => {
   }
 });
 
-router.get('/athlete-requests', protect, async (req, res) => {
-  try {
-    const requests = await require('../models/coachAthleteRequestModel')
-      .find({ coach: req.user._id, status: 'pending' })
-      .populate({
-        path: 'athlete',
-        select: 'email profile',
-        populate: { path: 'profile', select: 'fullName' }
-      });
-    res.json(requests);
-  } catch (err) {
-    res.status(500).json({ message: 'Bekleyen istekler alınamadı', error: err.message });
-  }
-});
+router.get('/athlete-requests', protect, getPendingAthleteRequests);
 
 router.post('/athlete-requests/:requestId/accept', protect, coach, async (req, res) => {
   try {
