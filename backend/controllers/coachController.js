@@ -18,7 +18,7 @@ const getCoachAthletes = asyncHandler(async (req, res) => {
 
     // Sadece coach alanı bu antrenör olan sporcuları getir
     const athletes = await User.find({ coach: req.user._id, userType: 'athlete' }).select('-password');
-    console.log('athletes:', athletes.map(a => a._id.toString()));
+    console.log('getCoachAthletes - Found athletes:', athletes.map(a => a._id.toString()));
 
     const athletesWithProfiles = await Promise.all(
       athletes.map(async (athlete) => {
