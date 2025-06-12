@@ -346,7 +346,7 @@ const Dashboard = () => {
   const [isRemoveModalOpen, setIsRemoveModalOpen] = useState(false);
   const [selectedAthlete, setSelectedAthlete] = useState(null);
   const [needsPhysicalData, setNeedsPhysicalData] = useState(true);
-  const [isProfileSetupPopupOpen, setIsProfileSetupPopupOpen] = useState(true);
+  const [isProfileSetupPopupOpen, setIsProfileSetupPopupOpen] = useState(false);
   const [needsProfileSetup, setNeedsProfileSetup] = useState(true);
   const [isBodyInfoPopupOpen, setIsBodyInfoPopupOpen] = useState(false);
   const [pendingRequests, setPendingRequests] = useState([]);
@@ -434,12 +434,14 @@ const Dashboard = () => {
         localStorage.setItem("user", JSON.stringify(updatedUserData));
         sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
-        const hasProfileData = response.data.profile &&
-          response.data.profile.height &&
-          response.data.profile.weight &&
-          response.data.profile.age &&
-          response.data.profile.gender &&
-          response.data.profile.fullName;
+        const profile = response.data.profile;
+        const hasProfileData = profile &&
+          profile.height !== undefined &&
+          profile.weight !== undefined &&
+          profile.age !== undefined &&
+          profile.gender &&
+          profile.fullName;
+        console.log("Profile/hasProfileData check:", { hasProfileData, profile });
 
         setNeedsProfileSetup(!hasProfileData);
         setIsProfileSetupPopupOpen(!hasProfileData);
