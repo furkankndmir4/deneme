@@ -146,6 +146,7 @@ const getPendingAthleteRequests = asyncHandler(async (req, res) => {
     status: 'pending'
   }).populate('athlete', 'email profile');
   
+  console.log('getPendingAthleteRequests - Found pending requests:', requests);
   res.json(requests);
 });
         
