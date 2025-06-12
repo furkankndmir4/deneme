@@ -416,10 +416,10 @@ const Dashboard = () => {
       console.log("API response:", response.data);
 
       if (response.data) {
-        let updatedUserData = response.data;
+        let updatedUserData = response.data.user;
 
-        if (response.data.physicalDataHistory && response.data.physicalDataHistory.length > 0) {
-          const latestHistoryEntry = response.data.physicalDataHistory[0];
+        if (response.data.user.physicalDataHistory && response.data.user.physicalDataHistory.length > 0) {
+          const latestHistoryEntry = response.data.user.physicalDataHistory[0];
           updatedUserData.physicalData = {
             ...updatedUserData.physicalData,
             bodyFatChange: latestHistoryEntry.bodyFatChange,
@@ -434,7 +434,7 @@ const Dashboard = () => {
         localStorage.setItem("user", JSON.stringify(updatedUserData));
         sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
-        const profile = response.data.profile;
+        const profile = response.data.user?.profile;
         const hasProfileData = profile &&
           profile.height !== undefined &&
           profile.weight !== undefined &&
@@ -448,16 +448,16 @@ const Dashboard = () => {
 
         // Fiziksel veri setup durumunu kontrol et ve state'i güncelle
         const hasPhysicalData =
-          response.data.physicalData &&
-          response.data.physicalData.neckCircumference !== undefined &&
-          response.data.physicalData.waistCircumference !== undefined &&
-          response.data.physicalData.hipCircumference !== undefined &&
-          response.data.physicalData.bodyFat !== undefined &&
-          response.data.physicalData.chestCircumference !== undefined &&
-          response.data.physicalData.bicepCircumference !== undefined &&
-          response.data.physicalData.thighCircumference !== undefined &&
-          response.data.physicalData.calfCircumference !== undefined &&
-          response.data.physicalData.shoulderWidth !== undefined;
+          response.data.user?.physicalData &&
+          response.data.user.physicalData.neckCircumference !== undefined &&
+          response.data.user.physicalData.waistCircumference !== undefined &&
+          response.data.user.physicalData.hipCircumference !== undefined &&
+          response.data.user.physicalData.bodyFat !== undefined &&
+          response.data.user.physicalData.chestCircumference !== undefined &&
+          response.data.user.physicalData.bicepCircumference !== undefined &&
+          response.data.user.physicalData.thighCircumference !== undefined &&
+          response.data.user.physicalData.calfCircumference !== undefined &&
+          response.data.user.physicalData.shoulderWidth !== undefined;
 
         console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData });
 
