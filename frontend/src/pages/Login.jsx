@@ -44,6 +44,19 @@ const Login = () => {
         localStorage.removeItem("profileSetupDone");
         sessionStorage.removeItem("profileSetupDone");
 
+        // Profil bilgilerini al
+        const profileResponse = await axios.get(`${API_URL}/users/profile`, {
+          headers: {
+            Authorization: `Bearer ${response.data.token}`
+          }
+        });
+
+        console.log("Profile response:", profileResponse.data);
+
+        // Profil ve fiziksel veri kontrolü
+        const hasProfile = Boolean(profileResponse.data.user && profileResponse.data.user.profile);
+        const hasPhysicalData = Boolean(profileResponse.data.user && profileResponse.data.user.physicalData);
+
         // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
           localStorage.setItem("userToken", response.data.token);
@@ -51,20 +64,20 @@ const Login = () => {
             _id: response.data._id,
             email: response.data.email,
             userType: response.data.userType,
-            hasProfile: response.data.hasProfile,
-            hasPhysicalData: response.data.hasPhysicalData
+            hasProfile,
+            hasPhysicalData
           }));
-          localStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+          localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
         } else {
           sessionStorage.setItem("userToken", response.data.token);
           sessionStorage.setItem("user", JSON.stringify({
             _id: response.data._id,
             email: response.data.email,
             userType: response.data.userType,
-            hasProfile: response.data.hasProfile,
-            hasPhysicalData: response.data.hasPhysicalData
+            hasProfile,
+            hasPhysicalData
           }));
-          sessionStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+          sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
         }
 
         // Kullanıcı tipine göre yönlendirme
