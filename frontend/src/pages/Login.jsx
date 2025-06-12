@@ -35,51 +35,54 @@ const Login = () => {
 
       console.log("Login response:", response.data);
 
-      if (response.data.token) {
-        // Önce eski verileri temizle
-        localStorage.removeItem("userToken");
-        localStorage.removeItem("user");
-        sessionStorage.removeItem("userToken");
-        sessionStorage.removeItem("user");
-        localStorage.removeItem("profileSetupDone");
-        sessionStorage.removeItem("profileSetupDone");
-
-        // Kullanıcı verilerini kontrol et
-        const userData = response.data.user;
-        const hasProfile = userData && userData.profile && userData.profile.fullName;
-        const hasPhysicalData = userData && userData.physicalData;
-
-        // Beni hatırla seçeneğine göre token'ı sakla
-        if (rememberMe) {
-          localStorage.setItem("userToken", response.data.token);
-          localStorage.setItem("user", JSON.stringify({
-            _id: userData._id,
-            email: userData.email,
-            userType: userData.userType,
-            hasProfile,
-            hasPhysicalData
-          }));
-          localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
-        } else {
-          sessionStorage.setItem("userToken", response.data.token);
-          sessionStorage.setItem("user", JSON.stringify({
-            _id: userData._id,
-            email: userData.email,
-            userType: userData.userType,
-            hasProfile,
-            hasPhysicalData
-          }));
-          sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
-        }
-
-        // Kullanıcı tipine göre yönlendirme
-        navigate("/dashboard");
-      } else {
-        setError("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
+      // API yanıtını kontrol et
+      if (!response.data || !response.data.token) {
+        throw new Error("Geçersiz API yanıtı");
       }
+
+      // Önce eski verileri temizle
+      localStorage.removeItem("userToken");
+      localStorage.removeItem("user");
+      sessionStorage.removeItem("userToken");
+      sessionStorage.removeItem("user");
+      localStorage.removeItem("profileSetupDone");
+      sessionStorage.removeItem("profileSetupDone");
+
+      // Kullanıcı verilerini kontrol et
+      const userData = response.data.user || response.data;
+      if (!userData) {
+        throw new Error("Kullanıcı verileri bulunamadı");
+      }
+
+      // Profil ve fiziksel veri kontrolü
+      const hasProfile = Boolean(userData.profile && userData.profile.fullName);
+      const hasPhysicalData = Boolean(userData.physicalData);
+
+      // Kullanıcı verilerini hazırla
+      const userInfo = {
+        _id: userData._id,
+        email: userData.email,
+        userType: userData.userType,
+        hasProfile,
+        hasPhysicalData
+      };
+
+      // Beni hatırla seçeneğine göre token'ı sakla
+      if (rememberMe) {
+        localStorage.setItem("userToken", response.data.token);
+        localStorage.setItem("user", JSON.stringify(userInfo));
+        localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
+      } else {
+        sessionStorage.setItem("userToken", response.data.token);
+        sessionStorage.setItem("user", JSON.stringify(userInfo));
+        sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
+      }
+
+      // Kullanıcı tipine göre yönlendirme
+      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.response?.data?.message || "Giriş yapılırken bir hata oluştu.");
+      setError(error.response?.data?.message || error.message || "Giriş yapılırken bir hata oluştu");
     } finally {
       setLoading(false);
     }
