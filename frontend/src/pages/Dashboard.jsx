@@ -780,7 +780,10 @@ const Dashboard = () => {
 
   useEffect(() => {
     const fetchPendingAthleteRequests = async () => {
+      console.log("fetchPendingAthleteRequests called.");
+      console.log("Current userData in fetchPendingAthleteRequests:", userData);
       if (userData?.userType?.toLowerCase() === "coach") {
+        console.log("User is coach, fetching pending requests...");
         try {
           const token =
             localStorage.getItem("userToken") ||
@@ -793,7 +796,10 @@ const Dashboard = () => {
           setPendingAthleteRequests(response.data);
         } catch (error) {
           setPendingAthleteRequests([]);
+          console.error("Error fetching pending athlete requests:", error);
         }
+      } else {
+        console.log("User is not coach or userData is not available, skipping fetching pending requests.");
       }
     };
     fetchPendingAthleteRequests();
