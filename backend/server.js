@@ -133,15 +133,25 @@ const allowedOrigins = [
   'https://denemefrontend-indol.vercel.app',
   'https://denemebackend.vercel.app',
   'http://localhost:5173',
-  'http://localhost:3000'
+  'http://localhost:3000',
+  'http://localhost:5001'
 ];
 
 // Yeni CORS yapılandırması
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function(origin, callback) {
+    // origin undefined olabilir (örn. Postman gibi araçlardan gelen istekler)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy violation'));
+    }
+  },
   credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 saat
 }));
 
 // JSON body parser
