@@ -101,11 +101,11 @@ const ChatWidget = () => {
       console.log("Fetched messages:", messages);
       
       // Aktif sohbetteki okunmamış mesajları işaretle
-      if (activeChat) {
+      if (activeChat?._id && user?._id) {
         const unreadMsgs = messages.filter(
           msg => !msg.read && 
-          msg.sender._id === activeChat._id && 
-          msg.receiver._id === user._id
+          msg.sender?._id === activeChat._id && 
+          msg.receiver?._id === user._id
         );
         
         console.log("Unread messages:", unreadMsgs);
@@ -146,7 +146,7 @@ const ChatWidget = () => {
           dispatch(setMessages(messages));
         }
       } else {
-        console.log("No active chat, updating messages directly");
+        console.log("No active chat or user ID, skipping unread message marking.");
         dispatch(setMessages(messages));
       }
     } catch (err) {
@@ -197,7 +197,7 @@ const ChatWidget = () => {
 
   const getTotalUnreadCount = () => {
     const count = messages?.filter(
-      (msg) => !msg.read && msg.receiver._id === user._id
+      (msg) => !msg.read && msg.receiver?._id === user?._id
     ).length || 0;
     console.log("Total unread count:", count);
     return count;
@@ -207,7 +207,7 @@ const ChatWidget = () => {
   const extraUsers = user && messages
     ? Array.from(new Set(
         messages
-          .map(msg => (msg.sender._id === user._id ? msg.receiver : msg.sender))
+          .map(msg => (msg.sender?._id === user._id ? msg.receiver : msg.sender))
           .filter(u =>
             !friends.some(f => f._id === u._id) &&
             (!coach || coach._id !== u._id)
@@ -216,7 +216,7 @@ const ChatWidget = () => {
       ))
         .map(id =>
           messages
-            .map(msg => (msg.sender._id === user._id ? msg.receiver : msg.sender))
+            .map(msg => (msg.sender?._id === user._id ? msg.receiver : msg.sender))
             .find(u => u._id === id)
         )
     : [];
@@ -226,60 +226,7 @@ const ChatWidget = () => {
     setIsOpen(true);
     
     // Aktif sohbet ayarlandıktan sonra mesajları yenile ve okundu olarak işaretle
-    const config = getAuthConfig();
-    if (!config) return;
-    
-    try {
-      const res = await axios.get(`${API_URL}/messages`, config);
-      const messages = res.data;
-      
-      // Bu kullanıcıdan gelen okunmamış mesajları bul
-      const unreadMsgs = messages.filter(
-        msg => !msg.read && 
-        msg.sender._id === chatUser._id && 
-        msg.receiver._id === user._id
-      );
-      
-      console.log("Unread messages for chat:", unreadMsgs);
-      
-      if (unreadMsgs.length > 0) {
-        setIsMarkingRead(true);
-        try {
-          // Tüm okunmamış mesajları işaretle
-          const markPromises = unreadMsgs.map(async (msg) => {
-            console.log("Marking message as read:", msg._id);
-            const response = await MessageService.markAsRead(msg._id);
-            console.log("Mark as read response:", response);
-            return response;
-          });
-          
-          const markedMessages = await Promise.all(markPromises);
-          console.log("Marked messages:", markedMessages);
-          
-          // Mesajları güncelle
-          const updatedMessages = messages.map(msg => {
-            const markedMsg = markedMessages.find(m => m._id === msg._id);
-            if (markedMsg) {
-              console.log("Updating message in state:", msg._id);
-              return { ...msg, read: true };
-            }
-            return msg;
-          });
-          
-          console.log("Updated messages state:", updatedMessages);
-          dispatch(setMessages(updatedMessages));
-        } catch (error) {
-          console.error("Error marking messages as read:", error);
-        } finally {
-          setIsMarkingRead(false);
-        }
-      } else {
-        dispatch(setMessages(messages));
-      }
-    } catch (err) {
-      console.error("Error fetching messages:", err);
-      dispatch(setError('Mesajlar alınamadı.'));
-    }
+    fetchMessages();
   };
 
   useEffect(() => {
