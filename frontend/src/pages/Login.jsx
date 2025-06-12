@@ -54,8 +54,11 @@ const Login = () => {
         console.log("Profile response:", profileResponse.data);
 
         // Profil ve fiziksel veri kontrolü
-        const hasProfile = Boolean(profileResponse.data.user && profileResponse.data.user.profile);
-        const hasPhysicalData = Boolean(profileResponse.data.user && profileResponse.data.user.physicalData);
+        const userData = profileResponse.data.user;
+        const hasProfile = Boolean(userData && userData.profile && userData.profile.fullName);
+        const hasPhysicalData = Boolean(userData && userData.physicalData);
+
+        console.log("Profile check:", { hasProfile, hasPhysicalData });
 
         // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
