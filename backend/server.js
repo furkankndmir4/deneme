@@ -31,7 +31,36 @@ if (!process.env.JWT_SECRET) {
   process.exit(1);
 }
 
-// Veritabanı bağlantısı
+// Express uygulamasını oluştur
+const app = express();
+
+// CORS yapılandırması
+const allowedOrigins = [
+  'https://denemefrontend-indol.vercel.app',
+  'https://denemebackend.vercel.app',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://localhost:5001'
+];
+
+// Yeni CORS yapılandırması
+app.use(cors({
+  origin: function(origin, callback) {
+    // origin undefined olabilir (örn. Postman gibi araçlardan gelen istekler)
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error('CORS policy violation'));
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With'],
+  exposedHeaders: ['Content-Range', 'X-Content-Range'],
+  maxAge: 86400 // 24 saat
+}));
+
+// MongoDB bağlantısını başlat
 connectDB();
 
 // Redis bağlantısı
@@ -115,65 +144,11 @@ app.use(rateLimiter);
   }
 })();
 
-const app = express();
-
-// Request logging middleware
-app.use((req, res, next) => {
-  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
-  console.log('Headers:', req.headers);
-  next();
-});
-
-// CORS yapılandırması
-const allowedOrigins = [
-  'https://denemefrontend-indol.vercel.app',
-  'https://denemebackend.vercel.app',
-  'http://localhost:5173',
-  'http://localhost:3000',
-  'http://localhost:5001'
-];
-
-// Yeni CORS yapılandırması
-app.use(cors({
-  origin: function (origin, callback) {
-    // Allow requests with no origin (like mobile apps or curl requests)
-    if (!origin) return callback(null, true);
-    
-    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.error(`CORS blocked for origin: ${origin}`);
-      callback(new Error('Not allowed by CORS'));
-    }
-  },
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
-  exposedHeaders: ['Content-Length', 'Authorization'],
-  maxAge: 86400 // 24 hours
-}));
-
-app.options('*', cors({
-  origin: allowedOrigins,
-  credentials: true,
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
-}));
-
-app.use((req, res, next) => {
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
-  res.header(
-    'Access-Control-Allow-Headers',
-    'Origin,X-Requested-With,Content-Type,Accept,Authorization'
-  );
-  next();
-});
-
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
 
 // Static dosyalar
-app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // Test endpointi
 app.get('/', (req, res) => {
