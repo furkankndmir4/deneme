@@ -44,31 +44,27 @@ const Login = () => {
         localStorage.removeItem("profileSetupDone");
         sessionStorage.removeItem("profileSetupDone");
 
-        // Kullanıcı verilerini kontrol et
-        const hasProfile = response.data.user && response.data.user.profile && response.data.user.profile.fullName;
-        const hasPhysicalData = response.data.user && response.data.user.physicalData;
-
         // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
           localStorage.setItem("userToken", response.data.token);
           localStorage.setItem("user", JSON.stringify({
-            _id: response.data.user._id,
-            email: response.data.user.email,
-            userType: response.data.user.userType,
-            hasProfile,
-            hasPhysicalData
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            hasProfile: response.data.hasProfile,
+            hasPhysicalData: response.data.hasPhysicalData
           }));
-          localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
+          localStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
         } else {
           sessionStorage.setItem("userToken", response.data.token);
           sessionStorage.setItem("user", JSON.stringify({
-            _id: response.data.user._id,
-            email: response.data.user.email,
-            userType: response.data.user.userType,
-            hasProfile,
-            hasPhysicalData
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            hasProfile: response.data.hasProfile,
+            hasPhysicalData: response.data.hasPhysicalData
           }));
-          sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
+          sessionStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
         }
 
         // Kullanıcı tipine göre yönlendirme
