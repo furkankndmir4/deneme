@@ -182,7 +182,10 @@ const getUserProfile = asyncHandler(async (req, res) => {
       .select("-password")
       .populate([
         { path: "profile" },
-        { path: "physicalData" }
+        { 
+          path: "physicalData",
+          model: "PhysicalData"
+        }
       ]);
 
     if (!user) {
@@ -201,6 +204,11 @@ const getUserProfile = asyncHandler(async (req, res) => {
           path: "profile",
           select: "fullName photoUrl specialization coachNote",
         });
+
+      // Eğer physicalData populate edilmemişse, ayrıca çek
+      if (!user.physicalData || typeof user.physicalData === 'string') {
+        user.physicalData = await PhysicalData.findOne({ user: user._id });
+      }
 
       trainingProgram = await TrainingProgram.findOne({ athlete: user._id })
         .populate("createdBy", "profile")

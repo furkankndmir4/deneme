@@ -448,17 +448,19 @@ const Dashboard = () => {
 
         // Fiziksel veri setup durumunu kontrol et ve state'i güncelle
         const hasPhysicalData = updatedUserData.physicalData &&
-          updatedUserData.physicalData.neckCircumference !== undefined &&
-          updatedUserData.physicalData.waistCircumference !== undefined &&
-          updatedUserData.physicalData.hipCircumference !== undefined &&
-          updatedUserData.physicalData.bodyFat !== undefined &&
-          updatedUserData.physicalData.chestCircumference !== undefined &&
-          updatedUserData.physicalData.bicepCircumference !== undefined &&
-          updatedUserData.physicalData.thighCircumference !== undefined &&
-          updatedUserData.physicalData.calfCircumference !== undefined &&
-          updatedUserData.physicalData.shoulderWidth !== undefined;
+          (typeof updatedUserData.physicalData === 'object' ? (
+            updatedUserData.physicalData.neckCircumference !== undefined &&
+            updatedUserData.physicalData.waistCircumference !== undefined &&
+            updatedUserData.physicalData.hipCircumference !== undefined &&
+            updatedUserData.physicalData.bodyFat !== undefined &&
+            updatedUserData.physicalData.chestCircumference !== undefined &&
+            updatedUserData.physicalData.bicepCircumference !== undefined &&
+            updatedUserData.physicalData.thighCircumference !== undefined &&
+            updatedUserData.physicalData.calfCircumference !== undefined &&
+            updatedUserData.physicalData.shoulderWidth !== undefined
+          ) : false);
 
-        console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData });
+        console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData, physicalData: updatedUserData.physicalData });
 
         setNeedsPhysicalData(!hasPhysicalData);
         // Fiziksel veri popupunu sadece profil setup tamamlandıysa veya fiziksel veri eksikse aç
