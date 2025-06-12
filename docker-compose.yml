@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    environment:
+      NODE_ENV: development # Geliştirme ortamında çalışacak
+      MONGO_URI: mongodb+srv://vercel-admin-user-683d9c8fc28b1d02cdbf0cde:Jghty9ryJ1T7tlQx@furkankandemir.fzeog.mongodb.net/myFirstDatabase?retryWrites=true&w=majority # MongoDB için Docker ağı üzerinden erişim
+      JWT_SECRET: secret_key # Buraya güvenli bir JWT secret eklemelisiniz
+      # Diğer backend ortam değişkenlerinizi buraya ekleyin
+    volumes:
+      - ./backend:/app # Geliştirme sırasında kod değişikliklerini otomatik yansıtmak için
+      - /app/node_modules # node_modules klasörünü host'a bağlamayız
+    depends_on:
+      - mongo # Backend'in MongoDB'ye bağımlı olduğunu belirt
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    ports:
+      - "80:80"
+    environment:
+      VITE_API_URL: https://denemebackend.vercel.app/api # Frontend'in Vercel'deki backend API'sine erişim adresi
+      # Diğer frontend ortam değişkenlerinizi buraya ekleyin
+    volumes:
+      - ./frontend:/app # Geliştirme sırasında kod değişikliklerini otomatik yansıtmak için
+      - /app/node_modules # node_modules klasörünü host'a bağlamayız
+    depends_on:
+      - backend # Frontend'in backend'e bağımlı olduğunu belirt
+
+  mongo:
+    image: mongo:latest
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db # Veritabanı verilerini kalıcı hale getirmek için
+
+volumes:
+  mongo_data: 

@@ -1,0 +1,45 @@
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Code
+      uses: actions/checkout@v2
+
+    - name: Set up Node.js
+      uses: actions/setup-node@v2
+      with:
+        node-version: '20.x'
+
+    - name: Install Backend Dependencies
+      run: npm install
+      working-directory: ./backend
+
+    - name: Run Backend Tests
+      run: echo "Backend tests are not yet implemented."
+      working-directory: ./backend
+
+    - name: Install Frontend Dependencies
+      run: npm install
+      working-directory: ./frontend
+
+    - name: Build Frontend
+      run: npm run build
+      working-directory: ./frontend
+
+    - name: Run Frontend Tests
+      run: echo "Frontend tests are not yet implemented."
+      working-directory: ./frontend
+
+    - name: Verify Builds
+      run: echo "Builds completed successfully. Deployment steps would go here." 

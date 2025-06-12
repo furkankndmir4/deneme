@@ -73,60 +73,9 @@ router.get('/', protect, async (req, res) => {
 
 router.get('/athlete-requests', protect, getPendingAthleteRequests);
 
-router.post('/athlete-requests/:requestId/accept', protect, coach, async (req, res) => {
-  try {
-    const requestId = req.params.requestId;
-
-    const request = await CoachAthleteRelationship.findById(requestId);
-    if (!request) {
-      return res.status(404).json({ message: 'Request not found' });
-    }
-
-    console.log('Accepting request:', request);
-
-    request.status = 'accepted';
-    await request.save();
-
-    await User.findByIdAndUpdate(request.athlete, { coach: request.coach });
-
-    console.log('Request accepted and updated:', request);
-    console.log('Updated athlete coach reference');
-
-    res.json({ message: 'Request accepted successfully' });
-  } catch (error) {
-    console.error('Error accepting request:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
+router.post('/athlete-requests/:requestId/accept', protect, coach, acceptAthleteRequest);
 
 router.post('/athlete-requests/:requestId/reject', protect, coach, rejectAthleteRequest);
-
-router.post('/athlete-relationships/:requestId/reject', protect, coach, async (req, res) => {
-  try {
-    const requestId = req.params.requestId;
-
-    const relationship = await CoachAthleteRelationship.findById(requestId);
-    if (!relationship) {
-      return res.status(404).json({ message: 'Request not found' });
-    }
-
-    if (relationship.coach.toString() !== req.user._id.toString()) {
-      return res.status(403).json({ message: 'Not authorized to reject this request' });
-    }
-
-    relationship.status = 'rejected';
-    await relationship.save();
-
-    await User.findByIdAndUpdate(relationship.athlete, { coach: null });
-
-    await TrainingProgram.deleteMany({ createdBy: req.user._id, athlete: relationship.athlete });
-
-    res.json({ message: 'Request rejected successfully' });
-  } catch (error) {
-    console.error('Error rejecting request:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
 
 router.post('/:coachId/rate', protect, async (req, res) => {
   try {
