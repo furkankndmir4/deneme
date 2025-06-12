@@ -292,27 +292,13 @@ axios.defaults.headers.common["Accept"] = "application/json";
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'https://denemebackend.vercel.app';
 
 const getAuthToken = () => {
-  try {
-    const localToken = localStorage.getItem("userToken");
-    const sessionToken = sessionStorage.getItem("userToken");
-
-    console.log("Token Debug:", {
-      localToken,
-      sessionToken,
-      tokenValue: localToken || sessionToken,
-    });
-
-    const token = localToken || sessionToken;
-    if (!token) {
-      console.error("No token found in storage");
-      return null;
-    }
-
-    return `Bearer ${token}`;
-  } catch (error) {
-    console.error("Error getting auth token:", error);
-    return null;
-  }
+  const localToken = localStorage.getItem("userToken");
+  const sessionToken = sessionStorage.getItem("userToken");
+  const tokenValue = localToken || sessionToken;
+  
+  console.log("Token Debug:", { localToken, sessionToken, tokenValue });
+  
+  return tokenValue;
 };
 
 const saveAuthToken = (token) => {
@@ -403,7 +389,9 @@ const Dashboard = () => {
       const response = await axios.get(`${API_URL}/users/profile`, {
         headers: {
           Authorization: `Bearer ${token}`,
-        },
+          Accept: "application/json",
+          "Content-Type": "application/json"
+        }
       });
 
       console.log("API response:", response.data);

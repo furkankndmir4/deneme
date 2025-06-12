@@ -44,43 +44,29 @@ const Login = () => {
         localStorage.removeItem("profileSetupDone");
         sessionStorage.removeItem("profileSetupDone");
 
-        // Profil bilgilerini al
-        const profileResponse = await axios.get(`${API_URL}/users/profile`, {
-          headers: {
-            Authorization: `Bearer ${response.data.token}`
-          }
-        });
-
-        console.log("Profile response:", profileResponse.data);
-
-        // Profil ve fiziksel veri kontrolü
-        const userData = profileResponse.data.user;
-        const hasProfile = Boolean(userData && userData.profile && userData.profile.fullName);
-        const hasPhysicalData = Boolean(userData && userData.physicalData);
-
-        console.log("Profile check:", { hasProfile, hasPhysicalData });
-
-        // Beni hatırla seçeneğine göre token'ı sakla
+        // Token'ı sakla
+        const token = response.data.token;
         if (rememberMe) {
-          localStorage.setItem("userToken", response.data.token);
-          localStorage.setItem("user", JSON.stringify({
-            _id: response.data._id,
-            email: response.data.email,
-            userType: response.data.userType,
-            hasProfile,
-            hasPhysicalData
-          }));
-          localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
+          localStorage.setItem("userToken", token);
         } else {
-          sessionStorage.setItem("userToken", response.data.token);
-          sessionStorage.setItem("user", JSON.stringify({
-            _id: response.data._id,
-            email: response.data.email,
-            userType: response.data.userType,
-            hasProfile,
-            hasPhysicalData
-          }));
-          sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
+          sessionStorage.setItem("userToken", token);
+        }
+
+        // Kullanıcı bilgilerini sakla
+        const userInfo = {
+          _id: response.data._id,
+          email: response.data.email,
+          userType: response.data.userType,
+          hasProfile: response.data.hasProfile,
+          hasPhysicalData: response.data.hasPhysicalData
+        };
+
+        if (rememberMe) {
+          localStorage.setItem("user", JSON.stringify(userInfo));
+          localStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+        } else {
+          sessionStorage.setItem("user", JSON.stringify(userInfo));
+          sessionStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
         }
 
         // Kullanıcı tipine göre yönlendirme
