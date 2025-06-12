@@ -392,99 +392,39 @@ const Dashboard = () => {
 
   const fetchUserData = async () => {
     try {
-      setLoading(true);
-      setError(null);
-      
-      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+      const token = getAuthToken();
       if (!token) {
-        console.log("No token found, redirecting to login");
-        clearAuthData(); // Tüm auth verilerini temizle
-        navigate("/");
+        navigate("/login");
         return;
       }
 
       console.log("Fetching user data with token:", token);
-      const response = await axios.get(
-        `${API_URL}/users/profile`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
+
+      const response = await axios.get(`${API_URL}/users/profile`, {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      });
 
       console.log("API response:", response.data);
 
-      if (response.data) {
-        let updatedUserData = response.data;
+      if (response.data && response.data.user) {
+        const userData = response.data.user;
+        const hasProfile = Boolean(userData.profile && userData.profile.fullName);
+        const hasPhysicalData = Boolean(userData.physicalData);
 
-        if (response.data.physicalDataHistory && response.data.physicalDataHistory.length > 0) {
-          const latestHistoryEntry = response.data.physicalDataHistory[0];
-          updatedUserData.physicalData = {
-            ...updatedUserData.physicalData,
-            bodyFatChange: latestHistoryEntry.bodyFatChange,
-            weightChange: latestHistoryEntry.weightChange,
-            heightChange: latestHistoryEntry.heightChange,
-            bmiChange: latestHistoryEntry.bmiChange
-          };
-        }
+        console.log("Profile/Physical data check:", { hasProfile, hasPhysicalData });
 
-        // Kullanıcı verilerini hem state'e hem de storage'a kaydet
-        setUserData(updatedUserData);
-        localStorage.setItem("user", JSON.stringify(updatedUserData));
-        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
-
-        const hasProfileData = response.data.profile &&
-          response.data.profile.height &&
-          response.data.profile.weight &&
-          response.data.profile.age &&
-          response.data.profile.gender &&
-          response.data.profile.fullName;
-
-        setNeedsProfileSetup(!hasProfileData);
-        setIsProfileSetupPopupOpen(!hasProfileData);
-
-        // Fiziksel veri setup durumunu kontrol et ve state'i güncelle
-        const hasPhysicalData =
-          response.data.physicalData &&
-          response.data.physicalData.neckCircumference !== undefined &&
-          response.data.physicalData.waistCircumference !== undefined &&
-          response.data.physicalData.hipCircumference !== undefined &&
-          response.data.physicalData.bodyFat !== undefined &&
-          response.data.physicalData.chestCircumference !== undefined &&
-          response.data.physicalData.bicepCircumference !== undefined &&
-          response.data.physicalData.thighCircumference !== undefined &&
-          response.data.physicalData.calfCircumference !== undefined &&
-          response.data.physicalData.shoulderWidth !== undefined;
-
-        console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData });
-
-        setNeedsPhysicalData(!hasPhysicalData);
-        // Fiziksel veri popupunu sadece profil setup tamamlandıysa veya fiziksel veri eksikse aç
-        if (!hasProfileData) {
-          // Profil setup popup zaten açık olacak
-          setIsBodyInfoPopupOpen(false);
-        } else if (!hasPhysicalData) {
-          // Profil setup tamamlandı ama fiziksel veri eksik
-          setIsBodyInfoPopupOpen(true);
-        } else {
-          // Hem profil hem fiziksel veri tamam
-          setIsBodyInfoPopupOpen(false);
-        }
+        setUserData(response.data);
+        setShowProfilePopup(!hasProfile);
+        setShowBodyInfoPopup(!hasPhysicalData);
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
       if (error.response?.status === 401) {
-        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
-        clearAuthData(); // Tüm auth verilerini temizle
-        setTimeout(() => {
-          navigate("/");
-        }, 2000);
-      } else {
-        setError("Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.");
+        clearAuthData();
+        navigate("/login");
       }
-    } finally {
-      setLoading(false);
     }
   };
 
