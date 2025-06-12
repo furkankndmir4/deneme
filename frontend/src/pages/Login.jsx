@@ -51,8 +51,8 @@ const Login = () => {
             _id: response.data._id,
             email: response.data.email,
             userType: response.data.userType,
-            profile: response.data.profile || {},
-            physicalData: response.data.physicalData || {},
+            hasProfile: response.data.hasProfile,
+            hasPhysicalData: response.data.hasPhysicalData
           }));
         } else {
           sessionStorage.setItem("userToken", response.data.token);
@@ -60,13 +60,13 @@ const Login = () => {
             _id: response.data._id,
             email: response.data.email,
             userType: response.data.userType,
-            profile: response.data.profile || {},
-            physicalData: response.data.physicalData || {},
+            hasProfile: response.data.hasProfile,
+            hasPhysicalData: response.data.hasPhysicalData
           }));
         }
 
         // Profil kurulumu kontrolü
-        const profileSetupDone = response.data.profile && response.data.profile.fullName;
+        const profileSetupDone = response.data.hasProfile;
         if (rememberMe) {
           localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
         } else {
