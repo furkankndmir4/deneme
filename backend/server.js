@@ -21,7 +21,6 @@ const rabbitmqService = require('./services/rabbitmq.service');
 const redisService = require('./services/redis.service');
 const { createClient } = require('redis');
 const rateLimit = require('express-rate-limit');
-const RedisStore = require('rate-limit-redis');
 
 dotenv.config();
 
@@ -65,9 +64,11 @@ connectDB();
 
 // Redis bağlantısı
 let redisClient = null;
-let rateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000,
-  max: 100,
+
+// Rate limiter yapılandırması
+const rateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 dakika
+  max: 100, // IP başına limit
   message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -91,21 +92,8 @@ const connectRedis = async () => {
 
     await redisClient.connect();
     console.log('Redis bağlantısı başarılı');
-
-    // Rate limiter'ı Redis ile yapılandır
-    rateLimiter = rateLimit({
-      store: new RedisStore({
-        sendCommand: (...args) => redisClient.sendCommand(args),
-      }),
-      windowMs: 15 * 60 * 1000,
-      max: 100,
-      message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.',
-      standardHeaders: true,
-      legacyHeaders: false,
-      trustProxy: true
-    });
   } catch (error) {
-    console.warn('Redis bağlantısı kurulamadı, memory store kullanılacak:', error.message);
+    console.warn('Redis bağlantısı kurulamadı:', error.message);
   }
 };
 
