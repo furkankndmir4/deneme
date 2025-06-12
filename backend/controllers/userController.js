@@ -170,83 +170,50 @@ const loginUser = async (req, res) => {
 // @desc    Get user profile
 // @route   GET /api/users/profile
 // @access  Private
-const getUserProfile = asyncHandler(async (req, res) => {
+const getUserProfile = async (req, res) => {
   try {
-    // Redis'ten profil bilgilerini almayı dene
-    const cachedProfile = await redisService.get(`profile:${req.user._id}`);
-    if (cachedProfile) {
-      return res.json(cachedProfile);
-    }
-
-    const user = await User.findById(req.user._id)
-      .select("-password")
-      .populate([
-        { path: "profile" },
-        { 
-          path: "physicalData",
-          model: "PhysicalData"
-        }
-      ]);
+    const user = await User.findById(req.user.id)
+      .populate('profile')
+      .populate('physicalData')
+      .populate('coach', 'email profile')
+      .populate('achievements');
 
     if (!user) {
-      res.status(404);
-      throw new Error("Kullanıcı bulunamadı");
+      return res.status(404).json({ message: 'User not found' });
     }
 
-    let coach = null;
+    // If physicalData is not populated, fetch it separately
+    if (user.physicalData && typeof user.physicalData === 'string') {
+      const physicalData = await PhysicalData.findById(user.physicalData);
+      user.physicalData = physicalData;
+    }
+
+    // Get coach's athletes if user is a coach
     let athletes = [];
-    let trainingProgram = null;
-
-    if (user.userType === "athlete") {
-      coach = await User.findOne({ _id: user.coach })
-        .select("_id email profile")
-        .populate({
-          path: "profile",
-          select: "fullName photoUrl specialization coachNote",
-        });
-
-      // Eğer physicalData populate edilmemişse, ayrıca çek
-      if (!user.physicalData || typeof user.physicalData === 'string') {
-        user.physicalData = await PhysicalData.findOne({ user: user._id });
-      }
-
-      trainingProgram = await TrainingProgram.findOne({ athlete: user._id })
-        .populate("createdBy", "profile")
-        .populate("athlete", "profile")
-        .populate({
-          path: "workouts",
-          populate: {
-            path: "exercises",
-          },
-        });
-    } else if (user.userType === "coach") {
+    if (user.userType === 'coach') {
       athletes = await User.find({ coach: user._id })
-        .select("_id email profile physicalData")
-        .populate({
-          path: "profile",
-          select: "fullName photoUrl age goalType",
-        });
+        .populate('profile')
+        .populate('physicalData');
     }
 
-    const profileData = {
+    // Get training program if user is an athlete
+    let trainingProgram = null;
+    if (user.userType === 'athlete') {
+      trainingProgram = await TrainingProgram.findOne({ athlete: user._id })
+        .populate('createdBy', 'email profile');
+    }
+
+    res.json({
       user,
-      coach,
+      coach: user.coach,
       athletes,
-      trainingProgram,
-    };
-
-    // Profil bilgilerini Redis'e kaydet (1 saat süreyle)
-    await redisService.set(`profile:${req.user._id}`, profileData, 3600);
-
-    res.json(profileData);
-  } catch (error) {
-    console.error('Profil getirme hatası:', error);
-    res.status(500).json({
-      message: error.message || 'Sunucu hatası',
-      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+      trainingProgram
     });
+  } catch (error) {
+    console.error('Error in getUserProfile:', error);
+    res.status(500).json({ message: 'Error fetching user profile', error: error.message });
   }
-});
+};
 
 // @desc    Get user profile by ID
 // @route   GET /api/users/profile/:userId
