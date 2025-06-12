@@ -19,6 +19,9 @@ const goalRoutes = require('./routes/goalRoutes');
 const User = require('./models/userModel');
 const rabbitmqService = require('./services/rabbitmq.service');
 const redisService = require('./services/redis.service');
+const { createClient } = require('redis');
+const rateLimit = require('express-rate-limit');
+const RedisStore = require('rate-limit-redis');
 
 dotenv.config();
 
@@ -31,55 +34,48 @@ if (!process.env.JWT_SECRET) {
 // Veritabanı bağlantısı
 connectDB();
 
-// Redis bağlantısını başlat
-(async () => {
-  let retryCount = 0;
-  const maxRetries = 3;
-  
-  while (retryCount < maxRetries) {
-    try {
-      await redisService.connect();
-      console.log('Redis bağlantısı başarılı');
-      break;
-    } catch (error) {
-      retryCount++;
-      console.error(`Redis bağlantı hatası (Deneme ${retryCount}/${maxRetries}):`, error);
-      
-      if (retryCount === maxRetries) {
-        console.log('Redis bağlantısı olmadan devam ediliyor...');
-      } else {
-        // 5 saniye bekle ve tekrar dene
-        await new Promise(resolve => setTimeout(resolve, 5000));
-      }
-    }
-  }
-})();
+// Redis bağlantısı
+let redisClient = null;
+let rateLimiter = null;
 
-// Rate limiting middleware
-const rateLimiter = async (req, res, next) => {
+const connectRedis = async () => {
   try {
-    const ip = req.ip;
-    const key = `rate_limit:${ip}`;
-    const limit = 100; // 1 dakikada maksimum istek sayısı
-    const window = 60; // 60 saniye
+    redisClient = createClient({
+      url: process.env.REDIS_URL
+    });
 
-    const current = await redisService.increment(key);
-    if (current === 1) {
-      await redisService.set(key, 1, window);
-    }
+    redisClient.on('error', (err) => {
+      console.warn('Redis bağlantı hatası:', err.message);
+    });
 
-    if (current > limit) {
-      return res.status(429).json({
-        message: 'Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.'
-      });
-    }
+    await redisClient.connect();
+    console.log('Redis bağlantısı başarılı');
 
-    next();
+    // Rate limiter'ı Redis ile yapılandır
+    rateLimiter = rateLimit({
+      store: new RedisStore({
+        sendCommand: (...args) => redisClient.sendCommand(args),
+      }),
+      windowMs: 15 * 60 * 1000, // 15 dakika
+      max: 100, // IP başına limit
+      message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
+    });
   } catch (error) {
-    console.error('Rate limiting hatası:', error);
-    next();
+    console.warn('Redis bağlantısı kurulamadı, memory store kullanılacak:', error.message);
+    // Redis bağlantısı başarısız olursa memory store kullan
+    rateLimiter = rateLimit({
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+      message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
+    });
   }
 };
+
+// Redis bağlantısını başlat
+connectRedis();
+
+// Rate limiter middleware'ini ekle
+app.use(rateLimiter);
 
 // RabbitMQ bağlantısını başlat
 (async () => {
@@ -175,9 +171,6 @@ app.use((req, res, next) => {
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
-
-// Rate limiting middleware'i uygula
-app.use(rateLimiter);
 
 // Static dosyalar
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
