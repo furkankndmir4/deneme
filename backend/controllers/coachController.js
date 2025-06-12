@@ -173,6 +173,10 @@ const acceptAthleteRequest = asyncHandler(async (req, res) => {
     coach: req.user._id
   });
 
+  // Debugging: Check if the athlete's coach field is updated
+  const updatedAthlete = await User.findById(request.athlete);
+  console.log('Updated athlete coach field:', updatedAthlete.coach);
+
   // COACH-ATHLETE RELATIONSHIP TABLOSUNU DA GÜNCELLE!
   let relationship = await CoachAthleteRelationship.findOne({
     coach: req.user._id,
