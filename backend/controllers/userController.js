@@ -180,7 +180,10 @@ const getUserProfile = asyncHandler(async (req, res) => {
 
     const user = await User.findById(req.user._id)
       .select("-password")
-      .populate({ path: "profile" });
+      .populate([
+        { path: "profile" },
+        { path: "physicalData" }
+      ]);
 
     if (!user) {
       res.status(404);

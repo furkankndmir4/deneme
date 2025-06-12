@@ -447,17 +447,16 @@ const Dashboard = () => {
         setIsProfileSetupPopupOpen(!hasProfileData);
 
         // Fiziksel veri setup durumunu kontrol et ve state'i güncelle
-        const hasPhysicalData =
-          response.data.user?.physicalData &&
-          response.data.user.physicalData.neckCircumference !== undefined &&
-          response.data.user.physicalData.waistCircumference !== undefined &&
-          response.data.user.physicalData.hipCircumference !== undefined &&
-          response.data.user.physicalData.bodyFat !== undefined &&
-          response.data.user.physicalData.chestCircumference !== undefined &&
-          response.data.user.physicalData.bicepCircumference !== undefined &&
-          response.data.user.physicalData.thighCircumference !== undefined &&
-          response.data.user.physicalData.calfCircumference !== undefined &&
-          response.data.user.physicalData.shoulderWidth !== undefined;
+        const hasPhysicalData = updatedUserData.physicalData &&
+          updatedUserData.physicalData.neckCircumference !== undefined &&
+          updatedUserData.physicalData.waistCircumference !== undefined &&
+          updatedUserData.physicalData.hipCircumference !== undefined &&
+          updatedUserData.physicalData.bodyFat !== undefined &&
+          updatedUserData.physicalData.chestCircumference !== undefined &&
+          updatedUserData.physicalData.bicepCircumference !== undefined &&
+          updatedUserData.physicalData.thighCircumference !== undefined &&
+          updatedUserData.physicalData.calfCircumference !== undefined &&
+          updatedUserData.physicalData.shoulderWidth !== undefined;
 
         console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData });
 
