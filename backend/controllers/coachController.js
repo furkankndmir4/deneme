@@ -141,7 +141,7 @@ const listCoaches = asyncHandler(async (req, res) => {
 // @route   GET /api/coaches/athlete-requests
 // @access  Private
 const getPendingAthleteRequests = asyncHandler(async (req, res) => {
-  const requests = await CoachAthleteRequest.find({
+  const requests = await CoachAthleteRelationship.find({
     coach: req.user._id,
     status: 'pending'
   }).populate('athlete', 'email profile');
@@ -154,7 +154,9 @@ const getPendingAthleteRequests = asyncHandler(async (req, res) => {
 // @route   POST /api/coaches/athlete-requests/:requestId/accept
 // @access  Private
 const acceptAthleteRequest = asyncHandler(async (req, res) => {
-  const request = await CoachAthleteRequest.findById(req.params.requestId);
+  const requestId = req.params.requestId;
+
+  const request = await CoachAthleteRequest.findById(requestId);
 
   if (!request) {
     res.status(404);
@@ -169,7 +171,7 @@ const acceptAthleteRequest = asyncHandler(async (req, res) => {
   request.status = 'accepted';
   await request.save();
 
-  // Update athlete's coach field
+  // Update athlete's coach field in User model
   await User.findByIdAndUpdate(request.athlete, {
     coach: req.user._id
   });
@@ -178,7 +180,7 @@ const acceptAthleteRequest = asyncHandler(async (req, res) => {
   const updatedAthlete = await User.findById(request.athlete);
   console.log('Updated athlete coach field:', updatedAthlete.coach);
 
-  // COACH-ATHLETE RELATIONSHIP TABLOSUNU DA GÜNCELLE!
+  // Create or update CoachAthleteRelationship
   let relationship = await CoachAthleteRelationship.findOne({
     coach: req.user._id,
     athlete: request.athlete
