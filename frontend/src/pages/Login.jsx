@@ -44,27 +44,32 @@ const Login = () => {
         localStorage.removeItem("profileSetupDone");
         sessionStorage.removeItem("profileSetupDone");
 
+        // Kullanıcı verilerini kontrol et
+        const userData = response.data.user;
+        const hasProfile = userData && userData.profile && userData.profile.fullName;
+        const hasPhysicalData = userData && userData.physicalData;
+
         // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
           localStorage.setItem("userToken", response.data.token);
           localStorage.setItem("user", JSON.stringify({
-            _id: response.data._id,
-            email: response.data.email,
-            userType: response.data.userType,
-            hasProfile: response.data.hasProfile,
-            hasPhysicalData: response.data.hasPhysicalData
+            _id: userData._id,
+            email: userData.email,
+            userType: userData.userType,
+            hasProfile,
+            hasPhysicalData
           }));
-          localStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+          localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
         } else {
           sessionStorage.setItem("userToken", response.data.token);
           sessionStorage.setItem("user", JSON.stringify({
-            _id: response.data._id,
-            email: response.data.email,
-            userType: response.data.userType,
-            hasProfile: response.data.hasProfile,
-            hasPhysicalData: response.data.hasPhysicalData
+            _id: userData._id,
+            email: userData.email,
+            userType: userData.userType,
+            hasProfile,
+            hasPhysicalData
           }));
-          sessionStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+          sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
         }
 
         // Kullanıcı tipine göre yönlendirme
