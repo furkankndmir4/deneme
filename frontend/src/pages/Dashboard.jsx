@@ -292,13 +292,27 @@ axios.defaults.headers.common["Accept"] = "application/json";
 axios.defaults.baseURL = process.env.REACT_APP_API_URL || 'https://denemebackend.vercel.app';
 
 const getAuthToken = () => {
-  const localToken = localStorage.getItem("userToken");
-  const sessionToken = sessionStorage.getItem("userToken");
-  const tokenValue = localToken || sessionToken;
-  
-  console.log("Token Debug:", { localToken, sessionToken, tokenValue });
-  
-  return tokenValue;
+  try {
+    const localToken = localStorage.getItem("userToken");
+    const sessionToken = sessionStorage.getItem("userToken");
+
+    console.log("Token Debug:", {
+      localToken,
+      sessionToken,
+      tokenValue: localToken || sessionToken,
+    });
+
+    const token = localToken || sessionToken;
+    if (!token) {
+      console.error("No token found in storage");
+      return null;
+    }
+
+    return `Bearer ${token}`;
+  } catch (error) {
+    console.error("Error getting auth token:", error);
+    return null;
+  }
 };
 
 const saveAuthToken = (token) => {
@@ -378,41 +392,99 @@ const Dashboard = () => {
 
   const fetchUserData = async () => {
     try {
-      const token = getAuthToken();
+      setLoading(true);
+      setError(null);
+      
+      const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
       if (!token) {
-        navigate("/login");
+        console.log("No token found, redirecting to login");
+        clearAuthData(); // Tüm auth verilerini temizle
+        navigate("/");
         return;
       }
 
       console.log("Fetching user data with token:", token);
-
-      const response = await axios.get(`${API_URL}/users/profile`, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          Accept: "application/json",
-          "Content-Type": "application/json"
+      const response = await axios.get(
+        `${API_URL}/users/profile`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
 
       console.log("API response:", response.data);
 
-      if (response.data && response.data.user) {
-        const userData = response.data.user;
-        const hasProfile = Boolean(userData.profile && userData.profile.fullName);
-        const hasPhysicalData = Boolean(userData.physicalData);
+      if (response.data) {
+        let updatedUserData = response.data;
 
-        console.log("Profile/Physical data check:", { hasProfile, hasPhysicalData });
+        if (response.data.physicalDataHistory && response.data.physicalDataHistory.length > 0) {
+          const latestHistoryEntry = response.data.physicalDataHistory[0];
+          updatedUserData.physicalData = {
+            ...updatedUserData.physicalData,
+            bodyFatChange: latestHistoryEntry.bodyFatChange,
+            weightChange: latestHistoryEntry.weightChange,
+            heightChange: latestHistoryEntry.heightChange,
+            bmiChange: latestHistoryEntry.bmiChange
+          };
+        }
 
-        setUserData(response.data);
-        setShowProfilePopup(!hasProfile);
-        setShowBodyInfoPopup(!hasPhysicalData);
+        // Kullanıcı verilerini hem state'e hem de storage'a kaydet
+        setUserData(updatedUserData);
+        localStorage.setItem("user", JSON.stringify(updatedUserData));
+        sessionStorage.setItem("user", JSON.stringify(updatedUserData));
+
+        const hasProfileData = response.data.profile &&
+          response.data.profile.height &&
+          response.data.profile.weight &&
+          response.data.profile.age &&
+          response.data.profile.gender &&
+          response.data.profile.fullName;
+
+        setNeedsProfileSetup(!hasProfileData);
+        setIsProfileSetupPopupOpen(!hasProfileData);
+
+        // Fiziksel veri setup durumunu kontrol et ve state'i güncelle
+        const hasPhysicalData =
+          response.data.physicalData &&
+          response.data.physicalData.neckCircumference !== undefined &&
+          response.data.physicalData.waistCircumference !== undefined &&
+          response.data.physicalData.hipCircumference !== undefined &&
+          response.data.physicalData.bodyFat !== undefined &&
+          response.data.physicalData.chestCircumference !== undefined &&
+          response.data.physicalData.bicepCircumference !== undefined &&
+          response.data.physicalData.thighCircumference !== undefined &&
+          response.data.physicalData.calfCircumference !== undefined &&
+          response.data.physicalData.shoulderWidth !== undefined;
+
+        console.log("Profile/Physical data check:", { hasProfileData, hasPhysicalData });
+
+        setNeedsPhysicalData(!hasPhysicalData);
+        // Fiziksel veri popupunu sadece profil setup tamamlandıysa veya fiziksel veri eksikse aç
+        if (!hasProfileData) {
+          // Profil setup popup zaten açık olacak
+          setIsBodyInfoPopupOpen(false);
+        } else if (!hasPhysicalData) {
+          // Profil setup tamamlandı ama fiziksel veri eksik
+          setIsBodyInfoPopupOpen(true);
+        } else {
+          // Hem profil hem fiziksel veri tamam
+          setIsBodyInfoPopupOpen(false);
+        }
       }
     } catch (error) {
       console.error("Error fetching user data:", error);
       if (error.response?.status === 401) {
-        clearAuthData();
-        navigate("/login");
+        setError("Oturum süreniz dolmuş. Lütfen tekrar giriş yapın.");
+        clearAuthData(); // Tüm auth verilerini temizle
+        setTimeout(() => {
+          navigate("/");
+        }, 2000);
+      } else {
+        setError("Veriler yüklenirken bir hata oluştu. Lütfen sayfayı yenileyin.");
       }
+    } finally {
+      setLoading(false);
     }
   };
 

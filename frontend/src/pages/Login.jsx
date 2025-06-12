@@ -44,37 +44,43 @@ const Login = () => {
         localStorage.removeItem("profileSetupDone");
         sessionStorage.removeItem("profileSetupDone");
 
-        // Token'ı sakla
-        const token = response.data.token;
+        // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
-          localStorage.setItem("userToken", token);
+          localStorage.setItem("userToken", response.data.token);
+          localStorage.setItem("user", JSON.stringify({
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            profile: response.data.profile || {},
+            physicalData: response.data.physicalData || {},
+          }));
         } else {
-          sessionStorage.setItem("userToken", token);
+          sessionStorage.setItem("userToken", response.data.token);
+          sessionStorage.setItem("user", JSON.stringify({
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            profile: response.data.profile || {},
+            physicalData: response.data.physicalData || {},
+          }));
         }
 
-        // Kullanıcı bilgilerini sakla
-        const userInfo = {
-          _id: response.data._id,
-          email: response.data.email,
-          userType: response.data.userType,
-          hasProfile: response.data.hasProfile,
-          hasPhysicalData: response.data.hasPhysicalData
-        };
-
+        // Profil kurulumu kontrolü
+        const profileSetupDone = response.data.profile && response.data.profile.fullName;
         if (rememberMe) {
-          localStorage.setItem("user", JSON.stringify(userInfo));
-          localStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+          localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
         } else {
-          sessionStorage.setItem("user", JSON.stringify(userInfo));
-          sessionStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+          sessionStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
         }
 
         // Kullanıcı tipine göre yönlendirme
         navigate("/dashboard");
+      } else {
+        setError("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
       }
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.response?.data?.message || "Giriş yapılırken bir hata oluştu");
+      setError(error.response?.data?.message || "Giriş yapılırken bir hata oluştu.");
     } finally {
       setLoading(false);
     }
