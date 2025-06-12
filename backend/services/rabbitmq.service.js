@@ -16,9 +16,9 @@ class RabbitMQService {
         };
     }
 
-    async connect() {
+    async connect(url) {
         try {
-            this.connection = await amqp.connect(process.env.RABBITMQ_URL || 'amqp://rabbitmq');
+            this.connection = await amqp.connect(url);
             this.channel = await this.connection.createChannel();
 
             // Exchange'leri oluştur

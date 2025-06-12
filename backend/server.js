@@ -66,15 +66,23 @@ connectDB();
 // Redis bağlantısı
 let redisClient = null;
 let rateLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 dakika
-  max: 100, // IP başına limit
-  message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
+  windowMs: 15 * 60 * 1000,
+  max: 100,
+  message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.',
+  standardHeaders: true,
+  legacyHeaders: false,
+  trustProxy: true
 });
 
 const connectRedis = async () => {
   try {
+    // Docker veya Vercel ortamına göre Redis URL'ini belirle
+    const redisUrl = process.env.NODE_ENV === 'production' 
+      ? process.env.REDIS_URL 
+      : 'redis://redis:6379';
+
     redisClient = createClient({
-      url: process.env.REDIS_URL
+      url: redisUrl
     });
 
     redisClient.on('error', (err) => {
@@ -89,9 +97,12 @@ const connectRedis = async () => {
       store: new RedisStore({
         sendCommand: (...args) => redisClient.sendCommand(args),
       }),
-      windowMs: 15 * 60 * 1000, // 15 dakika
-      max: 100, // IP başına limit
-      message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
+      windowMs: 15 * 60 * 1000,
+      max: 100,
+      message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.',
+      standardHeaders: true,
+      legacyHeaders: false,
+      trustProxy: true
     });
   } catch (error) {
     console.warn('Redis bağlantısı kurulamadı, memory store kullanılacak:', error.message);
@@ -105,13 +116,18 @@ connectRedis();
 app.use(rateLimiter);
 
 // RabbitMQ bağlantısını başlat
-(async () => {
+const connectRabbitMQ = async () => {
   let retryCount = 0;
   const maxRetries = 3;
   
   while (retryCount < maxRetries) {
     try {
-      await rabbitmqService.connect();
+      // Docker veya Vercel ortamına göre RabbitMQ URL'ini belirle
+      const rabbitmqUrl = process.env.NODE_ENV === 'production'
+        ? process.env.RABBITMQ_URL
+        : 'amqp://rabbitmq:5672';
+
+      await rabbitmqService.connect(rabbitmqUrl);
       console.log('RabbitMQ bağlantısı başarılı');
 
       // RabbitMQ mesaj dinleyicilerini başlat
@@ -140,7 +156,10 @@ app.use(rateLimiter);
       }
     }
   }
-})();
+};
+
+// RabbitMQ bağlantısını başlat
+connectRabbitMQ();
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
