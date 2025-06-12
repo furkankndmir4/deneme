@@ -144,7 +144,14 @@ const getPendingAthleteRequests = asyncHandler(async (req, res) => {
   const requests = await CoachAthleteRelationship.find({
     coach: req.user._id,
     status: 'pending'
-  }).populate('athlete', 'email profile');
+  }).populate({
+    path: 'athlete',
+    select: 'email',
+    populate: {
+      path: 'profile',
+      select: 'fullName photoUrl age goalType'
+    }
+  });
   
   console.log('getPendingAthleteRequests - Found pending requests:', requests);
   res.json(requests);
