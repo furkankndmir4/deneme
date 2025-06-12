@@ -11,6 +11,8 @@ const PhysicalDataHistory = require('../models/physicalDataHistoryModel');
 const Login = require('../models/loginModel');
 const Streak = require('../models/streakModel');
 const Measurement = require('../models/measurementModel');
+const rabbitmqService = require('../services/rabbitmq.service');
+const redisService = require('../services/redis.service');
 
 // NaN değerleri undefined olarak kaydetmek için yardımcı fonksiyon
 const safeNumber = (val) => (isNaN(val) ? undefined : val);
@@ -20,7 +22,7 @@ const safeNumber = (val) => (isNaN(val) ? undefined : val);
 // @access  Public
 const registerUser = asyncHandler(async (req, res) => {
   try {
-  const { email, password, userType } = req.body;
+    const { email, password, userType } = req.body;
 
     console.log('Register attempt:', { email, userType }); // Debug log
 
@@ -30,34 +32,43 @@ const registerUser = asyncHandler(async (req, res) => {
       throw new Error('Tüm alanlar gereklidir');
     }
 
-  const userExists = await User.findOne({ email });
+    const userExists = await User.findOne({ email });
 
-  if (userExists) {
+    if (userExists) {
       console.log('User already exists:', email); // Debug log
-    res.status(400);
-    throw new Error('Bu e-posta adresi zaten kullanılıyor');
-  }
+      res.status(400);
+      throw new Error('Bu e-posta adresi zaten kullanılıyor');
+    }
 
     console.log('Creating new user...'); // Debug log
-  const user = await User.create({
-    email,
-    password,
-    userType,
-    verified: true
-  });
-
-  if (user) {
-      console.log('User created successfully:', { userId: user._id }); // Debug log
-    res.status(201).json({
-      _id: user._id,
-      email: user.email,
-      userType: user.userType,
-      token: generateToken(user._id),
+    const user = await User.create({
+      email,
+      password,
+      userType,
+      verified: true
     });
-  } else {
+
+    if (user) {
+      console.log('User created successfully:', { userId: user._id }); // Debug log
+
+      // RabbitMQ'ya bildirim mesajı gönder
+      await rabbitmqService.publishMessage('user_registered', {
+        userId: user._id,
+        email: user.email,
+        userType: user.userType,
+        timestamp: new Date()
+      });
+
+      res.status(201).json({
+        _id: user._id,
+        email: user.email,
+        userType: user.userType,
+        token: generateToken(user._id),
+      });
+    } else {
       console.log('User creation failed'); // Debug log
-    res.status(400);
-    throw new Error('Geçersiz kullanıcı bilgileri');
+      res.status(400);
+      throw new Error('Geçersiz kullanıcı bilgileri');
     }
   } catch (error) {
     console.error('Register error:', error);
@@ -160,70 +171,70 @@ const loginUser = async (req, res) => {
 // @route   GET /api/users/profile
 // @access  Private
 const getUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id)
-    .select("-password")
-    .populate({ path: "profile" });
-  if (!user) {
-    res.status(404);
-    throw new Error("Kullanıcı bulunamadı");
+  try {
+    // Redis'ten profil bilgilerini almayı dene
+    const cachedProfile = await redisService.get(`profile:${req.user._id}`);
+    if (cachedProfile) {
+      return res.json(cachedProfile);
+    }
+
+    const user = await User.findById(req.user._id)
+      .select("-password")
+      .populate({ path: "profile" });
+
+    if (!user) {
+      res.status(404);
+      throw new Error("Kullanıcı bulunamadı");
+    }
+
+    let coach = null;
+    let athletes = [];
+    let trainingProgram = null;
+
+    if (user.userType === "athlete") {
+      coach = await User.findOne({ _id: user.coach })
+        .select("_id email profile")
+        .populate({
+          path: "profile",
+          select: "fullName photoUrl specialization coachNote",
+        });
+
+      trainingProgram = await TrainingProgram.findOne({ athlete: user._id })
+        .populate("createdBy", "profile")
+        .populate("athlete", "profile")
+        .populate({
+          path: "workouts",
+          populate: {
+            path: "exercises",
+          },
+        });
+    } else if (user.userType === "coach") {
+      athletes = await User.find({ coach: user._id })
+        .select("_id email profile physicalData")
+        .populate({
+          path: "profile",
+          select: "fullName photoUrl age goalType",
+        });
+    }
+
+    const profileData = {
+      user,
+      coach,
+      athletes,
+      trainingProgram,
+    };
+
+    // Profil bilgilerini Redis'e kaydet (1 saat süreyle)
+    await redisService.set(`profile:${req.user._id}`, profileData, 3600);
+
+    res.json(profileData);
+  } catch (error) {
+    console.error('Profil getirme hatası:', error);
+    res.status(500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
+    });
   }
-
-  let coach = null;
-  let athletes = [];
-  let trainingProgram = null;
-
-  if (user.userType === "athlete") {
-    // Sporcu için antrenör bilgilerini getir
-    coach = await User.findOne({ _id: user.coach })
-      .select("_id email profile")
-      .populate({
-        path: "profile",
-        select: "fullName photoUrl specialization coachNote",
-      });
-
-    // Sporcu için antrenman programını getir
-    trainingProgram = await TrainingProgram.findOne({ athlete: user._id })
-      .populate("createdBy", "profile")
-      .populate("athlete", "profile")
-      .populate({
-        path: "workouts",
-        populate: {
-          path: "exercises",
-        },
-      });
-  } else if (user.userType === "coach") {
-    // Antrenör için sporcularını getir
-    athletes = await User.find({ coach: user._id })
-      .select("_id email profile physicalData")
-      .populate({
-        path: "profile",
-        select: "fullName photoUrl age goalType",
-      })
-      .populate({
-        path: "physicalData",
-        select: "goalCalories proteinGrams carbGrams fatGrams bodyFat bmi",
-      });
-  }
-
-  // En güncel physicalData kaydını bul
-  const latestPhysicalData = await PhysicalData.findOne({ user: user._id }).sort({ createdAt: -1 });
-
-  // Kullanıcının fiziksel veri geçmişinden son 2 kaydı çek
-  const physicalDataHistory = await PhysicalDataHistory.find({ user: user._id })
-    .sort({ createdAt: -1 })
-    .limit(2);
-
-  res.json({
-    _id: user._id,
-    email: user.email,
-    userType: user.userType,
-    profile: user.profile,
-    physicalData: latestPhysicalData,
-    coach: coach,
-    athletes: athletes,
-    trainingProgram: trainingProgram,
-    physicalDataHistory: physicalDataHistory, // Fiziksel veri geçmişini yanıtına ekle
-  });
 });
 
 // @desc    Get user profile by ID
@@ -386,153 +397,163 @@ const getUserProfileById = asyncHandler(async (req, res) => {
 // @route   PUT /api/users/profile
 // @access  Private
 const updateUserProfile = asyncHandler(async (req, res) => {
-  const user = await User.findById(req.user._id);
-
-  if (!user) {
-    res.status(404);
-    throw new Error('Kullanıcı bulunamadı');
-  }
-
-  const { fullName, age, gender, height, weight, goalType, activityLevel, privacy, goals, specialization, coachNote } = req.body;
-  const bodyFat = req.body.bodyFat;
-
-  let profile = await Profile.findOne({ user: req.user._id });
-
-  if (profile) {
-    profile.fullName = fullName || profile.fullName;
-    profile.age = age || profile.age;
-    profile.gender = gender || profile.gender;
-    profile.height = height || profile.height;
-    profile.weight = weight || profile.weight;
-    profile.goalType = goalType || profile.goalType;
-    profile.activityLevel = activityLevel || profile.activityLevel;
-    if (goals !== undefined) profile.goals = goals;
-    if (specialization !== undefined) profile.specialization = specialization;
-    if (coachNote !== undefined) profile.coachNote = coachNote;
-
-    if (privacy) {
-      profile.privacy = privacy;
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      res.status(404);
+      throw new Error("Kullanıcı bulunamadı");
     }
 
-    await profile.save();
-  } else {
-    const newProfileData = {
-      user: req.user._id,
-      fullName,
-      age,
-      gender,
-      height,
-      weight,
-      goalType,
-      activityLevel,
-      goals,
-      specialization,
-      coachNote
-    };
+    const { fullName, age, gender, height, weight, goalType, activityLevel, privacy, goals, specialization, coachNote } = req.body;
+    const bodyFat = req.body.bodyFat;
 
-    if (goals !== undefined) newProfileData.goals = goals;
-    if (specialization !== undefined) newProfileData.specialization = specialization;
+    let profile = await Profile.findOne({ user: req.user._id });
 
-    if (privacy) {
-      newProfileData.privacy = privacy;
-    }
+    if (profile) {
+      profile.fullName = fullName || profile.fullName;
+      profile.age = age || profile.age;
+      profile.gender = gender || profile.gender;
+      profile.height = height || profile.height;
+      profile.weight = weight || profile.weight;
+      profile.goalType = goalType || profile.goalType;
+      profile.activityLevel = activityLevel || profile.activityLevel;
+      if (goals !== undefined) profile.goals = goals;
+      if (specialization !== undefined) profile.specialization = specialization;
+      if (coachNote !== undefined) profile.coachNote = coachNote;
 
-    profile = await Profile.create(newProfileData);
-    user.profile = profile._id;
-    await user.save();
-  }
-
-  // Profil kaydında physicalData da otomatik oluşturulsun/güncellensin
-  if (height && weight) {
-    let physicalData = await PhysicalData.findOne({ user: req.user._id });
-    // Son fiziksel veri geçmişini bul
-    const lastEntry = await PhysicalDataHistory.findOne({ user: req.user._id }).sort({ date: -1 });
-
-    const weightChange =
-      lastEntry && typeof lastEntry.weight === "number" && typeof weight === "number"
-        ? weight - lastEntry.weight
-        : physicalData ? physicalData.weightChange : 0;
-    const bodyFatChange =
-      // Sadece bodyFat değeri açıkça gönderildiğinde farkı hesapla
-      (bodyFat !== undefined && lastEntry && typeof lastEntry.bodyFat === "number" && typeof bodyFat === "number")
-        ? bodyFat - lastEntry.bodyFat
-        : physicalData ? physicalData.bodyFatChange : 0;
-    const heightChange =
-      lastEntry && typeof lastEntry.height === "number" && typeof height === "number"
-        ? height - lastEntry.height
-        : physicalData ? physicalData.heightChange : 0;
-
-    let currentBMI = null;
-    let bmiChange = 0;
-    if (typeof height === "number" && typeof weight === "number" && height > 0) {
-      currentBMI = weight / ((height / 100) * (height / 100));
-      if (lastEntry && typeof lastEntry.bmi === "number") {
-        bmiChange = currentBMI - lastEntry.bmi;
+      if (privacy) {
+        profile.privacy = privacy;
       }
-    }
 
-    if (physicalData) {
-      physicalData.height = height;
-      physicalData.weight = weight;
-      physicalData.weightChange = safeNumber(weightChange);
-      physicalData.bodyFatChange = safeNumber(bodyFatChange);
-      physicalData.heightChange = safeNumber(heightChange);
-      physicalData.bmiChange = safeNumber(bmiChange);
-      if (currentBMI) physicalData.bmi = safeNumber(currentBMI);
-      // Eğer bodyFat değeri gönderildiyse güncelle
-      if (bodyFat !== undefined) {
-        physicalData.bodyFat = bodyFat;
-      }
-      await physicalData.save();
+      await profile.save();
     } else {
-      physicalData = await PhysicalData.create({
+      const newProfileData = {
+        user: req.user._id,
+        fullName,
+        age,
+        gender,
+        height,
+        weight,
+        goalType,
+        activityLevel,
+        goals,
+        specialization,
+        coachNote
+      };
+
+      if (goals !== undefined) newProfileData.goals = goals;
+      if (specialization !== undefined) newProfileData.specialization = specialization;
+
+      if (privacy) {
+        newProfileData.privacy = privacy;
+      }
+
+      profile = await Profile.create(newProfileData);
+      user.profile = profile._id;
+      await user.save();
+    }
+
+    // Profil kaydında physicalData da otomatik oluşturulsun/güncellensin
+    if (height && weight) {
+      let physicalData = await PhysicalData.findOne({ user: req.user._id });
+      // Son fiziksel veri geçmişini bul
+      const lastEntry = await PhysicalDataHistory.findOne({ user: req.user._id }).sort({ date: -1 });
+
+      const weightChange =
+        lastEntry && typeof lastEntry.weight === "number" && typeof weight === "number"
+          ? weight - lastEntry.weight
+          : physicalData ? physicalData.weightChange : 0;
+      const bodyFatChange =
+        // Sadece bodyFat değeri açıkça gönderildiğinde farkı hesapla
+        (bodyFat !== undefined && lastEntry && typeof lastEntry.bodyFat === "number" && typeof bodyFat === "number")
+          ? bodyFat - lastEntry.bodyFat
+          : physicalData ? physicalData.bodyFatChange : 0;
+      const heightChange =
+        lastEntry && typeof lastEntry.height === "number" && typeof height === "number"
+          ? height - lastEntry.height
+          : physicalData ? physicalData.heightChange : 0;
+
+      let currentBMI = null;
+      let bmiChange = 0;
+      if (typeof height === "number" && typeof weight === "number" && height > 0) {
+        currentBMI = weight / ((height / 100) * (height / 100));
+        if (lastEntry && typeof lastEntry.bmi === "number") {
+          bmiChange = currentBMI - lastEntry.bmi;
+        }
+      }
+
+      if (physicalData) {
+        physicalData.height = height;
+        physicalData.weight = weight;
+        physicalData.weightChange = safeNumber(weightChange);
+        physicalData.bodyFatChange = safeNumber(bodyFatChange);
+        physicalData.heightChange = safeNumber(heightChange);
+        physicalData.bmiChange = safeNumber(bmiChange);
+        if (currentBMI) physicalData.bmi = safeNumber(currentBMI);
+        // Eğer bodyFat değeri gönderildiyse güncelle
+        if (bodyFat !== undefined) {
+          physicalData.bodyFat = bodyFat;
+        }
+        await physicalData.save();
+      } else {
+        physicalData = await PhysicalData.create({
+          user: req.user._id,
+          height,
+          weight,
+          weightChange: safeNumber(weightChange),
+          bodyFatChange: safeNumber(bodyFatChange),
+          heightChange: safeNumber(heightChange),
+          bmiChange: safeNumber(bmiChange),
+          bmi: safeNumber(currentBMI),
+          bodyFat: bodyFat
+        });
+        user.physicalData = physicalData._id;
+        await user.save();
+      }
+
+      // Ayrıca PhysicalDataHistory'ye de ekle
+      const newHistoryEntry = new PhysicalDataHistory({
         user: req.user._id,
         height,
         weight,
+        bodyFat: bodyFat,
+        waistCircumference: req.body.waistCircumference,
+        neckCircumference: req.body.neckCircumference,
+        hipCircumference: req.body.hipCircumference,
+        chestCircumference: req.body.chestCircumference,
+        bicepCircumference: req.body.bicepCircumference,
+        thighCircumference: req.body.thighCircumference,
+        calfCircumference: req.body.calfCircumference,
+        shoulderWidth: req.body.shoulderWidth,
         weightChange: safeNumber(weightChange),
         bodyFatChange: safeNumber(bodyFatChange),
         heightChange: safeNumber(heightChange),
         bmiChange: safeNumber(bmiChange),
-        bmi: safeNumber(currentBMI),
-        bodyFat: bodyFat
+        bmi: safeNumber(currentBMI)
       });
-      user.physicalData = physicalData._id;
-      await user.save();
+      await newHistoryEntry.save();
     }
 
-    // Ayrıca PhysicalDataHistory'ye de ekle
-    const newHistoryEntry = new PhysicalDataHistory({
-      user: req.user._id,
-      height,
-      weight,
-      bodyFat: bodyFat,
-      waistCircumference: req.body.waistCircumference,
-      neckCircumference: req.body.neckCircumference,
-      hipCircumference: req.body.hipCircumference,
-      chestCircumference: req.body.chestCircumference,
-      bicepCircumference: req.body.bicepCircumference,
-      thighCircumference: req.body.thighCircumference,
-      calfCircumference: req.body.calfCircumference,
-      shoulderWidth: req.body.shoulderWidth,
-      weightChange: safeNumber(weightChange),
-      bodyFatChange: safeNumber(bodyFatChange),
-      heightChange: safeNumber(heightChange),
-      bmiChange: safeNumber(bmiChange),
-      bmi: safeNumber(currentBMI)
+    // Güncellenmiş user'ı populate ederek çek
+    const updatedUser = await User.findById(req.user._id)
+      .select("-password")
+      .populate({ path: "profile" })
+      .populate({ path: "physicalData" });
+
+    // Debug log: Check updatedUser data before sending
+    console.log("updateUserProfile response data:", { physicalData: updatedUser.physicalData, physicalDataHistory: updatedUser.physicalDataHistory });
+
+    // Redis'teki önbelleği temizle
+    await redisService.delete(`profile:${req.user._id}`);
+
+    res.json(updatedUser);
+  } catch (error) {
+    console.error('Profil güncelleme hatası:', error);
+    res.status(500).json({
+      message: error.message || 'Sunucu hatası',
+      stack: process.env.NODE_ENV === 'development' ? error.stack : null
     });
-    await newHistoryEntry.save();
   }
-
-  // Güncellenmiş user'ı populate ederek çek
-  const updatedUser = await User.findById(req.user._id)
-    .select("-password")
-    .populate({ path: "profile" })
-    .populate({ path: "physicalData" });
-
-  // Debug log: Check updatedUser data before sending
-  console.log("updateUserProfile response data:", { physicalData: updatedUser.physicalData, physicalDataHistory: updatedUser.physicalDataHistory });
-
-  res.json(updatedUser);
 });
 
 // @desc    Upload profile photo

@@ -17,6 +17,8 @@ const leaderboardRoutes = require('./routes/leaderboardRoutes');
 const goalController = require('./controllers/goalController');
 const goalRoutes = require('./routes/goalRoutes');
 const User = require('./models/userModel');
+const rabbitmqService = require('./services/rabbitmq.service');
+const redisService = require('./services/redis.service');
 
 dotenv.config();
 
@@ -28,6 +30,54 @@ if (!process.env.JWT_SECRET) {
 
 // Veritabanı bağlantısı
 connectDB();
+
+// Redis bağlantısını başlat
+redisService.connect().catch(console.error);
+
+// Rate limiting middleware
+const rateLimiter = async (req, res, next) => {
+  try {
+    const ip = req.ip;
+    const key = `rate_limit:${ip}`;
+    const limit = 100; // 1 dakikada maksimum istek sayısı
+    const window = 60; // 60 saniye
+
+    const current = await redisService.increment(key);
+    if (current === 1) {
+      await redisService.set(key, 1, window);
+    }
+
+    if (current > limit) {
+      return res.status(429).json({
+        message: 'Çok fazla istek gönderdiniz. Lütfen daha sonra tekrar deneyin.'
+      });
+    }
+
+    next();
+  } catch (error) {
+    console.error('Rate limiting hatası:', error);
+    next();
+  }
+};
+
+// RabbitMQ bağlantısını başlat
+rabbitmqService.connect().catch(console.error);
+
+// RabbitMQ mesaj dinleyicilerini başlat
+rabbitmqService.consumeMessages('user_registered', async (message) => {
+    console.log('Yeni kullanıcı kaydı:', message);
+    // Burada email gönderme, bildirim oluşturma gibi işlemler yapılabilir
+});
+
+rabbitmqService.consumeMessages('exercise_completed', async (message) => {
+    console.log('Egzersiz tamamlandı:', message);
+    // Burada ilerleme güncelleme, başarı bildirimi gibi işlemler yapılabilir
+});
+
+rabbitmqService.consumeMessages('workout_created', async (message) => {
+    console.log('Yeni antrenman planı oluşturuldu:', message);
+    // Burada bildirim gönderme, plan optimizasyonu gibi işlemler yapılabilir
+});
 
 const app = express();
 
@@ -56,6 +106,9 @@ app.use(cors({
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
+
+// Rate limiting middleware'i uygula
+app.use(rateLimiter);
 
 // Static dosyalar
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));

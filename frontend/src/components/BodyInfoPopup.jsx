@@ -44,8 +44,8 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
     if (value === "" || /^\d*\.?\d*$/.test(value)) {
       setPhysicalData((prev) => ({
         ...prev,
-        [name]: value,
-      }));
+      [name]: value,
+    }));
     }
   };
 
@@ -81,154 +81,154 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
         </div>
         <div className="overflow-y-auto pr-2 custom-styled-scrollbar flex-1">
           <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
+          <div>
               <label className="block text-sm font-medium text-gray-300 mb-1">
-                Vücut Yağ Oranı (%)
-              </label>
-              <input
+              Vücut Yağ Oranı (%)
+            </label>
+            <input
                 type="number"
-                name="bodyFat"
+              name="bodyFat"
                 min="0"
                 max="100"
-                step="0.1"
-                value={physicalData.bodyFat}
-                onChange={handleChange}
+              step="0.1"
+              value={physicalData.bodyFat}
+              onChange={handleChange}
                 className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                 placeholder="Örn: 15"
-              />
-            </div>
+            />
+          </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Boyun Çevresi (cm)
-                </label>
-                <input
+              Boyun Çevresi (cm)
+            </label>
+            <input
                   type="number"
-                  name="neckCircumference"
+              name="neckCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.neckCircumference}
-                  onChange={handleChange}
+              value={physicalData.neckCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 35"
-                />
-              </div>
-              <div>
+            />
+          </div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Bel Çevresi (cm)
-                </label>
-                <input
+              Bel Çevresi (cm)
+            </label>
+            <input
                   type="number"
-                  name="waistCircumference"
+              name="waistCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.waistCircumference}
-                  onChange={handleChange}
+              value={physicalData.waistCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 80"
-                />
+            />
               </div>
-            </div>
+          </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Kalça Çevresi (cm)
-                </label>
-                <input
+              Kalça Çevresi (cm)
+            </label>
+            <input
                   type="number"
-                  name="hipCircumference"
+              name="hipCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.hipCircumference}
-                  onChange={handleChange}
+              value={physicalData.hipCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 90"
-                />
-              </div>
-              <div>
+            />
+          </div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Göğüs Çevresi (cm)
-                </label>
-                <input
+              Göğüs Çevresi (cm)
+            </label>
+            <input
                   type="number"
-                  name="chestCircumference"
+              name="chestCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.chestCircumference}
-                  onChange={handleChange}
+              value={physicalData.chestCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 95"
-                />
-              </div>
+            />
+          </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Biceps Çevresi (cm)
-                </label>
-                <input
+            </label>
+            <input
                   type="number"
-                  name="bicepCircumference"
+              name="bicepCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.bicepCircumference}
-                  onChange={handleChange}
+              value={physicalData.bicepCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 30"
-                />
-              </div>
-              <div>
+            />
+          </div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
                   Uyluk Çevresi (cm)
-                </label>
-                <input
+            </label>
+            <input
                   type="number"
-                  name="thighCircumference"
+              name="thighCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.thighCircumference}
-                  onChange={handleChange}
+              value={physicalData.thighCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 55"
-                />
-              </div>
+            />
+          </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">
-              <div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Baldır Çevresi (cm)
-                </label>
-                <input
+              Baldır Çevresi (cm)
+            </label>
+            <input
                   type="number"
-                  name="calfCircumference"
+              name="calfCircumference"
                   min="0"
                   step="0.1"
-                  value={physicalData.calfCircumference}
-                  onChange={handleChange}
+              value={physicalData.calfCircumference}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 35"
-                />
-              </div>
-              <div>
+            />
+          </div>
+          <div>
                 <label className="block text-sm font-medium text-gray-300 mb-1">
-                  Omuz Genişliği (cm)
-                </label>
-                <input
+              Omuz Genişliği (cm)
+            </label>
+            <input
                   type="number"
-                  name="shoulderWidth"
+              name="shoulderWidth"
                   min="0"
                   step="0.1"
-                  value={physicalData.shoulderWidth}
-                  onChange={handleChange}
+              value={physicalData.shoulderWidth}
+              onChange={handleChange}
                   className="w-full bg-gray-800 text-white rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-yellow-500"
                   placeholder="Örn: 45"
-                />
+            />
               </div>
-            </div>
+          </div>
 
             <div className="flex justify-end space-x-3 mt-6">
               <button
@@ -238,14 +238,14 @@ const BodyInfoPopup = ({ onClose, onSave, initialData }) => {
               >
                 İptal
               </button>
-              <button
-                type="submit"
+            <button
+              type="submit"
                 className="px-4 py-2 bg-yellow-500 text-black rounded-lg hover:bg-yellow-400 transition-colors"
-              >
+            >
                 Kaydet
-              </button>
-            </div>
-          </form>
+            </button>
+          </div>
+        </form>
         </div>
       </div>
     </div>
