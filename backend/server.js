@@ -42,6 +42,8 @@ const allowedOrigins = [
   'http://localhost:5001'
 ];
 
+app.set('trust proxy', 1);
+
 // Yeni CORS yapılandırması
 app.use(cors({
   origin: function(origin, callback) {
@@ -72,7 +74,18 @@ const rateLimiter = rateLimit({
   message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.',
   standardHeaders: true,
   legacyHeaders: false,
-  trustProxy: true
+  trustProxy: true,
+  keyGenerator: (req) => {
+    // X-Forwarded-For header'ını kontrol et
+    const forwardedFor = req.headers['x-forwarded-for'];
+    if (forwardedFor) {
+      // İlk IP adresini al (proxy zincirindeki orijinal client IP)
+      const clientIp = forwardedFor.split(',')[0].trim();
+      return clientIp;
+    }
+    // X-Forwarded-For yoksa normal IP'yi kullan
+    return req.ip;
+  }
 });
 
 const connectRedis = async () => {
