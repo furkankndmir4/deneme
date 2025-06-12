@@ -65,7 +65,11 @@ connectDB();
 
 // Redis bağlantısı
 let redisClient = null;
-let rateLimiter = null;
+let rateLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 dakika
+  max: 100, // IP başına limit
+  message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
+});
 
 const connectRedis = async () => {
   try {
@@ -91,12 +95,6 @@ const connectRedis = async () => {
     });
   } catch (error) {
     console.warn('Redis bağlantısı kurulamadı, memory store kullanılacak:', error.message);
-    // Redis bağlantısı başarısız olursa memory store kullan
-    rateLimiter = rateLimit({
-      windowMs: 15 * 60 * 1000,
-      max: 100,
-      message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.'
-    });
   }
 };
 
