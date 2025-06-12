@@ -831,7 +831,7 @@ const Dashboard = () => {
 
       try {
         await axios.post(
-          `${API_URL}/coaches/athlete-requests/${requestId}/reject`,
+          `${API_URL}/coaches/athlete-relationships/${requestId}/reject`,
           {},
           { headers: { Authorization: `Bearer ${token}` } }
         );

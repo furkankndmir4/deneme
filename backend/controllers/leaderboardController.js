@@ -5,29 +5,33 @@ const User = require('../models/userModel');
 // @access  Public
 const getLeaderboard = async (req, res) => {
   try {
-    const users = await User.find({})
-      .sort({ points: -1 })
-      .limit(20)
+    // Fetch all users sorted by points (descending) and then by _id (ascending for deterministic tie-breaking)
+    const allUsers = await User.find({})
+      .sort({ points: -1, _id: 1 }) // Add _id for deterministic sorting
       .populate('profile', 'fullName photoUrl')
       .select('points userType profile');
 
     // Get current user's rank if authenticated
     let currentUserRank = null;
     if (req.user) {
-      const usersWithHigherPoints = await User.countDocuments({
-        points: { $gt: req.user.points }
-      });
-      currentUserRank = usersWithHigherPoints + 1;
+      // Find the index of the current user in the sorted list
+      const currentUserIndex = allUsers.findIndex(user => user._id.toString() === req.user._id.toString());
+      if (currentUserIndex !== -1) {
+        currentUserRank = currentUserIndex + 1;
+      }
     }
 
+    // Prepare the leaderboard for the top 20
+    const leaderboard = allUsers.slice(0, 20).map(user => ({
+      id: user._id,
+      name: user.profile?.fullName || 'İsimsiz Kullanıcı',
+      points: user.points,
+      userType: user.userType,
+      photoUrl: user.profile?.photoUrl,
+    }));
+
     res.json({
-      leaderboard: users.map(user => ({
-        id: user._id,
-        name: user.profile?.fullName || 'İsimsiz Kullanıcı',
-        points: user.points,
-        userType: user.userType,
-        photoUrl: user.profile?.photoUrl,
-      })),
+      leaderboard,
       currentUserRank
     });
   } catch (error) {
