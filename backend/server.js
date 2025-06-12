@@ -32,7 +32,28 @@ if (!process.env.JWT_SECRET) {
 connectDB();
 
 // Redis bağlantısını başlat
-redisService.connect().catch(console.error);
+(async () => {
+  let retryCount = 0;
+  const maxRetries = 3;
+  
+  while (retryCount < maxRetries) {
+    try {
+      await redisService.connect();
+      console.log('Redis bağlantısı başarılı');
+      break;
+    } catch (error) {
+      retryCount++;
+      console.error(`Redis bağlantı hatası (Deneme ${retryCount}/${maxRetries}):`, error);
+      
+      if (retryCount === maxRetries) {
+        console.log('Redis bağlantısı olmadan devam ediliyor...');
+      } else {
+        // 5 saniye bekle ve tekrar dene
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+})();
 
 // Rate limiting middleware
 const rateLimiter = async (req, res, next) => {
@@ -61,23 +82,42 @@ const rateLimiter = async (req, res, next) => {
 };
 
 // RabbitMQ bağlantısını başlat
-rabbitmqService.connect().catch(console.error);
+(async () => {
+  let retryCount = 0;
+  const maxRetries = 3;
+  
+  while (retryCount < maxRetries) {
+    try {
+      await rabbitmqService.connect();
+      console.log('RabbitMQ bağlantısı başarılı');
 
-// RabbitMQ mesaj dinleyicilerini başlat
-rabbitmqService.consumeMessages('user_registered', async (message) => {
-    console.log('Yeni kullanıcı kaydı:', message);
-    // Burada email gönderme, bildirim oluşturma gibi işlemler yapılabilir
-});
+      // RabbitMQ mesaj dinleyicilerini başlat
+      await rabbitmqService.consume(rabbitmqService.queues.userRegistered, async (message) => {
+        console.log('Yeni kullanıcı kaydı:', message);
+      });
 
-rabbitmqService.consumeMessages('exercise_completed', async (message) => {
-    console.log('Egzersiz tamamlandı:', message);
-    // Burada ilerleme güncelleme, başarı bildirimi gibi işlemler yapılabilir
-});
+      await rabbitmqService.consume(rabbitmqService.queues.exerciseCompleted, async (message) => {
+        console.log('Egzersiz tamamlandı:', message);
+      });
 
-rabbitmqService.consumeMessages('workout_created', async (message) => {
-    console.log('Yeni antrenman planı oluşturuldu:', message);
-    // Burada bildirim gönderme, plan optimizasyonu gibi işlemler yapılabilir
-});
+      await rabbitmqService.consume(rabbitmqService.queues.workoutCreated, async (message) => {
+        console.log('Yeni antrenman planı oluşturuldu:', message);
+      });
+      
+      break;
+    } catch (error) {
+      retryCount++;
+      console.error(`RabbitMQ bağlantı hatası (Deneme ${retryCount}/${maxRetries}):`, error);
+      
+      if (retryCount === maxRetries) {
+        console.log('RabbitMQ bağlantısı olmadan devam ediliyor...');
+      } else {
+        // 5 saniye bekle ve tekrar dene
+        await new Promise(resolve => setTimeout(resolve, 5000));
+      }
+    }
+  }
+})();
 
 const app = express();
 
@@ -114,6 +154,15 @@ app.use(rateLimiter);
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
 
 // Test endpointi
+app.get('/', (req, res) => {
+  res.json({
+    status: 'active',
+    message: 'FitWeb API is running',
+    version: '1.0.0',
+    timestamp: new Date().toISOString()
+  });
+});
+
 app.get('/api/healthcheck', (req, res) => {
   console.log('Healthcheck endpoint called');
   res.status(200).json({
@@ -155,7 +204,7 @@ setInterval(async () => {
   }
 }, 3600000);
 
-const PORT = process.env.PORT || 5000;
+const PORT = process.env.PORT || 5001;
 
 // Sunucuyu başlat
 const server = app.listen(PORT, () => {

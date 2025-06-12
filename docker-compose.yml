@@ -1,65 +1,73 @@
 version: '3.8'
 
 services:
-  backend:
-    build:
-      context: ./backend
-      dockerfile: Dockerfile
-    ports:
-      - "5000:5000"
-    environment:
-      NODE_ENV: development # Geliştirme ortamında çalışacak
-      MONGO_URI: mongodb+srv://vercel-admin-user-683d9c8fc28b1d02cdbf0cde:Jghty9ryJ1T7tlQx@furkankandemir.fzeog.mongodb.net/myFirstDatabase?retryWrites=true&w=majority # MongoDB için Docker ağı üzerinden erişim
-      JWT_SECRET: secret_key # Buraya güvenli bir JWT secret eklemelisiniz
-      # Diğer backend ortam değişkenlerinizi buraya ekleyin
-    volumes:
-      - ./backend:/app # Geliştirme sırasında kod değişikliklerini otomatik yansıtmak için
-      - /app/node_modules # node_modules klasörünü host'a bağlamayız
-    depends_on:
-      - mongo # Backend'in MongoDB'ye bağımlı olduğunu belirt
-
   frontend:
-    build:
-      context: ./frontend
-      dockerfile: Dockerfile
+    build: ./frontend
     ports:
-      - "80:80"
+      - "3000:3000"
     environment:
-      VITE_API_URL: https://denemebackend.vercel.app/api # Frontend'in Vercel'deki backend API'sine erişim adresi
-      # Diğer frontend ortam değişkenlerinizi buraya ekleyin
-    volumes:
-      - ./frontend:/app # Geliştirme sırasında kod değişikliklerini otomatik yansıtmak için
-      - /app/node_modules # node_modules klasörünü host'a bağlamayız
+      - REACT_APP_API_URL=http://localhost:5001
     depends_on:
-      - backend # Frontend'in backend'e bağımlı olduğunu belirt
+      - backend
+    networks:
+      - app-network
 
-  mongo:
+  backend:
+    build: ./backend
+    ports:
+      - "5001:5001"
+    environment:
+      - MONGO_URI=mongodb+srv://vercel-admin-user-683d9c8fc28b1d02cdbf0cde:Jghty9ryJ1T7tlQx@furkankandemir.fzeog.mongodb.net/myFirstDatabase?retryWrites=true&w=majority
+      - JWT_SECRET=secret_key
+      - RABBITMQ_URL=amqp://guest:guest@rabbitmq:5672
+      - REDIS_URL=redis://redis:6379
+    depends_on:
+      rabbitmq:
+        condition: service_healthy
+      mongodb:
+        condition: service_started
+      redis:
+        condition: service_started
+    networks:
+      - app-network
+
+  mongodb:
     image: mongo:latest
     ports:
       - "27017:27017"
     volumes:
-      - mongo_data:/data/db # Veritabanı verilerini kalıcı hale getirmek için
+      - mongodb_data:/data/db
+    networks:
+      - app-network
 
   rabbitmq:
     image: rabbitmq:3-management
     ports:
-      - "5672:5672"   # AMQP protocol port
-      - "15672:15672" # Management UI port
+      - "5672:5672"
+      - "15672:15672"
     environment:
-      - RABBITMQ_DEFAULT_USER=admin
-      - RABBITMQ_DEFAULT_PASS=admin123
+      - RABBITMQ_DEFAULT_USER=guest
+      - RABBITMQ_DEFAULT_PASS=guest
     volumes:
-      - rabbitmq_data:/var/lib/rabbitmq
+      - ./rabbitmq/definitions.json:/etc/rabbitmq/definitions.json
+    healthcheck:
+      test: ["CMD", "rabbitmqctl", "status"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
   redis:
     image: redis:latest
     ports:
       - "6379:6379"
-    volumes:
-      - redis_data:/data
-    command: redis-server --appendonly yes
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-  mongo_data:
-  rabbitmq_data:
-  redis_data: 
+  mongodb_data: 
