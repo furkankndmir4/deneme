@@ -882,11 +882,28 @@ const Dashboard = () => {
             sessionStorage.getItem("userToken");
           if (!token) return;
           const config = { headers: { Authorization: `Bearer ${token}` } };
-          const response = await axios.get(
+          
+          // Bekleyen istekleri al
+          const pendingResponse = await axios.get(
+            `${API_URL}/coaches/athlete-requests`,
+            config
+          );
+          
+          // Tüm sporcuları al
+          const athletesResponse = await axios.get(
             `${API_URL}/coaches/athletes`,
             config
           );
-          setAllAthletes(response.data);
+          
+          // Bekleyen istekleri ve mevcut sporcuları birleştir
+          const pendingAthletes = pendingResponse.data.map(request => ({
+            ...request.athlete,
+            status: 'pending',
+            requestId: request._id
+          }));
+          
+          const allAthletesData = [...pendingAthletes, ...athletesResponse.data];
+          setAllAthletes(allAthletesData);
         } catch (error) {
           setAllAthletes([]);
           console.error("Sporcular alınamadı:", error);
