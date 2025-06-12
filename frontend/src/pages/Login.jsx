@@ -35,54 +35,44 @@ const Login = () => {
 
       console.log("Login response:", response.data);
 
-      // API yanıtını kontrol et
-      if (!response.data || !response.data.token) {
-        throw new Error("Geçersiz API yanıtı");
+      if (response.data.token) {
+        // Önce eski verileri temizle
+        localStorage.removeItem("userToken");
+        localStorage.removeItem("user");
+        sessionStorage.removeItem("userToken");
+        sessionStorage.removeItem("user");
+        localStorage.removeItem("profileSetupDone");
+        sessionStorage.removeItem("profileSetupDone");
+
+        // Beni hatırla seçeneğine göre token'ı sakla
+        if (rememberMe) {
+          localStorage.setItem("userToken", response.data.token);
+          localStorage.setItem("user", JSON.stringify({
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            hasProfile: response.data.hasProfile,
+            hasPhysicalData: response.data.hasPhysicalData
+          }));
+          localStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+        } else {
+          sessionStorage.setItem("userToken", response.data.token);
+          sessionStorage.setItem("user", JSON.stringify({
+            _id: response.data._id,
+            email: response.data.email,
+            userType: response.data.userType,
+            hasProfile: response.data.hasProfile,
+            hasPhysicalData: response.data.hasPhysicalData
+          }));
+          sessionStorage.setItem("profileSetupDone", response.data.hasProfile ? "true" : "false");
+        }
+
+        // Kullanıcı tipine göre yönlendirme
+        navigate("/dashboard");
       }
-
-      // Önce eski verileri temizle
-      localStorage.removeItem("userToken");
-      localStorage.removeItem("user");
-      sessionStorage.removeItem("userToken");
-      sessionStorage.removeItem("user");
-      localStorage.removeItem("profileSetupDone");
-      sessionStorage.removeItem("profileSetupDone");
-
-      // Kullanıcı verilerini kontrol et
-      const userData = response.data.user || response.data;
-      if (!userData) {
-        throw new Error("Kullanıcı verileri bulunamadı");
-      }
-
-      // Profil ve fiziksel veri kontrolü
-      const hasProfile = Boolean(userData.profile && userData.profile.fullName);
-      const hasPhysicalData = Boolean(userData.physicalData);
-
-      // Kullanıcı verilerini hazırla
-      const userInfo = {
-        _id: userData._id,
-        email: userData.email,
-        userType: userData.userType,
-        hasProfile,
-        hasPhysicalData
-      };
-
-      // Beni hatırla seçeneğine göre token'ı sakla
-      if (rememberMe) {
-        localStorage.setItem("userToken", response.data.token);
-        localStorage.setItem("user", JSON.stringify(userInfo));
-        localStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
-      } else {
-        sessionStorage.setItem("userToken", response.data.token);
-        sessionStorage.setItem("user", JSON.stringify(userInfo));
-        sessionStorage.setItem("profileSetupDone", hasProfile ? "true" : "false");
-      }
-
-      // Kullanıcı tipine göre yönlendirme
-      navigate("/dashboard");
     } catch (error) {
       console.error("Login error:", error);
-      setError(error.response?.data?.message || error.message || "Giriş yapılırken bir hata oluştu");
+      setError(error.response?.data?.message || "Giriş yapılırken bir hata oluştu");
     } finally {
       setLoading(false);
     }
