@@ -139,11 +139,39 @@ const allowedOrigins = [
 
 // Yeni CORS yapılandırması
 app.use(cors({
-  origin: allowedOrigins,
+  origin: function (origin, callback) {
+    // Allow requests with no origin (like mobile apps or curl requests)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1 || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      console.error(`CORS blocked for origin: ${origin}`);
+      callback(new Error('Not allowed by CORS'));
+    }
+  },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'Accept'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'X-Requested-With'],
+  exposedHeaders: ['Content-Length', 'Authorization'],
+  maxAge: 86400 // 24 hours
 }));
+
+app.options('*', cors({
+  origin: allowedOrigins,
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
+
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.header('Access-Control-Allow-Methods', 'GET,PUT,POST,DELETE,OPTIONS');
+  res.header(
+    'Access-Control-Allow-Headers',
+    'Origin,X-Requested-With,Content-Type,Accept,Authorization'
+  );
+  next();
+});
 
 // JSON body parser
 app.use(express.json({ limit: '10mb' }));
