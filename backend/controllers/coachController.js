@@ -140,19 +140,13 @@ const listCoaches = asyncHandler(async (req, res) => {
         
         // Redis'ten önbelleğe alınmış veriyi kontrol et
         console.log('Redis\'ten veri kontrol ediliyor...');
-        let cachedCoaches = null;
-        try {
-            cachedCoaches = await redisService.get(CACHE_KEY);
-            console.log('Redis\'ten alınan veri:', cachedCoaches ? 'Var' : 'Yok');
-            
-            if (cachedCoaches) {
-                console.log('Veriler Redis önbelleğinden alındı');
-                console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
-                return res.json(cachedCoaches);
-            }
-        } catch (error) {
-            console.error('Redis\'ten veri alınamadı:', error);
-            console.error('Hata detayı:', error.message);
+        const cachedCoaches = await redisService.get(CACHE_KEY);
+        console.log('Redis\'ten alınan veri:', cachedCoaches ? 'Var' : 'Yok');
+        
+        if (cachedCoaches && Array.isArray(cachedCoaches)) {
+            console.log('Veriler Redis önbelleğinden alındı');
+            console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
+            return res.json(cachedCoaches);
         }
 
         console.log('Veriler veritabanından alınıyor...');
@@ -181,7 +175,6 @@ const listCoaches = asyncHandler(async (req, res) => {
             
             console.log('Redis\'e kaydedilecek veri hazırlandı');
             console.log('Redis\'e kaydedilecek antrenör sayısı:', coachesToCache.length);
-            console.log('Redis\'e kaydedilecek veri örneği:', JSON.stringify(coachesToCache[0], null, 2));
             
             // Önce Redis'teki eski veriyi sil
             await redisService.delete(CACHE_KEY);
@@ -196,12 +189,10 @@ const listCoaches = asyncHandler(async (req, res) => {
             console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
             if (verifyCache) {
                 console.log('Redis\'e kaydedilen antrenör sayısı:', verifyCache.length);
-                console.log('Redis\'ten okunan veri örneği:', JSON.stringify(verifyCache[0], null, 2));
             }
         } catch (error) {
             console.error('Redis\'e veri kaydedilemedi:', error);
             console.error('Hata detayı:', error.message);
-            console.error('Hata stack:', error.stack);
         }
 
         console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
