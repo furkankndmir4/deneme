@@ -36,7 +36,6 @@ const Login = () => {
       console.log("Login response:", response.data);
 
       if (response.data.token) {
-        // Önce eski verileri temizle
         localStorage.removeItem("userToken");
         localStorage.removeItem("user");
         sessionStorage.removeItem("userToken");
@@ -44,7 +43,6 @@ const Login = () => {
         localStorage.removeItem("profileSetupDone");
         sessionStorage.removeItem("profileSetupDone");
 
-        // Beni hatırla seçeneğine göre token'ı sakla
         if (rememberMe) {
           localStorage.setItem("userToken", response.data.token);
           localStorage.setItem("user", JSON.stringify({
@@ -65,7 +63,6 @@ const Login = () => {
           }));
         }
 
-        // Profil kurulumu kontrolü
         const profileSetupDone = response.data.profile && response.data.profile.fullName;
         if (rememberMe) {
           localStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
@@ -73,7 +70,6 @@ const Login = () => {
           sessionStorage.setItem("profileSetupDone", profileSetupDone ? "true" : "false");
         }
 
-        // Kullanıcı tipine göre yönlendirme
         navigate("/dashboard");
       } else {
         setError("Giriş başarısız. Lütfen bilgilerinizi kontrol edin.");
