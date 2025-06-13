@@ -56,18 +56,24 @@ const CoachList = () => {
   useEffect(() => {
     const fetchCoaches = async () => {
       try {
-        const response = await axios.get(`${API_URL}/api/users/coaches`, {
+        setLoading(true);
+        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
+
+        if (!token) {
+          navigate("/");
+          return;
+        }
+
+        const config = {
           headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+            Authorization: `Bearer ${token}`,
+          },
+        };
+
+        const response = await axios.get(`${API_URL}/users/coaches`, config);
 
         // Get user data to check existing relationships
-        const userResponse = await axios.get(`${API_URL}/api/users/profile`, {
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem('token')}`
-          }
-        });
+        const userResponse = await axios.get(`${API_URL}/users/profile`, config);
 
         const userData = userResponse.data;
         const coaches = response.data;
@@ -101,6 +107,8 @@ const CoachList = () => {
       } catch (error) {
         console.error('Error fetching coaches:', error);
         setError('Error fetching coaches');
+      } finally {
+        setLoading(false);
       }
     };
 
