@@ -142,10 +142,13 @@ const listCoaches = asyncHandler(async (req, res) => {
         console.log('Redis\'ten veri kontrol ediliyor...');
         const cachedCoaches = await redisService.get(CACHE_KEY);
         console.log('Redis\'ten alınan veri:', cachedCoaches ? 'Var' : 'Yok');
+        console.log('Redis\'ten alınan veri tipi:', cachedCoaches ? typeof cachedCoaches : 'null');
+        console.log('Redis\'ten alınan veri array mi:', cachedCoaches ? Array.isArray(cachedCoaches) : 'null');
         
         if (cachedCoaches && Array.isArray(cachedCoaches)) {
             console.log('Veriler Redis önbelleğinden alındı');
             console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
+            console.log('Önbellekten alınan ilk antrenör:', JSON.stringify(cachedCoaches[0], null, 2));
             return res.json(cachedCoaches);
         }
 
@@ -156,6 +159,7 @@ const listCoaches = asyncHandler(async (req, res) => {
             .populate('profile');
 
         console.log('Veritabanından alınan antrenör sayısı:', coaches.length);
+        console.log('Veritabanından alınan ilk antrenör:', JSON.stringify(coaches[0], null, 2));
 
         // Verileri Redis'e kaydet
         console.log('Veriler Redis\'e kaydediliyor...');
@@ -175,6 +179,7 @@ const listCoaches = asyncHandler(async (req, res) => {
             
             console.log('Redis\'e kaydedilecek veri hazırlandı');
             console.log('Redis\'e kaydedilecek antrenör sayısı:', coachesToCache.length);
+            console.log('Redis\'e kaydedilecek ilk antrenör:', JSON.stringify(coachesToCache[0], null, 2));
             
             // Önce Redis'teki eski veriyi sil
             await redisService.delete(CACHE_KEY);
@@ -189,6 +194,7 @@ const listCoaches = asyncHandler(async (req, res) => {
             console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
             if (verifyCache) {
                 console.log('Redis\'e kaydedilen antrenör sayısı:', verifyCache.length);
+                console.log('Redis\'ten okunan ilk antrenör:', JSON.stringify(verifyCache[0], null, 2));
             }
         } catch (error) {
             console.error('Redis\'e veri kaydedilemedi:', error);
