@@ -46,11 +46,9 @@ const FriendRequestsPage = () => {
 
       await axios.post(`${API_URL}/friends/accept/${requestId}`, {}, config);
       
-      // İsteği listeden kaldır
       setRequests(requests.filter(req => req._id !== requestId));
       setSuccess('Arkadaşlık isteği kabul edildi');
       
-      // Başarı mesajını 3 saniye sonra kaldır
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error('İstek kabul edilemedi:', error);
@@ -69,11 +67,9 @@ const FriendRequestsPage = () => {
 
       await axios.delete(`${API_URL}/friends/reject/${requestId}`, config);
       
-      // İsteği listeden kaldır
       setRequests(requests.filter(req => req._id !== requestId));
       setSuccess('Arkadaşlık isteği reddedildi');
       
-      // Başarı mesajını 3 saniye sonra kaldır
       setTimeout(() => setSuccess(null), 3000);
     } catch (error) {
       console.error('İstek reddedilemedi:', error);
