@@ -416,10 +416,10 @@ const Dashboard = () => {
       console.log("API response:", response.data);
 
       if (response.data) {
-        let updatedUserData = response.data.user;
+        let updatedUserData = response.data;
 
-        if (response.data.user.physicalDataHistory && response.data.user.physicalDataHistory.length > 0) {
-          const latestHistoryEntry = response.data.user.physicalDataHistory[0];
+        if (response.data.physicalDataHistory && response.data.physicalDataHistory.length > 0) {
+          const latestHistoryEntry = response.data.physicalDataHistory[0];
           updatedUserData.physicalData = {
             ...updatedUserData.physicalData,
             bodyFatChange: latestHistoryEntry.bodyFatChange,
@@ -434,7 +434,7 @@ const Dashboard = () => {
         localStorage.setItem("user", JSON.stringify(updatedUserData));
         sessionStorage.setItem("user", JSON.stringify(updatedUserData));
 
-        const profile = response.data.user?.profile;
+        const profile = response.data?.profile;
         const hasProfileData = profile &&
           profile.height !== undefined &&
           profile.weight !== undefined &&

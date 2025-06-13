@@ -188,6 +188,11 @@ const getUserProfile = async (req, res) => {
       user.physicalData = physicalData;
     }
 
+    // Get physical data history
+    const physicalDataHistory = await PhysicalDataHistory.find({ user: user._id })
+      .sort({ createdAt: -1 })
+      .limit(10);
+
     // Get coach's athletes if user is a coach
     let athletes = [];
     if (user.userType === 'coach') {
@@ -210,6 +215,7 @@ const getUserProfile = async (req, res) => {
       userType: user.userType,
       profile: user.profile || {},
       physicalData: user.physicalData || {},
+      physicalDataHistory: physicalDataHistory,
       coach: user.coach,
       athletes,
       trainingProgram,
