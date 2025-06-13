@@ -143,6 +143,8 @@ const listCoaches = asyncHandler(async (req, res) => {
         let cachedCoaches = null;
         try {
             cachedCoaches = await redisService.get(CACHE_KEY);
+            console.log('Redis\'ten alınan veri:', cachedCoaches ? 'Var' : 'Yok');
+            
             if (cachedCoaches) {
                 console.log('Veriler Redis önbelleğinden alındı');
                 console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
@@ -163,7 +165,14 @@ const listCoaches = asyncHandler(async (req, res) => {
         // Verileri Redis'e kaydet
         console.log('Veriler Redis\'e kaydediliyor...');
         try {
-            await redisService.set(CACHE_KEY, coaches, CACHE_DURATION);
+            const coachesToCache = coaches.map(coach => ({
+                ...coach.toObject(),
+                _id: coach._id.toString()
+            }));
+            
+            console.log('Redis\'e kaydedilecek veri hazırlandı');
+            await redisService.set(CACHE_KEY, coachesToCache, CACHE_DURATION);
+            console.log('Veriler Redis\'e kaydedildi');
 
             // Redis'ten tekrar okuyarak kontrol et
             const verifyCache = await redisService.get(CACHE_KEY);
