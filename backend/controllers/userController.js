@@ -203,11 +203,18 @@ const getUserProfile = async (req, res) => {
         .populate('createdBy', 'email profile');
     }
 
+    // Return the data in the structure that the frontend expects
     res.json({
-      user,
+      _id: user._id,
+      email: user.email,
+      userType: user.userType,
+      profile: user.profile || {},
+      physicalData: user.physicalData || {},
       coach: user.coach,
       athletes,
-      trainingProgram
+      trainingProgram,
+      isPrivate: user.profile?.privacy?.profileVisibility === 'private' || false,
+      friendsOnly: user.profile?.privacy?.profileVisibility === 'friends_only' || false
     });
   } catch (error) {
     console.error('Error in getUserProfile:', error);
