@@ -9,13 +9,19 @@ class RedisService {
   async connect() {
     try {
       console.log('Redis bağlantısı başlatılıyor...');
-      console.log('Redis URL:', process.env.REDIS_URL || 'redis://redis:6379');
+      const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
+      console.log('Redis URL:', redisUrl);
 
       this.client = createClient({
-        url: process.env.REDIS_URL || 'redis://redis:6379',
+        url: redisUrl,
         socket: {
-          tls: true,
-          rejectUnauthorized: false
+          reconnectStrategy: (retries) => {
+            if (retries > 10) {
+              console.log('Redis bağlantı denemesi başarısız oldu');
+              return new Error('Redis bağlantısı kurulamadı');
+            }
+            return Math.min(retries * 100, 3000);
+          }
         }
       });
 
@@ -36,6 +42,10 @@ class RedisService {
       this.client.on('end', () => {
         console.log('Redis Client Connection Ended');
         this.isConnected = false;
+      });
+
+      this.client.on('reconnecting', () => {
+        console.log('Redis Client Reconnecting...');
       });
 
       await this.client.connect();
