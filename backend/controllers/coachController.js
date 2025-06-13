@@ -143,14 +143,13 @@ const listCoaches = asyncHandler(async (req, res) => {
         let cachedCoaches = null;
         try {
             cachedCoaches = await redisService.get(CACHE_KEY);
+            if (cachedCoaches) {
+                console.log('Veriler Redis önbelleğinden alındı');
+                console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
+                return res.json(cachedCoaches);
+            }
         } catch (error) {
             console.error('Redis\'ten veri alınamadı:', error);
-        }
-        
-        if (cachedCoaches) {
-            console.log('Veriler Redis önbelleğinden alındı');
-            console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
-            return res.json(cachedCoaches);
         }
 
         console.log('Veriler veritabanından alınıyor...');

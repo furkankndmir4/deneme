@@ -12,10 +12,19 @@ class RedisService {
       const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
       console.log('Redis URL:', redisUrl);
 
+      // Önceki bağlantıyı kapat
+      if (this.client) {
+        console.log('Önceki Redis bağlantısı kapatılıyor...');
+        await this.client.quit();
+        this.client = null;
+        this.isConnected = false;
+      }
+
       this.client = createClient({
         url: redisUrl,
         socket: {
           reconnectStrategy: (retries) => {
+            console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
             if (retries > 10) {
               console.log('Redis bağlantı denemesi başarısız oldu');
               return new Error('Redis bağlantısı kurulamadı');
@@ -52,11 +61,19 @@ class RedisService {
       console.log('Redis bağlantısı başarılı');
 
       // Test verisi yaz
+      console.log('Redis test verisi yazılıyor...');
       await this.set('test', 'Redis bağlantısı çalışıyor');
       const testValue = await this.get('test');
       console.log('Redis test değeri:', testValue);
+
+      if (!testValue) {
+        throw new Error('Redis test verisi okunamadı');
+      }
+
+      return true;
     } catch (error) {
       console.error('Redis bağlantı hatası:', error);
+      this.isConnected = false;
       throw error;
     }
   }
@@ -64,7 +81,7 @@ class RedisService {
   async set(key, value, expireTime = null) {
     try {
       console.log(`Redis set işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected) {
+      if (!this.isConnected || !this.client) {
         console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
@@ -79,6 +96,7 @@ class RedisService {
       console.log(`Redis set işlemi başarılı - Key: ${key}`);
     } catch (error) {
       console.error('Redis set hatası:', error);
+      this.isConnected = false;
       throw error;
     }
   }
@@ -86,7 +104,7 @@ class RedisService {
   async get(key) {
     try {
       console.log(`Redis get işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected) {
+      if (!this.isConnected || !this.client) {
         console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
@@ -95,6 +113,7 @@ class RedisService {
       return value ? JSON.parse(value) : null;
     } catch (error) {
       console.error('Redis get hatası:', error);
+      this.isConnected = false;
       return null;
     }
   }
@@ -102,7 +121,7 @@ class RedisService {
   async delete(key) {
     try {
       console.log(`Redis delete işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected) {
+      if (!this.isConnected || !this.client) {
         console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
@@ -110,6 +129,7 @@ class RedisService {
       console.log(`Redis delete işlemi başarılı - Key: ${key}`);
     } catch (error) {
       console.error('Redis delete hatası:', error);
+      this.isConnected = false;
       throw error;
     }
   }
@@ -117,7 +137,7 @@ class RedisService {
   async increment(key) {
     try {
       console.log(`Redis increment işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected) {
+      if (!this.isConnected || !this.client) {
         console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
@@ -126,6 +146,7 @@ class RedisService {
       return result;
     } catch (error) {
       console.error('Redis increment hatası:', error);
+      this.isConnected = false;
       throw error;
     }
   }
@@ -133,7 +154,7 @@ class RedisService {
   async decrement(key) {
     try {
       console.log(`Redis decrement işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected) {
+      if (!this.isConnected || !this.client) {
         console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
@@ -142,6 +163,7 @@ class RedisService {
       return result;
     } catch (error) {
       console.error('Redis decrement hatası:', error);
+      this.isConnected = false;
       throw error;
     }
   }
