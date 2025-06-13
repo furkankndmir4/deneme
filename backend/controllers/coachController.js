@@ -165,12 +165,22 @@ const listCoaches = asyncHandler(async (req, res) => {
         // Verileri Redis'e kaydet
         console.log('Veriler Redis\'e kaydediliyor...');
         try {
-            const coachesToCache = coaches.map(coach => ({
-                ...coach.toObject(),
-                _id: coach._id.toString()
-            }));
+            const coachesToCache = coaches.map(coach => {
+                const coachObj = coach.toObject();
+                // MongoDB ObjectId'leri string'e çevir
+                coachObj._id = coachObj._id.toString();
+                if (coachObj.profile) {
+                    coachObj.profile = {
+                        ...coachObj.profile,
+                        _id: coachObj.profile._id.toString()
+                    };
+                }
+                return coachObj;
+            });
             
             console.log('Redis\'e kaydedilecek veri hazırlandı');
+            console.log('Redis\'e kaydedilecek antrenör sayısı:', coachesToCache.length);
+            
             await redisService.set(CACHE_KEY, coachesToCache, CACHE_DURATION);
             console.log('Veriler Redis\'e kaydedildi');
 
@@ -182,6 +192,7 @@ const listCoaches = asyncHandler(async (req, res) => {
             }
         } catch (error) {
             console.error('Redis\'e veri kaydedilemedi:', error);
+            console.error('Hata detayı:', error.message);
         }
 
         console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
