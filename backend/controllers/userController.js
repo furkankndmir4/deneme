@@ -175,7 +175,14 @@ const getUserProfile = async (req, res) => {
     const user = await User.findById(req.user.id)
       .populate('profile')
       .populate('physicalData')
-      .populate('coach', 'email profile')
+      .populate({
+        path: 'coach',
+        select: 'email profile userType',
+        populate: {
+          path: 'profile',
+          select: 'fullName photoUrl specialization coachNote'
+        }
+      })
       .populate('achievements');
 
     if (!user) {
