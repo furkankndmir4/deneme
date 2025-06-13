@@ -136,12 +136,15 @@ const listCoaches = asyncHandler(async (req, res) => {
         const CACHE_KEY = 'coaches';
         const CACHE_DURATION = 3600; // 1 saat
 
+        console.log('Antrenör listesi isteği alındı');
+        
         // Redis'ten önbelleğe alınmış veriyi kontrol et
         console.log('Redis\'ten veri kontrol ediliyor...');
         const cachedCoaches = await redisService.get(CACHE_KEY);
         
         if (cachedCoaches) {
             console.log('Veriler Redis önbelleğinden alındı');
+            console.log('Önbellekten alınan antrenör sayısı:', cachedCoaches.length);
             return res.json(cachedCoaches);
         }
 
@@ -151,6 +154,8 @@ const listCoaches = asyncHandler(async (req, res) => {
             .select('-password')
             .populate('profile');
 
+        console.log('Veritabanından alınan antrenör sayısı:', coaches.length);
+
         // Verileri Redis'e kaydet
         console.log('Veriler Redis\'e kaydediliyor...');
         await redisService.set(CACHE_KEY, coaches, CACHE_DURATION);
@@ -158,6 +163,9 @@ const listCoaches = asyncHandler(async (req, res) => {
         // Redis'ten tekrar okuyarak kontrol et
         const verifyCache = await redisService.get(CACHE_KEY);
         console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
+        if (verifyCache) {
+            console.log('Redis\'e kaydedilen antrenör sayısı:', verifyCache.length);
+        }
 
         console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
         res.json(coaches);
