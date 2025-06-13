@@ -2,80 +2,104 @@ const { createClient } = require('redis');
 
 class RedisService {
   constructor() {
+    if (RedisService.instance) {
+      return RedisService.instance;
+    }
+    RedisService.instance = this;
+    
     this.client = null;
     this.isConnected = false;
+    this.connectionPromise = null;
   }
 
   async connect() {
-    try {
-      console.log('Redis bağlantısı başlatılıyor...');
-      const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
-      console.log('Redis URL:', redisUrl);
-
-      // Önceki bağlantıyı kapat
-      if (this.client) {
-        console.log('Önceki Redis bağlantısı kapatılıyor...');
-        await this.client.quit();
-        this.client = null;
-        this.isConnected = false;
-      }
-
-      this.client = createClient({
-        url: redisUrl,
-        socket: {
-          reconnectStrategy: (retries) => {
-            console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
-            if (retries > 10) {
-              console.log('Redis bağlantı denemesi başarısız oldu');
-              return new Error('Redis bağlantısı kurulamadı');
-            }
-            return Math.min(retries * 100, 3000);
-          }
-        }
-      });
-
-      this.client.on('error', (err) => {
-        console.error('Redis Client Error:', err);
-        this.isConnected = false;
-      });
-
-      this.client.on('connect', () => {
-        console.log('Redis Client Connected');
-      });
-
-      this.client.on('ready', () => {
-        console.log('Redis Client Ready');
-        this.isConnected = true;
-      });
-
-      this.client.on('end', () => {
-        console.log('Redis Client Connection Ended');
-        this.isConnected = false;
-      });
-
-      this.client.on('reconnecting', () => {
-        console.log('Redis Client Reconnecting...');
-      });
-
-      await this.client.connect();
-      console.log('Redis bağlantısı başarılı');
-
-      // Test verisi yaz
-      console.log('Redis test verisi yazılıyor...');
-      await this.set('test', 'Redis bağlantısı çalışıyor');
-      const testValue = await this.get('test');
-      console.log('Redis test değeri:', testValue);
-
-      if (!testValue) {
-        throw new Error('Redis test verisi okunamadı');
-      }
-
+    // Eğer bağlantı zaten varsa ve aktifse, yeni bağlantı kurma
+    if (this.isConnected && this.client) {
+      console.log('Redis bağlantısı zaten aktif');
       return true;
-    } catch (error) {
-      console.error('Redis bağlantı hatası:', error);
-      this.isConnected = false;
-      throw error;
     }
+
+    // Eğer bağlantı kuruluyorsa, mevcut bağlantıyı bekle
+    if (this.connectionPromise) {
+      console.log('Redis bağlantısı kuruluyor, bekleniyor...');
+      return this.connectionPromise;
+    }
+
+    this.connectionPromise = (async () => {
+      try {
+        console.log('Redis bağlantısı başlatılıyor...');
+        const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
+        console.log('Redis URL:', redisUrl);
+
+        // Önceki bağlantıyı kapat
+        if (this.client) {
+          console.log('Önceki Redis bağlantısı kapatılıyor...');
+          await this.client.quit();
+          this.client = null;
+          this.isConnected = false;
+        }
+
+        this.client = createClient({
+          url: redisUrl,
+          socket: {
+            reconnectStrategy: (retries) => {
+              console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
+              if (retries > 10) {
+                console.log('Redis bağlantı denemesi başarısız oldu');
+                return new Error('Redis bağlantısı kurulamadı');
+              }
+              return Math.min(retries * 100, 3000);
+            }
+          }
+        });
+
+        this.client.on('error', (err) => {
+          console.error('Redis Client Error:', err);
+          this.isConnected = false;
+        });
+
+        this.client.on('connect', () => {
+          console.log('Redis Client Connected');
+        });
+
+        this.client.on('ready', () => {
+          console.log('Redis Client Ready');
+          this.isConnected = true;
+        });
+
+        this.client.on('end', () => {
+          console.log('Redis Client Connection Ended');
+          this.isConnected = false;
+        });
+
+        this.client.on('reconnecting', () => {
+          console.log('Redis Client Reconnecting...');
+        });
+
+        await this.client.connect();
+        console.log('Redis bağlantısı başarılı');
+
+        // Test verisi yaz
+        console.log('Redis test verisi yazılıyor...');
+        await this.set('test', 'Redis bağlantısı çalışıyor');
+        const testValue = await this.get('test');
+        console.log('Redis test değeri:', testValue);
+
+        if (!testValue) {
+          throw new Error('Redis test verisi okunamadı');
+        }
+
+        return true;
+      } catch (error) {
+        console.error('Redis bağlantı hatası:', error);
+        this.isConnected = false;
+        throw error;
+      } finally {
+        this.connectionPromise = null;
+      }
+    })();
+
+    return this.connectionPromise;
   }
 
   async set(key, value, expireTime = null) {
@@ -196,6 +220,7 @@ class RedisService {
       if (this.client) {
         await this.client.quit();
         this.isConnected = false;
+        this.client = null;
         console.log('Redis bağlantısı kapatıldı');
       }
     } catch (error) {
