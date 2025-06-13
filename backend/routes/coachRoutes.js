@@ -137,4 +137,33 @@ router.get('/athlete-relationships', protect, async (req, res) => {
   }
 });
 
+// Accept athlete relationship
+router.post('/athlete-relationships/:relationshipId/accept', protect, async (req, res) => {
+  try {
+    const relationship = await require('../models/coachAthleteRelationshipModel')
+      .findById(req.params.relationshipId);
+
+    if (!relationship) {
+      return res.status(404).json({ message: 'İlişki bulunamadı' });
+    }
+
+    if (relationship.coach.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: 'Bu işlem için yetkiniz yok' });
+    }
+
+    relationship.status = 'accepted';
+    await relationship.save();
+
+    // Update athlete's coach field
+    await require('../models/userModel').findByIdAndUpdate(
+      relationship.athlete,
+      { coach: req.user._id }
+    );
+
+    res.json({ message: 'İlişki kabul edildi' });
+  } catch (err) {
+    res.status(500).json({ message: 'İlişki kabul edilemedi', error: err.message });
+  }
+});
+
 module.exports = router;
