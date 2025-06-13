@@ -4,6 +4,7 @@ const TrainingProgram = require('../models/trainingProgramModel');
 const CoachAthleteRequest = require('../models/coachAthleteRequestModel');
 const CoachAthleteRelationship = require('../models/coachAthleteRelationshipModel');
 const asyncHandler = require('express-async-handler');
+const { redisClient } = require('../utils/redis');
 
 // @desc    Antrenör atletlerini listeleme
 // @route   GET /api/coaches/athletes
@@ -131,10 +132,42 @@ const getTrainingPrograms = asyncHandler(async (req, res) => {
 // @route   GET /api/coaches
 // @access  Private
 const listCoaches = asyncHandler(async (req, res) => {
-  const coaches = await User.find({ userType: 'coach' })
-    .select('-password')
-    .populate('profile');
-  res.json(coaches);
+    try {
+        const CACHE_KEY = 'coaches';
+        const CACHE_DURATION = 3600; // 1 saat
+
+        // Redis'ten önbelleğe alınmış veriyi kontrol et
+        console.log('Redis\'ten veri kontrol ediliyor...');
+        const cachedCoaches = await redisClient.get(CACHE_KEY);
+        
+        if (cachedCoaches) {
+            console.log('Veriler Redis önbelleğinden alındı');
+            return res.json(JSON.parse(cachedCoaches));
+        }
+
+        console.log('Veriler veritabanından alınıyor...');
+        // Veritabanından antrenörleri getir
+        const coaches = await User.find({ userType: 'coach' })
+            .select('-password')
+            .populate('profile');
+
+        // Verileri Redis'e kaydet
+        console.log('Veriler Redis\'e kaydediliyor...');
+        const coachesString = JSON.stringify(coaches);
+        await redisClient.set(CACHE_KEY, coachesString, {
+            EX: CACHE_DURATION
+        });
+
+        // Redis'ten tekrar okuyarak kontrol et
+        const verifyCache = await redisClient.get(CACHE_KEY);
+        console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
+
+        console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
+        res.json(coaches);
+    } catch (err) {
+        console.error('Antrenör listesi hatası:', err);
+        res.status(500).json({ message: 'Antrenörler alınamadı', error: err.message });
+    }
 });
     
 // @desc    Bekleyen sporcu isteklerini getir

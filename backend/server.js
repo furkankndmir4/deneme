@@ -21,6 +21,7 @@ const rabbitmqService = require('./services/rabbitmq.service');
 const redisService = require('./services/redis.service');
 const { createClient } = require('redis');
 const rateLimit = require('express-rate-limit');
+const { connectRedis } = require('./utils/redis');
 
 dotenv.config();
 
