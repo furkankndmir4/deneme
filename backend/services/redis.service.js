@@ -50,6 +50,11 @@ class RedisService {
 
       await this.client.connect();
       console.log('Redis bağlantısı başarılı');
+
+      // Test verisi yaz
+      await this.set('test', 'Redis bağlantısı çalışıyor');
+      const testValue = await this.get('test');
+      console.log('Redis test değeri:', testValue);
     } catch (error) {
       console.error('Redis bağlantı hatası:', error);
       throw error;
@@ -90,7 +95,7 @@ class RedisService {
       return value ? JSON.parse(value) : null;
     } catch (error) {
       console.error('Redis get hatası:', error);
-      throw error;
+      return null;
     }
   }
 

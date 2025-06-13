@@ -140,7 +140,12 @@ const listCoaches = asyncHandler(async (req, res) => {
         
         // Redis'ten önbelleğe alınmış veriyi kontrol et
         console.log('Redis\'ten veri kontrol ediliyor...');
-        const cachedCoaches = await redisService.get(CACHE_KEY);
+        let cachedCoaches = null;
+        try {
+            cachedCoaches = await redisService.get(CACHE_KEY);
+        } catch (error) {
+            console.error('Redis\'ten veri alınamadı:', error);
+        }
         
         if (cachedCoaches) {
             console.log('Veriler Redis önbelleğinden alındı');
@@ -158,13 +163,17 @@ const listCoaches = asyncHandler(async (req, res) => {
 
         // Verileri Redis'e kaydet
         console.log('Veriler Redis\'e kaydediliyor...');
-        await redisService.set(CACHE_KEY, coaches, CACHE_DURATION);
+        try {
+            await redisService.set(CACHE_KEY, coaches, CACHE_DURATION);
 
-        // Redis'ten tekrar okuyarak kontrol et
-        const verifyCache = await redisService.get(CACHE_KEY);
-        console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
-        if (verifyCache) {
-            console.log('Redis\'e kaydedilen antrenör sayısı:', verifyCache.length);
+            // Redis'ten tekrar okuyarak kontrol et
+            const verifyCache = await redisService.get(CACHE_KEY);
+            console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
+            if (verifyCache) {
+                console.log('Redis\'e kaydedilen antrenör sayısı:', verifyCache.length);
+            }
+        } catch (error) {
+            console.error('Redis\'e veri kaydedilemedi:', error);
         }
 
         console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
