@@ -84,7 +84,7 @@ const CoachList = () => {
           if (userData.coach && userData.coach._id === coach._id) {
             return {
               ...coach,
-              status: 'connected'
+              status: userData.coach.relationshipStatus === 'accepted' ? 'connected' : 'request_sent'
             };
           }
 
@@ -93,7 +93,7 @@ const CoachList = () => {
           if (existingRequest) {
             return {
               ...coach,
-              status: 'request_sent'
+              status: existingRequest.status === 'accepted' ? 'connected' : 'request_sent'
             };
           }
 
