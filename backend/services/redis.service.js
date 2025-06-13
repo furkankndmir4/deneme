@@ -8,17 +8,38 @@ class RedisService {
 
   async connect() {
     try {
+      console.log('Redis bağlantısı başlatılıyor...');
+      console.log('Redis URL:', process.env.REDIS_URL || 'redis://redis:6379');
+
       this.client = createClient({
-        url: process.env.REDIS_URL || 'redis://redis:6379'
+        url: process.env.REDIS_URL || 'redis://redis:6379',
+        socket: {
+          tls: true,
+          rejectUnauthorized: false
+        }
       });
 
-      this.client.on('error', (err) => console.error('Redis Client Error:', err));
+      this.client.on('error', (err) => {
+        console.error('Redis Client Error:', err);
+        this.isConnected = false;
+      });
+
       this.client.on('connect', () => {
-        console.log('Redis bağlantısı başarılı');
+        console.log('Redis Client Connected');
+      });
+
+      this.client.on('ready', () => {
+        console.log('Redis Client Ready');
         this.isConnected = true;
       });
 
+      this.client.on('end', () => {
+        console.log('Redis Client Connection Ended');
+        this.isConnected = false;
+      });
+
       await this.client.connect();
+      console.log('Redis bağlantısı başarılı');
     } catch (error) {
       console.error('Redis bağlantı hatası:', error);
       throw error;
@@ -27,15 +48,20 @@ class RedisService {
 
   async set(key, value, expireTime = null) {
     try {
+      console.log(`Redis set işlemi başlatıldı - Key: ${key}`);
       if (!this.isConnected) {
+        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
       const stringValue = JSON.stringify(value);
       if (expireTime) {
+        console.log(`Redis set işlemi - Key: ${key}, Expire: ${expireTime}s`);
         await this.client.set(key, stringValue, { EX: expireTime });
       } else {
+        console.log(`Redis set işlemi - Key: ${key}`);
         await this.client.set(key, stringValue);
       }
+      console.log(`Redis set işlemi başarılı - Key: ${key}`);
     } catch (error) {
       console.error('Redis set hatası:', error);
       throw error;
@@ -44,10 +70,13 @@ class RedisService {
 
   async get(key) {
     try {
+      console.log(`Redis get işlemi başlatıldı - Key: ${key}`);
       if (!this.isConnected) {
+        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
       const value = await this.client.get(key);
+      console.log(`Redis get işlemi tamamlandı - Key: ${key}, Value: ${value ? 'Var' : 'Yok'}`);
       return value ? JSON.parse(value) : null;
     } catch (error) {
       console.error('Redis get hatası:', error);
@@ -57,10 +86,13 @@ class RedisService {
 
   async delete(key) {
     try {
+      console.log(`Redis delete işlemi başlatıldı - Key: ${key}`);
       if (!this.isConnected) {
+        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
       await this.client.del(key);
+      console.log(`Redis delete işlemi başarılı - Key: ${key}`);
     } catch (error) {
       console.error('Redis delete hatası:', error);
       throw error;
@@ -69,10 +101,14 @@ class RedisService {
 
   async increment(key) {
     try {
+      console.log(`Redis increment işlemi başlatıldı - Key: ${key}`);
       if (!this.isConnected) {
+        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
-      return await this.client.incr(key);
+      const result = await this.client.incr(key);
+      console.log(`Redis increment işlemi başarılı - Key: ${key}, Result: ${result}`);
+      return result;
     } catch (error) {
       console.error('Redis increment hatası:', error);
       throw error;
@@ -81,10 +117,14 @@ class RedisService {
 
   async decrement(key) {
     try {
+      console.log(`Redis decrement işlemi başlatıldı - Key: ${key}`);
       if (!this.isConnected) {
+        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
         await this.connect();
       }
-      return await this.client.decr(key);
+      const result = await this.client.decr(key);
+      console.log(`Redis decrement işlemi başarılı - Key: ${key}, Result: ${result}`);
+      return result;
     } catch (error) {
       console.error('Redis decrement hatası:', error);
       throw error;
@@ -93,6 +133,7 @@ class RedisService {
 
   async close() {
     try {
+      console.log('Redis bağlantısı kapatılıyor...');
       if (this.client) {
         await this.client.quit();
         this.isConnected = false;
