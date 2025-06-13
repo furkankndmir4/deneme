@@ -183,6 +183,11 @@ const listCoaches = asyncHandler(async (req, res) => {
             console.log('Redis\'e kaydedilecek antrenör sayısı:', coachesToCache.length);
             console.log('Redis\'e kaydedilecek veri örneği:', JSON.stringify(coachesToCache[0], null, 2));
             
+            // Önce Redis'teki eski veriyi sil
+            await redisService.delete(CACHE_KEY);
+            console.log('Redis\'teki eski veri silindi');
+
+            // Yeni veriyi kaydet
             await redisService.set(CACHE_KEY, coachesToCache, CACHE_DURATION);
             console.log('Veriler Redis\'e kaydedildi');
 
