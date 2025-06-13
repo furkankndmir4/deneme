@@ -56,27 +56,51 @@ const CoachList = () => {
   useEffect(() => {
     const fetchCoaches = async () => {
       try {
-        setLoading(true);
-        const token = localStorage.getItem("userToken") || sessionStorage.getItem("userToken");
-
-        if (!token) {
-          navigate("/");
-          return;
-        }
-
-        const config = {
+        const response = await axios.get(`${API_URL}/api/users/coaches`, {
           headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        };
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
 
-        const response = await axios.get(`${API_URL}/coaches`, config);
-        setCoaches(response.data);
-      } catch (err) {
-        console.error("Coaches fetch error:", err);
-        setError("Antrenörler listesi yüklenemedi");
-      } finally {
-        setLoading(false);
+        // Get user data to check existing relationships
+        const userResponse = await axios.get(`${API_URL}/api/users/profile`, {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem('token')}`
+          }
+        });
+
+        const userData = userResponse.data;
+        const coaches = response.data;
+
+        // Check for existing relationships and requests
+        const coachesWithStatus = coaches.map(coach => {
+          // If user has a coach and it's this coach, show as connected
+          if (userData.coach && userData.coach._id === coach._id) {
+            return {
+              ...coach,
+              status: 'connected'
+            };
+          }
+
+          // Check if there's a pending request
+          const existingRequest = sentCoachRequests.find(req => req.coach._id === coach._id);
+          if (existingRequest) {
+            return {
+              ...coach,
+              status: 'request_sent'
+            };
+          }
+
+          return {
+            ...coach,
+            status: 'not_connected'
+          };
+        });
+
+        setCoaches(coachesWithStatus);
+      } catch (error) {
+        console.error('Error fetching coaches:', error);
+        setError('Error fetching coaches');
       }
     };
 

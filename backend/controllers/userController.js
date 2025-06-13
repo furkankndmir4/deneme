@@ -13,6 +13,7 @@ const Streak = require('../models/streakModel');
 const Measurement = require('../models/measurementModel');
 const rabbitmqService = require('../services/rabbitmq.service');
 const redisService = require('../services/redis.service');
+const CoachAthleteRelationship = require('../models/coachAthleteRelationshipModel');
 
 // NaN değerleri undefined olarak kaydetmek için yardımcı fonksiyon
 const safeNumber = (val) => (isNaN(val) ? undefined : val);
@@ -215,6 +216,15 @@ const getUserProfile = async (req, res) => {
         .populate('createdBy', 'email profile');
     }
 
+    // Get coach-athlete relationship status if user is an athlete
+    let coachRelationship = null;
+    if (user.userType === 'athlete' && user.coach) {
+      coachRelationship = await CoachAthleteRelationship.findOne({
+        coach: user.coach._id,
+        athlete: user._id
+      });
+    }
+
     // Return the data in the structure that the frontend expects
     res.json({
       _id: user._id,
@@ -223,7 +233,10 @@ const getUserProfile = async (req, res) => {
       profile: user.profile || {},
       physicalData: user.physicalData || {},
       physicalDataHistory: physicalDataHistory,
-      coach: user.coach,
+      coach: user.coach ? {
+        ...user.coach.toObject(),
+        relationshipStatus: coachRelationship?.status || 'accepted'
+      } : null,
       athletes,
       trainingProgram,
       isPrivate: user.profile?.privacy?.profileVisibility === 'private' || false,
