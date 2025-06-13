@@ -10,6 +10,8 @@ class RedisService {
     this.client = null;
     this.isConnected = false;
     this.connectionPromise = null;
+    this.retryCount = 0;
+    this.maxRetries = 3;
   }
 
   async connect() {
@@ -103,76 +105,90 @@ class RedisService {
   }
 
   async set(key, value, expireTime = null) {
-    try {
-      console.log(`Redis set işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected || !this.client) {
-        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
-        await this.connect();
+    let retryCount = 0;
+    while (retryCount < this.maxRetries) {
+      try {
+        console.log(`Redis set işlemi başlatıldı - Key: ${key}`);
+        if (!this.isConnected || !this.client) {
+          console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
+          await this.connect();
+        }
+        const stringValue = JSON.stringify(value);
+        console.log(`Redis set işlemi - Key: ${key}, Value length: ${stringValue.length}`);
+        
+        if (expireTime) {
+          console.log(`Redis set işlemi - Key: ${key}, Expire: ${expireTime}s`);
+          await this.client.set(key, stringValue, { EX: expireTime });
+        } else {
+          console.log(`Redis set işlemi - Key: ${key}`);
+          await this.client.set(key, stringValue);
+        }
+        console.log(`Redis set işlemi başarılı - Key: ${key}`);
+        return;
+      } catch (error) {
+        console.error(`Redis set hatası (deneme ${retryCount + 1}/${this.maxRetries}):`, error);
+        retryCount++;
+        if (retryCount === this.maxRetries) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
       }
-      const stringValue = JSON.stringify(value);
-      console.log(`Redis set işlemi - Key: ${key}, Value length: ${stringValue.length}`);
-      
-      if (expireTime) {
-        console.log(`Redis set işlemi - Key: ${key}, Expire: ${expireTime}s`);
-        await this.client.set(key, stringValue, { EX: expireTime });
-      } else {
-        console.log(`Redis set işlemi - Key: ${key}`);
-        await this.client.set(key, stringValue);
-      }
-      console.log(`Redis set işlemi başarılı - Key: ${key}`);
-    } catch (error) {
-      console.error('Redis set hatası:', error);
-      console.error('Hata detayı:', error.message);
-      console.error('Hata stack:', error.stack);
-      this.isConnected = false;
-      throw error;
     }
   }
 
   async get(key) {
-    try {
-      console.log(`Redis get işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected || !this.client) {
-        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
-        await this.connect();
-      }
-      const value = await this.client.get(key);
-      console.log(`Redis get işlemi tamamlandı - Key: ${key}, Value: ${value ? 'Var' : 'Yok'}`);
-      if (value) {
-        try {
-          const parsedValue = JSON.parse(value);
-          console.log(`Redis get işlemi - Key: ${key}, Value type: ${typeof parsedValue}, Is array: ${Array.isArray(parsedValue)}`);
-          return parsedValue;
-        } catch (parseError) {
-          console.error('Redis get parse hatası:', parseError);
-          return value;
+    let retryCount = 0;
+    while (retryCount < this.maxRetries) {
+      try {
+        console.log(`Redis get işlemi başlatıldı - Key: ${key}`);
+        if (!this.isConnected || !this.client) {
+          console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
+          await this.connect();
         }
+        const value = await this.client.get(key);
+        console.log(`Redis get işlemi tamamlandı - Key: ${key}, Value: ${value ? 'Var' : 'Yok'}`);
+        if (value) {
+          try {
+            const parsedValue = JSON.parse(value);
+            console.log(`Redis get işlemi - Key: ${key}, Value type: ${typeof parsedValue}, Is array: ${Array.isArray(parsedValue)}`);
+            return parsedValue;
+          } catch (parseError) {
+            console.error('Redis get parse hatası:', parseError);
+            return value;
+          }
+        }
+        return null;
+      } catch (error) {
+        console.error(`Redis get hatası (deneme ${retryCount + 1}/${this.maxRetries}):`, error);
+        retryCount++;
+        if (retryCount === this.maxRetries) {
+          return null;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
       }
-      return null;
-    } catch (error) {
-      console.error('Redis get hatası:', error);
-      console.error('Hata detayı:', error.message);
-      console.error('Hata stack:', error.stack);
-      this.isConnected = false;
-      return null;
     }
   }
 
   async delete(key) {
-    try {
-      console.log(`Redis delete işlemi başlatıldı - Key: ${key}`);
-      if (!this.isConnected || !this.client) {
-        console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
-        await this.connect();
+    let retryCount = 0;
+    while (retryCount < this.maxRetries) {
+      try {
+        console.log(`Redis delete işlemi başlatıldı - Key: ${key}`);
+        if (!this.isConnected || !this.client) {
+          console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
+          await this.connect();
+        }
+        await this.client.del(key);
+        console.log(`Redis delete işlemi başarılı - Key: ${key}`);
+        return;
+      } catch (error) {
+        console.error(`Redis delete hatası (deneme ${retryCount + 1}/${this.maxRetries}):`, error);
+        retryCount++;
+        if (retryCount === this.maxRetries) {
+          throw error;
+        }
+        await new Promise(resolve => setTimeout(resolve, 1000 * retryCount));
       }
-      await this.client.del(key);
-      console.log(`Redis delete işlemi başarılı - Key: ${key}`);
-    } catch (error) {
-      console.error('Redis delete hatası:', error);
-      console.error('Hata detayı:', error.message);
-      console.error('Hata stack:', error.stack);
-      this.isConnected = false;
-      throw error;
     }
   }
 
@@ -225,8 +241,6 @@ class RedisService {
       }
     } catch (error) {
       console.error('Redis bağlantı kapatma hatası:', error);
-      console.error('Hata detayı:', error.message);
-      console.error('Hata stack:', error.stack);
       throw error;
     }
   }
