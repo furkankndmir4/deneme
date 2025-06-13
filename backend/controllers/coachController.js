@@ -152,6 +152,7 @@ const listCoaches = asyncHandler(async (req, res) => {
             }
         } catch (error) {
             console.error('Redis\'ten veri alınamadı:', error);
+            console.error('Hata detayı:', error.message);
         }
 
         console.log('Veriler veritabanından alınıyor...');
@@ -180,6 +181,7 @@ const listCoaches = asyncHandler(async (req, res) => {
             
             console.log('Redis\'e kaydedilecek veri hazırlandı');
             console.log('Redis\'e kaydedilecek antrenör sayısı:', coachesToCache.length);
+            console.log('Redis\'e kaydedilecek veri örneği:', JSON.stringify(coachesToCache[0], null, 2));
             
             await redisService.set(CACHE_KEY, coachesToCache, CACHE_DURATION);
             console.log('Veriler Redis\'e kaydedildi');
@@ -189,10 +191,12 @@ const listCoaches = asyncHandler(async (req, res) => {
             console.log('Redis\'e kayıt başarılı mı:', !!verifyCache);
             if (verifyCache) {
                 console.log('Redis\'e kaydedilen antrenör sayısı:', verifyCache.length);
+                console.log('Redis\'ten okunan veri örneği:', JSON.stringify(verifyCache[0], null, 2));
             }
         } catch (error) {
             console.error('Redis\'e veri kaydedilemedi:', error);
             console.error('Hata detayı:', error.message);
+            console.error('Hata stack:', error.stack);
         }
 
         console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
