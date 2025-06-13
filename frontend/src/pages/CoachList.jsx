@@ -70,7 +70,7 @@ const CoachList = () => {
           },
         };
 
-        const response = await axios.get(`${API_URL}/users/coaches`, config);
+        const response = await axios.get(`${API_URL}/coaches`, config);
 
         // Get user data to check existing relationships
         const userResponse = await axios.get(`${API_URL}/users/profile`, config);
