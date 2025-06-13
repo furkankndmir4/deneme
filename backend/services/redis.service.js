@@ -86,6 +86,8 @@ class RedisService {
         await this.connect();
       }
       const stringValue = JSON.stringify(value);
+      console.log(`Redis set işlemi - Key: ${key}, Value length: ${stringValue.length}`);
+      
       if (expireTime) {
         console.log(`Redis set işlemi - Key: ${key}, Expire: ${expireTime}s`);
         await this.client.set(key, stringValue, { EX: expireTime });
@@ -96,6 +98,8 @@ class RedisService {
       console.log(`Redis set işlemi başarılı - Key: ${key}`);
     } catch (error) {
       console.error('Redis set hatası:', error);
+      console.error('Hata detayı:', error.message);
+      console.error('Hata stack:', error.stack);
       this.isConnected = false;
       throw error;
     }
@@ -110,9 +114,21 @@ class RedisService {
       }
       const value = await this.client.get(key);
       console.log(`Redis get işlemi tamamlandı - Key: ${key}, Value: ${value ? 'Var' : 'Yok'}`);
-      return value ? JSON.parse(value) : null;
+      if (value) {
+        try {
+          const parsedValue = JSON.parse(value);
+          console.log(`Redis get işlemi - Key: ${key}, Value type: ${typeof parsedValue}, Is array: ${Array.isArray(parsedValue)}`);
+          return parsedValue;
+        } catch (parseError) {
+          console.error('Redis get parse hatası:', parseError);
+          return value;
+        }
+      }
+      return null;
     } catch (error) {
       console.error('Redis get hatası:', error);
+      console.error('Hata detayı:', error.message);
+      console.error('Hata stack:', error.stack);
       this.isConnected = false;
       return null;
     }
@@ -129,6 +145,8 @@ class RedisService {
       console.log(`Redis delete işlemi başarılı - Key: ${key}`);
     } catch (error) {
       console.error('Redis delete hatası:', error);
+      console.error('Hata detayı:', error.message);
+      console.error('Hata stack:', error.stack);
       this.isConnected = false;
       throw error;
     }
@@ -146,6 +164,8 @@ class RedisService {
       return result;
     } catch (error) {
       console.error('Redis increment hatası:', error);
+      console.error('Hata detayı:', error.message);
+      console.error('Hata stack:', error.stack);
       this.isConnected = false;
       throw error;
     }
@@ -163,6 +183,8 @@ class RedisService {
       return result;
     } catch (error) {
       console.error('Redis decrement hatası:', error);
+      console.error('Hata detayı:', error.message);
+      console.error('Hata stack:', error.stack);
       this.isConnected = false;
       throw error;
     }
@@ -178,6 +200,8 @@ class RedisService {
       }
     } catch (error) {
       console.error('Redis bağlantı kapatma hatası:', error);
+      console.error('Hata detayı:', error.message);
+      console.error('Hata stack:', error.stack);
       throw error;
     }
   }
