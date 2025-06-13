@@ -19,9 +19,7 @@ const goalRoutes = require('./routes/goalRoutes');
 const User = require('./models/userModel');
 const rabbitmqService = require('./services/rabbitmq.service');
 const redisService = require('./services/redis.service');
-const { createClient } = require('redis');
 const rateLimit = require('express-rate-limit');
-const { connectRedis } = require('./utils/redis');
 
 dotenv.config();
 
@@ -65,8 +63,8 @@ app.use(cors({
 // MongoDB bağlantısını başlat
 connectDB();
 
-// Redis bağlantısı
-let redisClient = null;
+// Redis bağlantısını başlat
+redisService.connect();
 
 // Rate limiter yapılandırması
 const rateLimiter = rateLimit({
@@ -88,31 +86,6 @@ const rateLimiter = rateLimit({
     return req.ip;
   }
 });
-
-const connectRedis = async () => {
-  try {
-    // Docker veya Vercel ortamına göre Redis URL'ini belirle
-    const redisUrl = process.env.NODE_ENV === 'production' 
-      ? process.env.REDIS_URL 
-      : 'redis://redis:6379';
-
-    redisClient = createClient({
-      url: redisUrl
-    });
-
-    redisClient.on('error', (err) => {
-      console.warn('Redis bağlantı hatası:', err.message);
-    });
-
-    await redisClient.connect();
-    console.log('Redis bağlantısı başarılı');
-  } catch (error) {
-    console.warn('Redis bağlantısı kurulamadı:', error.message);
-  }
-};
-
-// Redis bağlantısını başlat
-connectRedis();
 
 // Rate limiter middleware'ini ekle
 app.use(rateLimiter);
