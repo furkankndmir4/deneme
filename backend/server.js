@@ -20,6 +20,7 @@ const User = require('./models/userModel');
 const rabbitmqService = require('./services/rabbitmq.service');
 const redisService = require('./services/redis.service');
 const rateLimit = require('express-rate-limit');
+const testRoutes = require('./routes/testRoutes');
 
 dotenv.config();
 
@@ -69,7 +70,7 @@ redisService.connect();
 // Rate limiter yapılandırması
 const rateLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 dakika
-  max: 100, // IP başına limit
+  max: 1000, // IP başına limit
   message: 'Çok fazla istek gönderdiniz, lütfen daha sonra tekrar deneyin.',
   standardHeaders: true,
   legacyHeaders: false,
@@ -105,19 +106,8 @@ const connectRabbitMQ = async () => {
       await rabbitmqService.connect(rabbitmqUrl);
       console.log('RabbitMQ bağlantısı başarılı');
 
-      // RabbitMQ mesaj dinleyicilerini başlat
-      await rabbitmqService.consume(rabbitmqService.queues.userRegistered, async (message) => {
-        console.log('Yeni kullanıcı kaydı:', message);
-      });
+      // RabbitMQ mesaj dinleyicilerini başlatma kısmı kaldırıldı, çünkü artık rabbitmqService içinde ele alınıyor.
 
-      await rabbitmqService.consume(rabbitmqService.queues.exerciseCompleted, async (message) => {
-        console.log('Egzersiz tamamlandı:', message);
-      });
-
-      await rabbitmqService.consume(rabbitmqService.queues.workoutCreated, async (message) => {
-        console.log('Yeni antrenman planı oluşturuldu:', message);
-      });
-      
       break;
     } catch (error) {
       retryCount++;
@@ -176,6 +166,7 @@ app.use('/api/achievements', achievementRoutes);
 app.use('/api/messages', messageRoutes);
 app.use('/api/leaderboard', leaderboardRoutes);
 app.use('/api/goals', goalRoutes);
+app.use('/api/test', testRoutes);
 
 // Hata yönetimi middleware'leri
 app.use(notFound);

@@ -3,6 +3,7 @@ const TrainingProgram = require('../models/trainingProgramModel');
 const User = require('../models/userModel');
 const asyncHandler = require('express-async-handler');
 const { addPoints } = require('../utils/points');
+const rabbitmqService = require('../services/rabbitmq.service');
 
 // @desc    Sporcunun mevcut antrenman programını getir
 // @route   GET /api/training-programs/current
@@ -135,6 +136,7 @@ const selectTrainingProgram = asyncHandler(async (req, res) => {
 // @route   POST /api/training-programs
 // @access  Private (Coach only)
 const createProgram = asyncHandler(async (req, res) => {
+  console.log('createProgram fonksiyonu çağrıldı.');
   const { 
     name, 
     description,
@@ -181,6 +183,23 @@ const createProgram = asyncHandler(async (req, res) => {
   if (program) {
     athlete.trainingProgram = program._id;
     await athlete.save();
+
+    console.log('RabbitMQ: Antrenman programı yayınlama başlatılıyor...');
+    // RabbitMQ'ya antrenman programı oluşturuldu mesajı gönder
+    await rabbitmqService.publishTrainingProgramCreated({
+      programId: program._id,
+      programName: program.name,
+      athleteId: athlete._id,
+      athleteEmail: athlete.email,
+      createdBy: program.createdBy,
+      difficultyLevel: program.difficultyLevel,
+      duration: program.duration,
+      programDays: program.programDays,
+      startDate: program.startDate,
+      timestamp: new Date().toISOString()
+    });
+    console.log('RabbitMQ: Antrenman programı yayınlama tamamlandı.');
+
     const populatedProgram = await TrainingProgram.findById(program._id)
       .populate('createdBy', 'email')
       .populate('athlete', 'email userType')

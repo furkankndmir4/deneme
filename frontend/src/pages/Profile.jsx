@@ -11,9 +11,7 @@ import { Trophy } from "lucide-react";
 import { useRef } from "react";
 import allBadges from '../data/achievements.json';
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Profile = () => {
   const fileInputRef = useRef();

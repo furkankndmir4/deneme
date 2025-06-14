@@ -2,9 +2,7 @@ import { useState, useEffect } from "react";
 import axios from "axios";
 import { Link } from "react-router-dom";
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Leaderboard = () => {
   const [leaderboard, setLeaderboard] = useState([]);

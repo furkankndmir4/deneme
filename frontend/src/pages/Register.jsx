@@ -2,9 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const Register = () => {
   const [email, setEmail] = useState('');

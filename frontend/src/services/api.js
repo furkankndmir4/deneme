@@ -1,9 +1,7 @@
 import axios from 'axios';
 
 // API URL'ini environment variable'dan al, yoksa production URL'ini kullan
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 console.log('API URL:', API_URL); // Debug için
 

@@ -4,99 +4,115 @@ class RabbitMQService {
     constructor() {
         this.connection = null;
         this.channel = null;
-        this.queues = {
-            userRegistered: 'user_registered',
-            exerciseCompleted: 'exercise_completed',
-            workoutCreated: 'workout_created'
-        };
-        this.exchanges = {
-            userEvents: 'user_events',
-            exerciseEvents: 'exercise_events',
-            workoutEvents: 'workout_events'
-        };
+        this.isConnected = false;
+        this.connectionPromise = null;
     }
 
-    async connect(url) {
-        try {
-            this.connection = await amqp.connect(url);
-            this.channel = await this.connection.createChannel();
+    async connect() {
+        if (this.isConnected) return;
 
-            // Exchange'leri oluştur
-            await this.channel.assertExchange(this.exchanges.userEvents, 'direct', { durable: true });
-            await this.channel.assertExchange(this.exchanges.exerciseEvents, 'direct', { durable: true });
-            await this.channel.assertExchange(this.exchanges.workoutEvents, 'direct', { durable: true });
+        if (this.connectionPromise) {
+            return this.connectionPromise;
+        }
 
-            // Kuyrukları oluştur
-            await this.channel.assertQueue(this.queues.userRegistered, { durable: true });
-            await this.channel.assertQueue(this.queues.exerciseCompleted, { durable: true });
-            await this.channel.assertQueue(this.queues.workoutCreated, { durable: true });
+        this.connectionPromise = new Promise(async (resolve, reject) => {
+            try {
+                // RabbitMQ bağlantı URL'si
+                const url = process.env.RABBITMQ_URL || 'amqp://localhost:5672';
+                
+                console.log('RabbitMQ bağlantısı başlatılıyor...');
+                this.connection = await amqp.connect(url);
+                console.log('RabbitMQ bağlantısı başarılı');
 
-            // Binding'leri oluştur
-            await this.channel.bindQueue(this.queues.userRegistered, this.exchanges.userEvents, 'user.registered');
-            await this.channel.bindQueue(this.queues.exerciseCompleted, this.exchanges.exerciseEvents, 'exercise.completed');
-            await this.channel.bindQueue(this.queues.workoutCreated, this.exchanges.workoutEvents, 'workout.created');
+                this.connection.on('error', (err) => {
+                    console.error('RabbitMQ bağlantı hatası:', err);
+                    this.isConnected = false;
+                    this.connection = null;
+                    this.channel = null;
+                });
 
-            console.log('RabbitMQ bağlantısı başarılı');
-        } catch (error) {
-            console.error('RabbitMQ bağlantı hatası:', error);
-            throw error;
+                this.connection.on('close', () => {
+                    console.log('RabbitMQ bağlantısı kapandı');
+                    this.isConnected = false;
+                    this.connection = null;
+                    this.channel = null;
+                });
+
+                this.channel = await this.connection.createChannel();
+                console.log('RabbitMQ kanalı oluşturuldu');
+
+                // Exchange'leri tanımla
+                await this.channel.assertExchange('training_programs', 'topic', {
+                    durable: true
+                });
+
+                // Kuyruğu tanımla
+                await this.channel.assertQueue('training_program_events', { durable: true });
+                console.log('Kuyruk oluşturuldu: training_program_events');
+
+                // Kuyruğu exchange'e bağla
+                await this.channel.bindQueue('training_program_events', 'training_programs', 'program.created');
+                console.log('Kuyruk exchange bağlandı');
+
+                this.isConnected = true;
+                resolve();
+            } catch (error) {
+                console.error('RabbitMQ bağlantı hatası:', error);
+                this.isConnected = false;
+                this.connection = null;
+                this.channel = null;
+                reject(error);
+            } finally {
+                this.connectionPromise = null;
+            }
+        });
+
+        return this.connectionPromise;
+    }
+
+    async ensureConnection() {
+        if (!this.isConnected) {
+            await this.connect();
         }
     }
 
-    async publish(exchange, routingKey, message) {
+    async publishTrainingProgramCreated(program) {
         try {
-            if (!this.channel) {
-                throw new Error('RabbitMQ kanalı oluşturulmamış');
-            }
+            await this.ensureConnection();
+            
+            const message = Buffer.from(JSON.stringify(program));
             await this.channel.publish(
-                exchange,
-                routingKey,
-                Buffer.from(JSON.stringify(message)),
-                { persistent: true }
-            );
-        } catch (error) {
-            console.error('Mesaj yayınlama hatası:', error);
-            throw error;
-        }
-    }
-
-    async consume(queue, callback) {
-        try {
-            if (!this.channel) {
-                throw new Error('RabbitMQ kanalı oluşturulmamış');
-            }
-            await this.channel.consume(queue, async (msg) => {
-                if (msg !== null) {
-                    try {
-                        const content = JSON.parse(msg.content.toString());
-                        await callback(content);
-                        this.channel.ack(msg);
-                    } catch (error) {
-                        console.error('Mesaj işleme hatası:', error);
-                        this.channel.nack(msg, false, true);
-                    }
+                'training_programs',
+                'program.created',
+                message,
+                {
+                    persistent: true,
+                    contentType: 'application/json',
+                    timestamp: Date.now()
                 }
-            });
+            );
+
+            console.log('Antrenman programı RabbitMQ\'ya gönderildi:', program.name);
         } catch (error) {
-            console.error('Mesaj dinleme hatası:', error);
+            console.error('RabbitMQ mesaj gönderme hatası:', error);
             throw error;
         }
     }
 
     async close() {
-        try {
-            if (this.channel) {
-                await this.channel.close();
-            }
-            if (this.connection) {
-                await this.connection.close();
-            }
-            console.log('RabbitMQ bağlantısı kapatıldı');
-        } catch (error) {
-            console.error('RabbitMQ bağlantısını kapatma hatası:', error);
-            throw error;
+        if (this.channel) {
+            await this.channel.close();
         }
+        if (this.connection) {
+            await this.connection.close();
+        }
+        this.isConnected = false;
+        this.connection = null;
+        this.channel = null;
     }
 }
 
-module.exports = new RabbitMQService(); 
+// Singleton instance
+const rabbitmqService = new RabbitMQService();
+
+module.exports = rabbitmqService; 

@@ -4,9 +4,7 @@ import { useNavigate, useLocation, Link, useParams } from "react-router-dom";
 import axios from "axios";
 import Modal from "../components/Modal";
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const ProgramCreator = () => {
   const navigate = useNavigate();

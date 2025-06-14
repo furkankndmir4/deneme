@@ -4,9 +4,7 @@ import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
 import React from "react";
 
-const API_URL = process.env.NODE_ENV === 'development' 
-  ? 'http://localhost:5000/api'
-  : 'https://denemebackend.vercel.app/api';
+const API_URL = import.meta.env.VITE_API_URL;
 
 const CoachList = () => {
   const [coaches, setCoaches] = useState([]);

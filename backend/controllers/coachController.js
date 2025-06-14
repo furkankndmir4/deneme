@@ -202,7 +202,7 @@ const listCoaches = asyncHandler(async (req, res) => {
         }
 
         console.log('Veriler veritabanından alındı ve Redis\'e kaydedildi');
-        res.json(coaches);
+  res.json(coaches);
     } catch (err) {
         console.error('Antrenör listesi hatası:', err);
         res.status(500).json({ message: 'Antrenörler alınamadı', error: err.message });

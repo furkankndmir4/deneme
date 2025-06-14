@@ -30,20 +30,12 @@ class RedisService {
     this.connectionPromise = (async () => {
       try {
         console.log('Redis bağlantısı başlatılıyor...');
-        const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
+        // Docker Compose için Redis URL'si
+        const redisUrl = process.env.NODE_ENV === 'production' 
+          ? process.env.REDIS_URL 
+          : 'redis://redis:6379';  // Docker servis adı: redis
         
-        // Redis URL kontrolü ve düzeltme
-        let finalRedisUrl = redisUrl;
-        if (redisUrl.includes('redns.redis-cloud.com')) {
-          // Redis Cloud URL'si için özel işlem
-          if (!redisUrl.startsWith('rediss://')) {
-            console.warn('Redis Cloud URL\'si rediss:// ile başlamıyor. Düzeltiliyor...');
-            finalRedisUrl = redisUrl.replace('redis://', 'rediss://');
-          }
-          console.log('Redis Cloud URL\'si düzeltildi');
-        }
-
-        console.log('Kullanılan Redis URL:', finalRedisUrl.replace(/:[^:@]+@/, ':****@')); // Şifreyi gizle
+        console.log('Redis URL:', redisUrl);
 
         // Önceki bağlantıyı kapat
         if (this.client) {
@@ -54,44 +46,22 @@ class RedisService {
         }
 
         this.client = createClient({
-          url: finalRedisUrl,
+          url: redisUrl,
           socket: {
-            tls: true,
-            rejectUnauthorized: false,
-            connectTimeout: 10000,
-            keepAlive: 5000,
-            noDelay: true,
             reconnectStrategy: (retries) => {
               console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
-              if (retries > 10) {
+              if (retries > 3) {
                 console.log('Redis bağlantı denemesi başarısız oldu');
                 return new Error('Redis bağlantısı kurulamadı');
               }
-              return Math.min(retries * 100, 3000);
+              return Math.min(retries * 1000, 3000);
             }
-          },
-          commandsQueueMaxLength: 1000,
-          isolationPoolOptions: {
-            min: 0,
-            max: 10
-          },
-          legacyMode: false,
-          protocol: 'redis',
-          retryStrategy: (times) => {
-            console.log(`Redis retry strategy - attempt ${times}`);
-            if (times > 3) {
-              console.log('Redis retry limit reached');
-              return null;
-            }
-            return Math.min(times * 1000, 3000);
           }
         });
 
         // Redis bağlantı olaylarını dinle
         this.client.on('error', (err) => {
           console.error('Redis Client Error:', err);
-          console.error('Hata detayı:', err.message);
-          console.error('Hata stack:', err.stack);
           this.isConnected = false;
         });
 
@@ -114,30 +84,14 @@ class RedisService {
         });
 
         // Bağlantıyı başlat
-        try {
-          console.log('Redis bağlantısı deneniyor...');
-          await this.client.connect();
-          console.log('Redis bağlantısı başarılı');
-
-          // Test bağlantısı
-          console.log('Redis test bağlantısı yapılıyor...');
-          await this.client.ping();
-          console.log('Redis ping başarılı');
-        } catch (error) {
-          console.error('Redis bağlantı hatası:', error);
-          console.error('Bağlantı hatası detayı:', error.message);
-          throw error;
-        }
+        await this.client.connect();
+        console.log('Redis bağlantısı başarılı');
 
         // Test verisi yaz
         console.log('Redis test verisi yazılıyor...');
         await this.set('test', 'Redis bağlantısı çalışıyor');
         const testValue = await this.get('test');
         console.log('Redis test değeri:', testValue);
-
-        if (!testValue) {
-          throw new Error('Redis test verisi okunamadı');
-        }
 
         return true;
       } catch (error) {
