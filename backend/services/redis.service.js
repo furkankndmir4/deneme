@@ -33,6 +33,11 @@ class RedisService {
         const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
         console.log('Redis URL:', redisUrl);
 
+        // Redis URL kontrolü
+        if (!redisUrl.startsWith('rediss://')) {
+          console.warn('Redis URL rediss:// ile başlamıyor. TLS bağlantısı için rediss:// kullanılmalıdır.');
+        }
+
         // Önceki bağlantıyı kapat
         if (this.client) {
           console.log('Önceki Redis bağlantısı kapatılıyor...');
@@ -46,6 +51,8 @@ class RedisService {
           socket: {
             tls: true,
             rejectUnauthorized: false,
+            connectTimeout: 10000,
+            keepAlive: 5000,
             reconnectStrategy: (retries) => {
               console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
               if (retries > 10) {
@@ -57,8 +64,11 @@ class RedisService {
           }
         });
 
+        // Redis bağlantı olaylarını dinle
         this.client.on('error', (err) => {
           console.error('Redis Client Error:', err);
+          console.error('Hata detayı:', err.message);
+          console.error('Hata stack:', err.stack);
           this.isConnected = false;
         });
 
@@ -80,6 +90,7 @@ class RedisService {
           console.log('Redis Client Reconnecting...');
         });
 
+        // Bağlantıyı başlat
         await this.client.connect();
         console.log('Redis bağlantısı başarılı');
 
