@@ -44,6 +44,8 @@ class RedisService {
         this.client = createClient({
           url: redisUrl,
           socket: {
+            tls: true,
+            rejectUnauthorized: false,
             reconnectStrategy: (retries) => {
               console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
               if (retries > 10) {
@@ -108,13 +110,13 @@ class RedisService {
     let retryCount = 0;
     while (retryCount < this.maxRetries) {
       try {
-        console.log(`Redis set işlemi başlatıldı - Key: ${key}`);
+        console.log(`Redis set işlemi başlatıldı - Key: ${key}, Value type: ${typeof value}, Is array: ${Array.isArray(value)}`);
         if (!this.isConnected || !this.client) {
           console.log('Redis bağlantısı yok, yeniden bağlanılıyor...');
           await this.connect();
         }
         const stringValue = JSON.stringify(value);
-        console.log(`Redis set işlemi - Key: ${key}, Value length: ${stringValue.length}`);
+        console.log(`Redis set işlemi - Key: ${key}, Value length: ${stringValue.length}, Expire time: ${expireTime || 'none'}`);
         
         if (expireTime) {
           console.log(`Redis set işlemi - Key: ${key}, Expire: ${expireTime}s`);
@@ -127,6 +129,8 @@ class RedisService {
         return;
       } catch (error) {
         console.error(`Redis set hatası (deneme ${retryCount + 1}/${this.maxRetries}):`, error);
+        console.error('Hata detayı:', error.message);
+        console.error('Hata stack:', error.stack);
         retryCount++;
         if (retryCount === this.maxRetries) {
           throw error;

@@ -154,9 +154,9 @@ const listCoaches = asyncHandler(async (req, res) => {
 
         console.log('Veriler veritabanından alınıyor...');
         // Veritabanından antrenörleri getir
-        const coaches = await User.find({ userType: 'coach' })
-            .select('-password')
-            .populate('profile');
+  const coaches = await User.find({ userType: 'coach' })
+    .select('-password')
+    .populate('profile');
 
         console.log('Veritabanından alınan antrenör sayısı:', coaches.length);
         console.log('Veritabanından alınan ilk antrenör:', JSON.stringify(coaches[0], null, 2));
