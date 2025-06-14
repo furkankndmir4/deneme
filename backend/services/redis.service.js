@@ -34,13 +34,16 @@ class RedisService {
         
         // Redis URL kontrolü ve düzeltme
         let finalRedisUrl = redisUrl;
-        if (!redisUrl.startsWith('rediss://')) {
-          console.warn('Redis URL rediss:// ile başlamıyor. TLS bağlantısı için düzeltiliyor...');
-          finalRedisUrl = redisUrl.replace('redis://', 'rediss://');
-          console.log('Düzeltilmiş Redis URL:', finalRedisUrl);
+        if (redisUrl.includes('redns.redis-cloud.com')) {
+          // Redis Cloud URL'si için özel işlem
+          if (!redisUrl.startsWith('rediss://')) {
+            console.warn('Redis Cloud URL\'si rediss:// ile başlamıyor. Düzeltiliyor...');
+            finalRedisUrl = redisUrl.replace('redis://', 'rediss://');
+          }
+          console.log('Redis Cloud URL\'si düzeltildi');
         }
 
-        console.log('Kullanılan Redis URL:', finalRedisUrl);
+        console.log('Kullanılan Redis URL:', finalRedisUrl.replace(/:[^:@]+@/, ':****@')); // Şifreyi gizle
 
         // Önceki bağlantıyı kapat
         if (this.client) {
@@ -71,6 +74,16 @@ class RedisService {
           isolationPoolOptions: {
             min: 0,
             max: 10
+          },
+          legacyMode: false,
+          protocol: 'redis',
+          retryStrategy: (times) => {
+            console.log(`Redis retry strategy - attempt ${times}`);
+            if (times > 3) {
+              console.log('Redis retry limit reached');
+              return null;
+            }
+            return Math.min(times * 1000, 3000);
           }
         });
 
@@ -102,8 +115,14 @@ class RedisService {
 
         // Bağlantıyı başlat
         try {
+          console.log('Redis bağlantısı deneniyor...');
           await this.client.connect();
           console.log('Redis bağlantısı başarılı');
+
+          // Test bağlantısı
+          console.log('Redis test bağlantısı yapılıyor...');
+          await this.client.ping();
+          console.log('Redis ping başarılı');
         } catch (error) {
           console.error('Redis bağlantı hatası:', error);
           console.error('Bağlantı hatası detayı:', error.message);
