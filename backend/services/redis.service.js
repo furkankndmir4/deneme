@@ -31,12 +31,16 @@ class RedisService {
       try {
         console.log('Redis bağlantısı başlatılıyor...');
         const redisUrl = process.env.REDIS_URL || 'redis://redis:6379';
-        console.log('Redis URL:', redisUrl);
-
-        // Redis URL kontrolü
+        
+        // Redis URL kontrolü ve düzeltme
+        let finalRedisUrl = redisUrl;
         if (!redisUrl.startsWith('rediss://')) {
-          console.warn('Redis URL rediss:// ile başlamıyor. TLS bağlantısı için rediss:// kullanılmalıdır.');
+          console.warn('Redis URL rediss:// ile başlamıyor. TLS bağlantısı için düzeltiliyor...');
+          finalRedisUrl = redisUrl.replace('redis://', 'rediss://');
+          console.log('Düzeltilmiş Redis URL:', finalRedisUrl);
         }
+
+        console.log('Kullanılan Redis URL:', finalRedisUrl);
 
         // Önceki bağlantıyı kapat
         if (this.client) {
@@ -47,12 +51,13 @@ class RedisService {
         }
 
         this.client = createClient({
-          url: redisUrl,
+          url: finalRedisUrl,
           socket: {
             tls: true,
             rejectUnauthorized: false,
             connectTimeout: 10000,
             keepAlive: 5000,
+            noDelay: true,
             reconnectStrategy: (retries) => {
               console.log(`Redis yeniden bağlanma denemesi: ${retries}`);
               if (retries > 10) {
@@ -61,6 +66,11 @@ class RedisService {
               }
               return Math.min(retries * 100, 3000);
             }
+          },
+          commandsQueueMaxLength: 1000,
+          isolationPoolOptions: {
+            min: 0,
+            max: 10
           }
         });
 
@@ -91,8 +101,14 @@ class RedisService {
         });
 
         // Bağlantıyı başlat
-        await this.client.connect();
-        console.log('Redis bağlantısı başarılı');
+        try {
+          await this.client.connect();
+          console.log('Redis bağlantısı başarılı');
+        } catch (error) {
+          console.error('Redis bağlantı hatası:', error);
+          console.error('Bağlantı hatası detayı:', error.message);
+          throw error;
+        }
 
         // Test verisi yaz
         console.log('Redis test verisi yazılıyor...');
